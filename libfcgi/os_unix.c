@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.2 1998/09/09 00:57:15 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.3 1998/12/04 02:57:35 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -1096,15 +1096,18 @@ int OS_IpcClose(int ipcFd)
  */
 int OS_IsFcgi()
 {
-    int type = 0;
-    int len = sizeof(type);
+	union {
+        struct sockaddr_in in;
+        struct sockaddr_un un;
+    } sa;
+    int len = sizeof(sa);
 
-    if (getsockopt(FCGI_LISTENSOCK_FILENO, SOL_SOCKET, 
-                   SO_TYPE, (char *)&type, &len) == 0) {
+    if (getpeername(FCGI_LISTENSOCK_FILENO, (struct sockaddr *)&sa, &len) != 0 
+            && errno == ENOTCONN)
         isFastCGI = TRUE;
-    } else {
+    else
         isFastCGI = FALSE;
-    }
+        
     return (isFastCGI);
 }
 
