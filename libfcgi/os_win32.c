@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.17 2001/06/20 02:01:51 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.18 2001/06/20 17:02:09 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -223,9 +223,12 @@ static int Win32NewDescriptor(FILE_TYPE type, int fd, int desiredFd)
 static void StdinThread(LPDWORD startup){
 
     int doIo = TRUE;
-    int fd;
-    int bytesRead;
+    unsigned long fd;
+    unsigned long bytesRead;
     POVERLAPPED_REQUEST pOv;
+
+    // Touch the arg to prevent warning
+    startup = NULL;
 
     while(doIo) {
         /*
@@ -265,7 +268,7 @@ static DWORD WINAPI ShutdownRequestThread(LPVOID arg)
     if (WaitForSingleObject(shutdownEvent, INFINITE) == WAIT_FAILED)
     {
         // Assuming it will happen again, all we can do is exit the thread
-        return -1;
+        return 1;
     }
     else
     {
@@ -651,7 +654,7 @@ static short getPort(const char * bindPath)
         strncpy(buf, p, 6);
         buf[5] = '\0';
 
-        port = atoi(buf);
+        port = (short) atoi(buf);
     }
  
     return port;
@@ -1440,8 +1443,8 @@ int OS_CloseRead(int fd)
  */
 int OS_DoIo(struct timeval *tmo)
 {
-    int fd;
-    int bytes;
+    unsigned long fd;
+    unsigned long bytes;
     POVERLAPPED_REQUEST pOv;
     struct timeb tb;
     int ms;
@@ -1495,6 +1498,9 @@ static int CALLBACK isAddrOK(LPWSABUF  lpCallerId,
 {
     const char *okAddrs = (char *) dwCallbackData;
     struct sockaddr *sockaddr = (struct sockaddr *) lpCallerId->buf;
+
+    // Touch the args to avoid warnings
+    dc0 = NULL; dc1 = NULL; dc2 = NULL; dc3 = NULL; dc4 = NULL; dc5 = NULL;
 
     if (okAddrs == NULL || sockaddr->sa_family != AF_INET)
     {
@@ -1670,6 +1676,9 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 {
     int ipcFd = -1;
 
+    // Touch args to prevent warnings
+    listen_sock = 0; fail_on_intr = 0;
+
     // @todo Muliple listen sockets and sockets other than 0 are not
     // supported due to the use of globals.
 
@@ -1790,6 +1799,9 @@ int OS_IpcClose(int ipcFd)
  */
 int OS_IsFcgi(int sock)
 {
+    // Touch args to prevent warnings
+    sock = 0;
+
     /* XXX This is broken for sock */
 
 	return (listenType != FD_UNUSED); 
