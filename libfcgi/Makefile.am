@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.6 2001/11/21 15:32:34 robs Exp $
+# $Id: Makefile.am,v 1.7 2001/11/23 14:39:39 robs Exp $
 INCLUDEDIR  = $(srcdir)/../include
 CPPFLAGS    = @CPPFLAGS@ -I$(INCLUDEDIR)
 
@@ -21,5 +21,5 @@ EXTRA_libfcgi_la_SOURCES = \
 		os_win32.c
 
 libfcgi___la_SOURCES = $(INCLUDE_FILES) $(INCLUDEDIR)/fcgio.h fcgio.cpp
-libfcgi___la_LDFLAGS = -lfcgi
+libfcgi___la_LDFLAGS = -lfcgi -rpath @libdir@
 
