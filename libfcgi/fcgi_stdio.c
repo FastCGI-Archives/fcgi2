@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.3 1998/03/09 16:38:15 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.4 1999/01/30 22:24:09 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -315,7 +315,7 @@ int FCGI_fclose(FCGI_FILE *fp)
 
 int FCGI_fflush(FCGI_FILE *fp)
 {
-    if(fp == null)
+    if(fp == NULL)
     	return fflush(NULL);
     if(fp->stdio_stream)
         return fflush(fp->stdio_stream);
@@ -737,7 +737,7 @@ void FCGI_clearerr(FCGI_FILE *fp)
  */
 FCGI_FILE *FCGI_tmpfile(void)
 {
-	return FCGI_OpenFromFile(tmpfile());
+	return FCGI_OpenFromFILE(tmpfile());
 }
 
 

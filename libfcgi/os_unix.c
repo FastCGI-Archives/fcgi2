@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.5 1998/12/09 05:41:38 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.6 1999/01/30 22:24:11 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -972,8 +972,12 @@ int OS_FcgiIpcAccept(char *clientAddrList)
         struct sockaddr_un un;
         struct sockaddr_in in;
     } sa;
+#if defined __linux__
+    socklen_t clilen;
+#else
     int clilen;
-    
+#endif    
+
     if (AcquireLock(TRUE) < 0) {
         return (-1);
     }
@@ -1109,7 +1113,11 @@ int OS_IsFcgi()
         struct sockaddr_in in;
         struct sockaddr_un un;
     } sa;
+#if defined __linux__
+    socklen_t len = sizeof(sa);
+#else
     int len = sizeof(sa);
+#endif
 
     if (getpeername(FCGI_LISTENSOCK_FILENO, (struct sockaddr *)&sa, &len) != 0 
             && errno == ENOTCONN)
