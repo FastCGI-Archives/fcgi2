@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.2 1999/07/26 04:28:08 roberts Exp $
+#  $Id: Makefile.in,v 1.3 1999/07/26 05:06:10 roberts Exp $
 #
 
 SHELL = @SHELL@
@@ -24,7 +24,7 @@ INCLUDES    = $(INCLUDEDIR)/fastcgi.h $(INCLUDEDIR)/fcgiapp.h \
               $(INCLUDEDIR)/fcgi_stdio.h
 LIBDIR      = ../libfcgi
 LIBFCGI	    = $(LIBDIR)/libfcgi.${L}
-TARGETS	    = tiny-cgi.cgi tiny-fcgi tiny-fcgi2 tiny-authorizer \
+TARGETS	    = tiny-fcgi tiny-fcgi2 tiny-authorizer \
 	      echo echo2 sample-store sockets echo.fcg perl tclsh \
               SampleStore.state.0 SampleStore.state.1 log-dump threaded.fcg
 
@@ -32,9 +32,6 @@ all: $(TARGETS)
 
 threaded.fcg: threaded.c $(INCLUDES)
 	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) -lpthread
-
-tiny-cgi.cgi: tiny-cgi.${O}
-	$(CC) $(CFLAGS) tiny-cgi.${O} -o tiny-cgi.cgi
 
 tiny-fcgi: tiny-fcgi.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) tiny-fcgi.${O} -o tiny-fcgi $(LIBFCGI) $(LIBS)
@@ -83,8 +80,6 @@ clean:
 	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out $(TARGETS)
 
 # ----------------------------------------------------------------------------
-
-tiny-cgi.${O}: tiny-cgi.c $(INCLUDES)
 
 tiny-fcgi.${O}: tiny-fcgi.c $(INCLUDES)
 
