@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.9 2001/03/26 20:04:56 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.10 2001/03/27 04:13:12 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -35,8 +35,10 @@ static const char rcsid[] = "$Id: os_win32.c,v 1.9 2001/03/26 20:04:56 robs Exp 
 #define ASSERT assert
 
 #define WIN32_OPEN_MAX 128 /* XXX: Small hack */
+
 #define MUTEX_VARNAME "_FCGI_MUTEX_"
 #define SHUTDOWN_EVENT_NAME "_FCGI_SHUTDOWN_EVENT_"
+#define LOCALHOST "localhost"
 
 static HANDLE hIoCompPort = INVALID_HANDLE_VALUE;
 static HANDLE hStdinCompPort = INVALID_HANDLE_VALUE;
@@ -111,7 +113,7 @@ typedef struct OVERLAPPED_REQUEST *POVERLAPPED_REQUEST;
 
 static const char *bindPathPrefix = "\\\\.\\pipe\\FastCGI\\";
 
-static int listenType = FD_UNUSED;
+static enum FILE_TYPE listenType = FD_UNUSED;
 
 // XXX This should be a DESCRIPTOR
 static HANDLE hListen = INVALID_HANDLE_VALUE;
@@ -625,6 +627,24 @@ static void Win32FreeDescriptor(int fd)
     return;
 }
 
+static short getPort(const char * bindPath)
+{
+    short port = 0;
+    char * p = strchr(bindPath, ':');
+
+    if (p && *++p) 
+    {
+        char buf[6];
+
+        strncpy(buf, p, 6);
+        buf[5] = '\0';
+
+        port = atoi(buf);
+    }
+ 
+    return port;
+}
+
 
 /*
  * OS_CreateLocalIpcFd --
@@ -646,20 +666,10 @@ static void Win32FreeDescriptor(int fd)
  */
 int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 {
-    int retFd = -1;
-    SECURITY_ATTRIBUTES     sa;
-    HANDLE hListenPipe = INVALID_HANDLE_VALUE;
-    char *localPath;
-    SOCKET listenSock;
-    int bpLen;
-    int servLen;
-    struct  sockaddr_in	sockAddr;
-    char    buf[1024];
-    short   port;
-    int	    tcp = FALSE;
-    int flag = 1;
-    char    *tp;
+    int pseudoFd = -1;
+    short port = getPort(bindPath);
     HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
+    char * mutexEnvString;
 
     if (mutex == NULL)
     {
@@ -673,102 +683,100 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 
     // This is a nail for listening to more than one port..
     // This should really be handled by the caller.
-    _snprintf(buf, 1024, MUTEX_VARNAME "=%d", (int) mutex);
-    buf[1023] = '\0';
-    putenv(strdup(buf));
+
+    mutexEnvString = malloc(strlen(MUTEX_VARNAME) + 7);
+    sprintf(mutexEnvString, MUTEX_VARNAME "=%d", (int) mutex);
+    putenv(mutexEnvString);
 
     // There's nothing to be gained (at the moment) by a shutdown Event    
 
-    strncpy(buf, bindPath, 1024);
-    buf[1023] = '\0';
-
-    if((tp = strchr(buf, ':')) != 0) {
-	*tp++ = 0;
-	if((port = atoi(tp)) == 0) {
-	    *--tp = ':';
-	 } else {
-	    tcp = TRUE;
-	 }
+    if (port && *bindPath != ':' && strncmp(bindPath, LOCALHOST, strlen(LOCALHOST)))
+    {
+	    fprintf(stderr, "To start a service on a TCP port can not "
+			    "specify a host name.\n"
+			    "You should either use \"localhost:<port>\" or "
+			    " just use \":<port>.\"\n");
+	    exit(1);
     }
+
+    listenType = (port) ? FD_SOCKET_SYNC : FD_PIPE_ASYNC;
     
-    if(tcp && (*buf && strcmp(buf, "localhost") != 0)) {
-	fprintf(stderr, "To start a service on a TCP port can not "
-			"specify a host name.\n"
-			"You should either use \"localhost:<port>\" or "
-			" just use \":<port>.\"\n");
-	exit(1);
+    if (port) 
+    {
+        SOCKET listenSock;
+        struct  sockaddr_in	sockAddr;
+        int sockLen = sizeof(sockAddr);
+        
+        memset(&sockAddr, 0, sizeof(sockAddr));
+        sockAddr.sin_family = AF_INET;
+        sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+        sockAddr.sin_port = htons(port);
+
+        listenSock = socket(AF_INET, SOCK_STREAM, 0);
+        if (listenSock == INVALID_SOCKET) 
+        {
+	        return -1;
+	    }
+
+	    if (! bind(listenSock, (struct sockaddr *) &sockAddr, sockLen)
+	        || ! listen(listenSock, backlog)) 
+        {
+	        return -1;
+	    }
+
+        pseudoFd = Win32NewDescriptor(listenType, listenSock, -1);
+        
+        if (pseudoFd == -1) 
+        {
+            closesocket(listenSock);
+            return -1;
+        }
+
+        hListen = (HANDLE) listenSock;        
+    }
+    else
+    {
+        HANDLE hListenPipe = INVALID_HANDLE_VALUE;
+        char *pipePath = malloc(strlen(bindPathPrefix) + strlen(bindPath) + 1);
+        
+        if (! pipePath) 
+        {
+            return -1;
+        }
+
+        strcpy(pipePath, bindPathPrefix);
+        strcat(pipePath, bindPath);
+
+        hListenPipe = CreateNamedPipe(pipePath,
+		        PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+		        PIPE_TYPE_BYTE | PIPE_WAIT | PIPE_READMODE_BYTE,
+		        PIPE_UNLIMITED_INSTANCES,
+		        4096, 4096, 0, NULL);
+        
+        free(pipePath);
+
+        if (hListenPipe == INVALID_HANDLE_VALUE)
+        {
+            return -1;
+        }
+
+        if (! SetHandleInformation(hListenPipe, HANDLE_FLAG_INHERIT, TRUE))
+        {
+            return -1;
+        }
+
+        pseudoFd = Win32NewDescriptor(listenType, (int) hListenPipe, -1);
+        
+        if (pseudoFd == -1) 
+        {
+            CloseHandle(hListenPipe);
+            return -1;
+        }
+
+        hListen = (HANDLE) hListenPipe;
     }
 
-    if(tcp) {
-	listenSock = socket(AF_INET, SOCK_STREAM, 0);
-        if(listenSock == SOCKET_ERROR) {
-	    return -1;
-	}
-	/*
-	 * Bind the listening socket.
-	 */
-	memset((char *) &sockAddr, 0, sizeof(sockAddr));
-	sockAddr.sin_family = AF_INET;
-	sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-	sockAddr.sin_port = htons(port);
-	servLen = sizeof(sockAddr);
-
-	if(bind(listenSock, (struct sockaddr *) &sockAddr, servLen) < 0
-	   || listen(listenSock, backlog) < 0) {
-	    perror("bind/listen");
-	    exit(errno);
-	}
-
-	retFd = Win32NewDescriptor(FD_SOCKET_SYNC, (int)listenSock, -1);
-	return retFd;
-    }
-
-
-    /*
-     * Initialize the SECURITY_ATTRIUBTES structure.
-     */
-    sa.nLength = sizeof(sa);
-    sa.lpSecurityDescriptor = NULL;
-    sa.bInheritHandle = TRUE;       /* This will be inherited by the
-                                     * FastCGI process
-                                     */
-    /*
-     * Create a unique name to be used for the socket bind path.
-     * Make sure that this name is unique and that there's no process
-     * bound to it.
-     *
-     * Named Pipe Pathname: \\.\pipe\FastCGI\OM_WS.pid.N
-     * Where: N is the pipe instance on the machine.
-     *
-     */
-    bpLen = (int)strlen(bindPathPrefix);
-    bpLen += strlen(bindPath);
-    localPath = malloc(bpLen+2);
-    strcpy(localPath, bindPathPrefix);
-    strcat(localPath, bindPath);
-
-    /*
-     * Create and setup the named pipe to be used by the fcgi server.
-     */
-    hListenPipe = CreateNamedPipe(localPath, /* name of pipe */
-		    PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
-		    PIPE_TYPE_BYTE | PIPE_WAIT |
-		    PIPE_READMODE_BYTE,		/* pipe IO type */
-		    PIPE_UNLIMITED_INSTANCES,	/* number of instances */
-		    4096,			/* size of outbuf (0 == allocate as necessary) */
-		    4096,				/* size of inbuf */
-		    0, /*1000,*/		/* default time-out value */
-		    &sa);			/* security attributes */
-    free(localPath);
-    /*
-     * Can't create an instance of the pipe, fail...
-     */
-    if (hListenPipe == INVALID_HANDLE_VALUE) {
-	return -1;
-    }
-
-    retFd = Win32NewDescriptor(FD_PIPE_SYNC, (int)hListenPipe, -1);
-    return retFd;
+    return pseudoFd;
 }
 
 
@@ -790,101 +798,113 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
  */
 int OS_FcgiConnect(char *bindPath)
 {
-    char *pipePath = NULL;
-    HANDLE hPipe;
-    int pseudoFd, err;
-
-    struct  sockaddr_in	sockAddr;
-    int servLen, resultSock;
-    int connectStatus;
-    char    *tp;
-    char    host[1024];
-    short   port;
-    int	    tcp = FALSE;
-
-    strncpy(host, bindPath, 1024);
-    host[1023] = '\0';
-
-    if ((tp = strchr(host, ':')) != 0) {
-	*tp++ = 0;
-	if((port = atoi(tp)) == 0) {
-	    *--tp = ':';
-	 } else {
-	    tcp = TRUE;
-	 }
-    }
+    short port = getPort(bindPath);
+    int pseudoFd = -1;
     
-    if(tcp == TRUE) {
-	struct	hostent	*hp;
-	if((hp = gethostbyname((*host ? host : "localhost"))) == NULL) {
-	    fprintf(stderr, "Unknown host: %s\n", bindPath);
-	    exit(1000);
-	}
-	sockAddr.sin_family = AF_INET;
-	memcpy(&sockAddr.sin_addr, hp->h_addr, hp->h_length);
-	sockAddr.sin_port = htons(port);
-	servLen = sizeof(sockAddr);
-	resultSock = socket(AF_INET, SOCK_STREAM, 0);
+    if (port) 
+    {
+	    struct hostent *hp;
+        char *host = NULL;
+        struct sockaddr_in sockAddr;
+        int sockLen = sizeof(sockAddr);
+        SOCKET sock;
+        
+        if (*bindPath != ':')
+        {
+            char * p = strchr(bindPath, ':');
+            int len = p - bindPath + 1;
 
-	ASSERT(resultSock >= 0);
-	connectStatus = connect(resultSock, (struct sockaddr *)
-				&sockAddr, servLen);
-	if(connectStatus < 0) {
-	    /*
-	     * Most likely (errno == ENOENT || errno == ECONNREFUSED)
-	     * and no FCGI application server is running.
-	     */
-	    closesocket(resultSock);
-	    return -1;
-	}
-	pseudoFd = Win32NewDescriptor(FD_SOCKET_SYNC, resultSock, -1);
-	if(pseudoFd == -1) {
-	    closesocket(resultSock);
-	}
-	return pseudoFd;
+            host = malloc(len);
+            strncpy(host, bindPath, len);
+            host[len] = '\0';
+        }
+        
+        hp = gethostbyname(host ? host : LOCALHOST);
+
+        if (host)
+        {
+            free(host);
+        }
+
+	    if (hp == NULL) 
+        {
+	        fprintf(stderr, "Unknown host: %s\n", bindPath);
+	        return -1;
+	    }
+       
+        memset(&sockAddr, 0, sizeof(sockAddr));
+        sockAddr.sin_family = AF_INET;
+	    memcpy(&sockAddr.sin_addr, hp->h_addr, hp->h_length);
+	    sockAddr.sin_port = htons(port);
+
+	    sock = socket(AF_INET, SOCK_STREAM, 0);
+        if (sock == INVALID_SOCKET)
+        {
+            return -1;
+        }
+
+	    if (! connect(sock, (struct sockaddr *) &sockAddr, sockLen)) 
+        {
+	        closesocket(sock);
+	        return -1;
+	    }
+
+	    pseudoFd = Win32NewDescriptor(FD_SOCKET_SYNC, sock, -1);
+	    if (pseudoFd == -1) 
+        {
+	        closesocket(sock);
+            return -1;
+	    }
     }
+    else
+    {
+        char *pipePath = malloc(strlen(bindPathPrefix) + strlen(bindPath) + 1);
+        HANDLE hPipe;
+        
+        if (! pipePath) 
+        {
+            return -1;
+        }
 
-    /*
-     * Not a TCP connection, create and connect to a named pipe.
-     */
-    pipePath = malloc((size_t)(strlen(bindPathPrefix) + strlen(bindPath) + 2));
-    if(pipePath == NULL) {
-        return -1;
-    }
-    strcpy(pipePath, bindPathPrefix);
-    strcat(pipePath, bindPath);
+        strcpy(pipePath, bindPathPrefix);
+        strcat(pipePath, bindPath);
 
-    hPipe = CreateFile (pipePath,
-			/* Generic access, read/write. */
-			GENERIC_WRITE | GENERIC_READ,
-			/* Share both read and write. */
-			FILE_SHARE_READ | FILE_SHARE_WRITE ,
-			NULL,                  /* No security.*/
-			OPEN_EXISTING,         /* Fail if not existing. */
-			FILE_FLAG_OVERLAPPED,  /* Use overlap. */
-			NULL);                 /* No template. */
+        hPipe = CreateFile(pipePath,
+			    GENERIC_WRITE | GENERIC_READ,
+			    FILE_SHARE_READ | FILE_SHARE_WRITE,
+			    NULL,
+			    OPEN_EXISTING,
+			    FILE_FLAG_OVERLAPPED,
+			    NULL);
 
-    free(pipePath);
-    if(hPipe == INVALID_HANDLE_VALUE) {
-        return -1;
-    }
+        free(pipePath);
 
-    if ((pseudoFd = Win32NewDescriptor(FD_PIPE_ASYNC, (int)hPipe, -1)) == -1) {
-        CloseHandle(hPipe);
-        return -1;
-    } else {
+        if( hPipe == INVALID_HANDLE_VALUE) 
+        {
+            return -1;
+        }
+
+        pseudoFd = Win32NewDescriptor(FD_PIPE_ASYNC, (int) hPipe, -1);
+        
+        if (pseudoFd == -1) 
+        {
+            CloseHandle(hPipe);
+            return -1;
+        } 
+        
         /*
-	 * Set stdin equal to our pseudo FD and create the I/O completion
-	 * port to be used for async I/O.
-	 */
-        if (!CreateIoCompletionPort(hPipe, hIoCompPort, pseudoFd, 1)) {
-	    err = GetLastError();
-	    Win32FreeDescriptor(pseudoFd);
-	    CloseHandle(hPipe);
-	    return -1;
-	}
+	     * Set stdin equal to our pseudo FD and create the I/O completion
+	     * port to be used for async I/O.
+	     */
+        if (! CreateIoCompletionPort(hPipe, hIoCompPort, pseudoFd, 1))
+        {
+	        Win32FreeDescriptor(pseudoFd);
+	        CloseHandle(hPipe);
+	        return -1;
+	    }
     }
-    return pseudoFd;
+
+    return pseudoFd;    
 }
 
 
