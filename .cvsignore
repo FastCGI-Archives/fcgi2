@@ -1,2 +1,5 @@
 *~
 bak  .bak  *.bak
+config.cache
+config.status
+config.log
