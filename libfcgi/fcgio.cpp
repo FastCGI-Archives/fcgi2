@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.4 2001/06/20 16:08:51 robs Exp $
+// $Id: fcgio.cpp,v 1.5 2001/06/22 14:27:06 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostream
 // objects
@@ -25,6 +25,9 @@
 
 /*------------------------------------------------------------------*/
 
+#ifdef _WIN32
+#define DLLAPI  __declspec(dllexport)
+#endif
 
 #include "fcgio.h"
 
