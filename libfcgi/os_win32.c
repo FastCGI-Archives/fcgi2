@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.11 2001/03/27 14:03:21 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.12 2001/03/30 16:49:22 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -93,14 +93,14 @@ struct FD_TABLE {
     LPVOID  ovList;		/* List of associated OVERLAPPED_REQUESTs */
 };
 
-typedef struct FD_TABLE *PFD_TABLE;
-
 /* 
  * XXX Note there is no dyanmic sizing of this table, so if the
  * number of open file descriptors exceeds WIN32_OPEN_MAX the 
  * app will blow up.
  */
 static struct FD_TABLE fdTable[WIN32_OPEN_MAX];
+
+static CRITICAL_SECTION  fdTableCritical;
 
 struct OVERLAPPED_REQUEST {
     OVERLAPPED overlapped;
@@ -141,66 +141,61 @@ static BOOLEAN libInitialized = FALSE;
  */
 static int Win32NewDescriptor(FILE_TYPE type, int fd, int desiredFd)
 {
-    int index;
+    int index = -1;
+
+    EnterCriticalSection(&fdTableCritical);
 
     /*
-     * If the "desiredFd" is not -1, try to get this entry for our
-     * pseudo file descriptor.  If this is not available, return -1
-     * as the caller wanted to get this mapping.  This is typically
-     * only used for mapping stdio handles.
+     * If desiredFd is set, try to get this entry (this is used for
+     * mapping stdio handles).  Otherwise try to get the fd entry.
+     * If this is not available, find a the first empty slot.  .
      */
     if (desiredFd >= 0 && desiredFd < WIN32_OPEN_MAX)
     {
-        if (fdTable[desiredFd].type != FD_UNUSED) 
+        if (fdTable[desiredFd].type == FD_UNUSED) 
         {
-            return -1;
+            index = desiredFd;
         }
-	    index = desiredFd;
 	}
     else
     {
-        // See if the entry that matches "fd" is available.
-
-        if (fd <= 0 || fd >= WIN32_OPEN_MAX)
+        if (fd > 0 && fd < WIN32_OPEN_MAX)
         {
-            return -1;
-        }
-
-        if (fdTable[fd].type == FD_UNUSED)
-        {
-	        index = fd;
-        }
-        else 
-        {
-            // Find an entry we can use. 
-            // Start at 1 (0 fake id fails in some cases).
-
-            for (index = 1; index < WIN32_OPEN_MAX; index++)
+            if (fdTable[fd].type == FD_UNUSED)
             {
-	            if (fdTable[index].type == FD_UNUSED)
-                {
-                    break;
-                }
+	            index = fd;
             }
-
-            if (index == WIN32_OPEN_MAX) 
+            else 
             {
-	            SetLastError(WSAEMFILE);
-	            return -1;
+                int i;
+
+                for (i = 1; i < WIN32_OPEN_MAX; ++i)
+                {
+	                if (fdTable[i].type == FD_UNUSED)
+                    {
+                        index = i;
+                        break;
+                    }
+                }
             }
         }
     }
 
-    fdTable[index].fid.value = fd;
-    fdTable[index].type = type;
-    fdTable[index].path = NULL;
-    fdTable[index].Errno = NO_ERROR;
-    fdTable[index].status = 0;
-    fdTable[index].offset = -1;
-    fdTable[index].offsetHighPtr = fdTable[index].offsetLowPtr = NULL;
-    fdTable[index].hMapMutex = NULL;
-    fdTable[index].ovList = NULL;
+    
+    if (index != -1) 
+    {
+        fdTable[index].fid.value = fd;
+        fdTable[index].type = type;
+        fdTable[index].path = NULL;
+        fdTable[index].Errno = NO_ERROR;
+        fdTable[index].status = 0;
+        fdTable[index].offset = -1;
+        fdTable[index].offsetHighPtr = fdTable[index].offsetLowPtr = NULL;
+        fdTable[index].hMapMutex = NULL;
+        fdTable[index].ovList = NULL;
+    }
 
+    LeaveCriticalSection(&fdTableCritical);
     return index;
 }
 
@@ -314,6 +309,8 @@ int OS_LibInit(int stdioFds[3])
     if(libInitialized)
         return 0;
 
+    InitializeCriticalSection(&fdTableCritical);   
+        
     /*
      * Initialize windows sockets library.
      */
@@ -595,32 +592,42 @@ static void Win32FreeDescriptor(int fd)
 {
     /* Catch it if fd is a bogus value */
     ASSERT((fd >= 0) && (fd < WIN32_OPEN_MAX));
-    ASSERT(fdTable[fd].type != FD_UNUSED);
 
-    switch (fdTable[fd].type) {
-	case FD_FILE_SYNC:
-	case FD_FILE_ASYNC:
-	    /* Free file path string */
-	    ASSERT(fdTable[fd].path != NULL);
-	    free(fdTable[fd].path);
-	    fdTable[fd].path = NULL;
-	    break;
-	default:
-	    /*
-	     * Break through to generic fdTable free-descriptor code
-	     */
-	    break;
+    EnterCriticalSection(&fdTableCritical);
+    
+    if (fdTable[fd].type != FD_UNUSED)
+    {   
+        switch (fdTable[fd].type) 
+        {
+	    case FD_FILE_SYNC:
+	    case FD_FILE_ASYNC:
+        
+	        /* Free file path string */
+	        ASSERT(fdTable[fd].path != NULL);
+	        free(fdTable[fd].path);
+	        fdTable[fd].path = NULL;
+	        break;
 
+	    default:
+	        break;
+        }
+
+        ASSERT(fdTable[fd].path == NULL);
+
+        fdTable[fd].type = FD_UNUSED;
+        fdTable[fd].path = NULL;
+        fdTable[fd].Errno = NO_ERROR;
+        fdTable[fd].offsetHighPtr = fdTable[fd].offsetLowPtr = NULL;
+
+        if (fdTable[fd].hMapMutex != NULL) 
+        {
+            CloseHandle(fdTable[fd].hMapMutex);
+            fdTable[fd].hMapMutex = NULL;
+        }
     }
-    ASSERT(fdTable[fd].path == NULL);
-    fdTable[fd].type = FD_UNUSED;
-    fdTable[fd].path = NULL;
-    fdTable[fd].Errno = NO_ERROR;
-    fdTable[fd].offsetHighPtr = fdTable[fd].offsetLowPtr = NULL;
-    if (fdTable[fd].hMapMutex != NULL) {
-        CloseHandle(fdTable[fd].hMapMutex);
-        fdTable[fd].hMapMutex = NULL;
-    }
+
+    LeaveCriticalSection(&fdTableCritical);
+
     return;
 }
 
