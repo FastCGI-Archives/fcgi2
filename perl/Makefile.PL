@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.9 2001/03/28 15:49:20 skimo Exp $
+# $Id: Makefile.PL,v 1.10 2001/06/05 15:52:42 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -81,6 +81,11 @@ if ($pure) {
         
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
+
+# Work around bug in previous versions of MakeMaker
+WriteMakefile(NAME => 'FCGI') 
+    if $ExtUtils::MakeMaker::VERSION <= 5.4302;
+
 $mm = MM->new({
     'NAME'		=> 'FCGI',
     'VERSION_FROM'	=> 'FCGI.PL',
