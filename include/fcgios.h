@@ -24,10 +24,13 @@
 #include <sys/time.h>
 #endif
 
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#endif
+
 #if defined (c_plusplus) || defined (__cplusplus)
 extern "C" {
 #endif
-
 
 #ifdef _WIN32
 #define OS_Errno GetLastError()
