@@ -1,4 +1,4 @@
-$Id: README,v 1.5 2000/07/10 09:56:49 skimo Exp $
+$Id: README,v 1.6 2001/09/20 12:26:38 skimo Exp $
 
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
@@ -29,6 +29,11 @@ To install, do the usual
 perl Makefile.PL
 make
 make install
+
+If you want to use the (experimental) pure perl version, that
+doesn't require a compiler and currently only works on Unix,
+you have to pass the --pure-perl option as in
+"perl Makefile.PL --pure-perl".
 
 If Makefile.PL finds an already installed (exported) fcgi library
 it will use that instead of the included files. Edit Makefile.PL
