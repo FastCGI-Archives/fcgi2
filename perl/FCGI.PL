@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.3 1999/03/08 16:26:04 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.4 1999/07/28 16:15:40 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -90,31 +90,43 @@ sfdcdelfcgi(disc)
 }
 #endif
 
-static int acceptCalled = FALSE;
-static int finishCalled = FALSE;
-static int isCGI = FALSE;
-static FCGX_Stream *in = NULL;
-static SV *svout = NULL, *svin, *sverr;
+static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: FCGI */
+
+static FCGX_Request global_fcgx_request;
+
+typedef struct FCGP_Request {
+    int		    compat;
+    int		    acceptCalled;
+    int		    finishCalled;
+    SV*		    svin;
+    SV*		    svout;
+    SV*		    sverr;
+    FCGX_Stream*    in;
+    FCGX_Request*   requestPtr;
+} FCGP_Request;
+
+static FCGP_Request global_request;
+static SV*	    global_sverr;
 
 static int 
-FCGI_Flush(void)
+FCGI_Flush(FCGP_Request* request)
 {
-    if(!acceptCalled || isCGI) {
+    if(!request->compat || !request->acceptCalled || isCGI) {
 	return;
     }
 #ifdef USE_SFIO
     sfsync(PerlIO_stdout());
     sfsync(PerlIO_stderr());
 #else
-    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(svout)));
-    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(sverr)));
+    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->svout)));
+    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->sverr)));
 #endif
 }
 
 static int 
-FCGI_Accept(void)
+FCGI_Accept(FCGP_Request* request)
 {
-    if(!acceptCalled) {
+    if(isCGI == -1) {
         /*
          * First call to FCGI_Accept.  Is application running
          * as FastCGI or as CGI?
@@ -127,103 +139,121 @@ FCGI_Accept(void)
          */
         return(EOF);
     } else {
-	if(!finishCalled) {
+	if(request->compat && !request->finishCalled) {
 #ifdef USE_SFIO
             sfdcdelfcgi(sfdisc(PerlIO_stdin(), SF_POPDISC));
             sfdcdelfcgi(sfdisc(PerlIO_stdout(), SF_POPDISC));
             sfdcdelfcgi(sfdisc(PerlIO_stderr(), SF_POPDISC));
 #else
-	    FCGI_Flush();
+	    FCGI_Flush(request);
 #endif
 	}
     }
     if(!isCGI) {
         FCGX_ParamArray envp;
 	FCGX_Stream *out, *error;
-        int acceptResult = FCGX_Accept(&in, &out, &error, &envp);
+        int acceptResult = FCGX_Accept_r(&request->in, &out, &error, &envp,
+				         request->requestPtr);
         if(acceptResult < 0) {
             return acceptResult;
         }
 #ifdef USE_SFIO
-        sfdisc(PerlIO_stdin(), sfdcnewfcgi(in));
+        sfdisc(PerlIO_stdin(), sfdcnewfcgi(request->in));
         sfdisc(PerlIO_stdout(), sfdcnewfcgi(out));
         sfdisc(PerlIO_stderr(), sfdcnewfcgi(error));
 #else
-	if (!svout) {
-	    newSVrv(svout = newSV(0), "FCGI");
+	if (!request->svout) {
+	    newSVrv(request->svout = newSV(0), "FCGI");
 	    sv_magic((SV *)gv_fetchpv("STDOUT",TRUE, SVt_PVIO), 
-			svout, 'q', Nullch, 0);
-	    newSVrv(sverr = newSV(0), "FCGI");
+			request->svout, 'q', Nullch, 0);
+	    newSVrv(request->sverr = newSV(0), "FCGI");
 	    sv_magic((SV *)gv_fetchpv("STDERR",TRUE, SVt_PVIO), 
-			sverr, 'q', Nullch, 0);
-	    newSVrv(svin = newSV(0), "FCGI");
+			request->sverr, 'q', Nullch, 0);
+	    newSVrv(request->svin = newSV(0), "FCGI");
 	    sv_magic((SV *)gv_fetchpv("STDIN",TRUE, SVt_PVIO), 
-			svin, 'q', Nullch, 0);
+			request->svin, 'q', Nullch, 0);
 	}
-	sv_setiv(SvRV(svout), (IV) out);
-	sv_setiv(SvRV(sverr), (IV) error);
-	sv_setiv(SvRV(svin), (IV) in);
-	if (!SvTRUEx(perl_get_sv("FCGI::no_warn_redirection", FALSE)))
-	{
+	sv_setiv(SvRV(request->svout), (IV) out);
+	sv_setiv(SvRV(request->sverr), (IV) error);
+	sv_setiv(SvRV(request->svin), (IV) request->in);
+
+	if (request->compat) {
+	    global_sverr = request->sverr;
 	    if (PL_warnhook) SvREFCNT_dec(PL_warnhook);
 	    PL_warnhook = SvREFCNT_inc(GvCV(gv_fetchmethod(Nullhv, "FCGI::WARN")));
-	}
-	if (!SvTRUEx(perl_get_sv("FCGI::no_die_redirection", FALSE)))
-	{
 	    if (PL_diehook) SvREFCNT_dec(PL_diehook);
 	    PL_diehook = SvREFCNT_inc(GvCV(gv_fetchmethod(Nullhv, "FCGI::DIE")));
 	}
 #endif
-	finishCalled = FALSE;
+	request->finishCalled = FALSE;
         environ = envp;
     }
-    acceptCalled = TRUE;
+    request->acceptCalled = TRUE;
     return 0;
 }
 
 static void 
-FCGI_Finish(void)
+FCGI_Finish(FCGP_Request* request)
 {
-    if(!acceptCalled || isCGI) {
+    if(!request->acceptCalled || isCGI) {
 	return;
     }
+    if (request->compat) {
 #ifdef USE_SFIO
-    sfdcdelfcgi(sfdisc(PerlIO_stdin(), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(PerlIO_stdout(), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(PerlIO_stderr(), SF_POPDISC));
+	sfdcdelfcgi(sfdisc(PerlIO_stdin(), SF_POPDISC));
+	sfdcdelfcgi(sfdisc(PerlIO_stdout(), SF_POPDISC));
+	sfdcdelfcgi(sfdisc(PerlIO_stderr(), SF_POPDISC));
 #else
-    FCGI_Flush();
+	FCGI_Flush(request);
 #endif
-    in = NULL;
-    FCGX_Finish();
-    /*
-    environ = NULL;
-    */
-    finishCalled = TRUE;
-#ifndef USE_SFIO
-    if (!SvTRUEx(perl_get_sv("FCGI::no_warn_redirection", FALSE)) &&
-	    PL_warnhook == (SV*)GvCV(gv_fetchmethod(Nullhv, "FCGI::WARN"))) {
-	SvREFCNT_dec(PL_warnhook);
-	PL_warnhook = Nullsv;
     }
-    if (!SvTRUEx(perl_get_sv("FCGI::no_die_redirection", FALSE)) &&
-	    PL_diehook == (SV*)GvCV(gv_fetchmethod(Nullhv, "FCGI::DIE"))) {
-	SvREFCNT_dec(PL_diehook);
-	PL_diehook = Nullsv;
+    request->in = NULL;
+    FCGX_Finish_r(request->requestPtr);
+    request->finishCalled = TRUE;
+#ifndef USE_SFIO
+    if (request->compat) {
+	if (PL_warnhook == (SV*)GvCV(gv_fetchmethod(Nullhv, "FCGI::WARN"))) {
+	    SvREFCNT_dec(PL_warnhook);
+	    PL_warnhook = Nullsv;
+	}
+	if (PL_diehook == (SV*)GvCV(gv_fetchmethod(Nullhv, "FCGI::DIE"))) {
+	    SvREFCNT_dec(PL_diehook);
+	    PL_diehook = Nullsv;
+	}
     }
 #endif
 }
 
 static int 
-FCGI_StartFilterData(void)
+FCGI_StartFilterData(FCGP_Request* request)
 {
-    return in ? FCGX_StartFilterData(in) : -1;
+    return request->in ? FCGX_StartFilterData(request->in) : -1;
 }
 
 static void
-FCGI_SetExitStatus(int status)
+FCGI_SetExitStatus(FCGP_Request* request, int status)
 {
-    if (in) FCGX_SetExitStatus(status, in);
+    if (request->in) FCGX_SetExitStatus(status, request->in);
+}
+
+static FCGP_Request *
+FCGI_Request()
+{
+    FCGX_Request* fcgx_req;
+    FCGP_Request* req;
+
+    Newz(551, fcgx_req, 1, FCGX_Request);
+    Newz(551, req, 1, FCGP_Request);
+    req->requestPtr = fcgx_req;
+
+    return req;
+}
+
+static void
+FCGI_Release_Request(FCGP_Request *req)
+{
+    Safefree(req->requestPtr);
+    Safefree(req);
 }
 
 /*
@@ -263,8 +293,16 @@ int set;
 
 
 typedef FCGX_Stream *	FCGI;
+typedef FCGP_Request *	FCGI__Request;
 
 MODULE = FCGI		PACKAGE = FCGI
+
+BOOT:
+    FCGX_Init();
+    FCGX_InitRequest(&global_fcgx_request);
+    memset(&global_request, 0, sizeof(global_request));
+    global_request.compat = 1;
+    global_request.requestPtr = &global_fcgx_request;
 
 #ifndef USE_SFIO
 void
@@ -273,14 +311,14 @@ DIE(msg)
 
 	CODE:
 	if (!PL_in_eval)
-	    FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(sverr)));
+	    FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(global_sverr)));
 
 void
 WARN(msg)
 	char *	msg;
 
 	CODE:
-	FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(sverr)));
+	FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(global_sverr)));
 
 void
 PRINT(stream, ...)
@@ -377,11 +415,39 @@ CLOSE(stream)
 
 #endif
 
-int
-accept()
+SV *
+request()
 
     PROTOTYPE:
     CODE:
+    RETVAL = Perl_sv_setref_pv(Perl_newSV(0), "FCGI::Request", FCGI_Request());
+
+    OUTPUT:
+    RETVAL
+
+
+int
+accept(...)
+
+    PROTOTYPE: ;$***$
+
+    PREINIT:
+    FCGP_Request* request = &global_request;
+    SV * sv;
+
+    CODE:
+    if (items != 0 && items != 5)
+	croak("Usage: FCGI::accept() or "
+	      "FCGI::accept(request, IN, OUT, ERR, env)");
+    if (items) {
+	if (sv_isa(ST(0), "FCGI::Request")) {
+	    request = (FCGP_Request*) SvIV((SV*)SvRV(ST(0)));
+	} else
+	    croak("request is not of type FCGI::Request");
+	if (SvROK(ST(1)) && isGV(SvRV(ST(1)))) {
+	} else
+	    croak("IN is not a GLOB reference");
+    }
     {
         char **savedEnviron;
         int acceptStatus;
@@ -396,7 +462,7 @@ accept()
          * Call FCGI_Accept but preserve environ.
          */
         savedEnviron = environ;
-        acceptStatus = FCGI_Accept();
+        acceptStatus = FCGI_Accept(request);
         requestEnviron = environ;
         environ = savedEnviron;
         /*
@@ -414,9 +480,9 @@ accept()
 
 
 void
-finish()
+finish(...)
 
-    PROTOTYPE:
+    PROTOTYPE: ;$
     CODE:
     {
         /*
@@ -429,32 +495,41 @@ finish()
         /*
          * Finish the request.
          */
-        FCGI_Finish();
+        FCGI_Finish(&global_request);
     }
 
 
 void
-flush()
+flush(...)
 
-    PROTOTYPE:
+    PROTOTYPE: ;$
     CODE:
-    FCGI_Flush();
+    FCGI_Flush(&global_request);
 
 void
-set_exit_status(status)
+set_exit_status(status,...)
 
     int status;
 
-    PROTOTYPE: $
+    PROTOTYPE: $;$
     CODE:
-    FCGI_SetExitStatus(status);
+    FCGI_SetExitStatus(&global_request, status);
 
 int
-start_filter_data()
+start_filter_data(...)
 
-    PROTOTYPE:
+    PROTOTYPE: ;$
     CODE:
-    RETVAL = FCGI_StartFilterData();
+    RETVAL = FCGI_StartFilterData(&global_request);
 
     OUTPUT:
     RETVAL
+
+MODULE = FCGI		PACKAGE = FCGI::Request
+
+void
+DESTROY(request)
+    FCGI::Request   request;
+
+    CODE:
+    FCGI_Release_Request(request);
