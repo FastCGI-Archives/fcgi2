@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.7 2001/09/21 16:13:46 skimo Exp $
+dnl     $Id: configure.in,v 1.8 2001/09/21 16:49:36 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -36,10 +36,12 @@ AC_CHECK_LIB([socket], 	  [main]) ac_cv_lib_socket=ac_cv_lib_socket_main
 AC_CHECK_LIB([dnet_stub], [main]) ac_cv_lib_dnet_stub=ac_cv_lib_dnet_stub_main
 AC_CHECK_LIB([ieee], 	  [main]) ac_cv_lib_ieee=ac_cv_lib_ieee_main
 
+AC_SUBST(threaded)
 AC_CHECK_LIB([pthread],	  [main], 
 	[AC_DEFINE([HAVE_LIBPTHREAD], [1],
 			   [Define if you have the pthread library])
-	 AC_SUBST([HAVE_LIBPTHREAD])]) 
+	 AC_SUBST([HAVE_LIBPTHREAD])
+         threaded=threaded]) 
 ac_cv_lib_pthread=ac_cv_lib_pthread_main
 
 AC_CHECK_TYPE([ssize_t], [int]) 
