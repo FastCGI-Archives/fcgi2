@@ -18,14 +18,16 @@
 #ifndef _FCGIOS_H
 #define _FCGIOS_H
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN 
+#include <windows.h>
+#include <winsock2.h>
+#endif
+
 #include "fcgi_config.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
-#endif
-
-#ifdef HAVE_WINDOWS_H
-#include <windows.h>
 #endif
 
 #if defined (c_plusplus) || defined (__cplusplus)
