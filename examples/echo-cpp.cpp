@@ -1,7 +1,7 @@
 /*
  *  A simple FastCGI application example in C++.
  *  
- *  $Id: echo-cpp.cpp,v 1.5 2001/11/21 21:15:36 robs Exp $
+ *  $Id: echo-cpp.cpp,v 1.6 2001/11/26 18:08:25 robs Exp $
  *  
  *  Copyright (c) 2001  Rob Saccoccio and Chelsea Networks
  *  All rights reserved.
@@ -80,9 +80,12 @@ static long gstdin(FCGX_Request * request, char ** content)
     cin.read(*content, clen);
     clen = cin.gcount();
 
-    // chew up any remaining stdin - this shouldn't be necessary
-    // but is because mod_fastcgi doesn't handle it correctly
-    do cin.ignore(1024); while (! cin.eof());
+    // Chew up any remaining stdin - this shouldn't be necessary
+    // but is because mod_fastcgi doesn't handle it correctly.
+    //
+    // ignore() doesn't set the eof bit in some versions of glibc++
+    // so use gcount() instead of eof()...
+    do cin.ignore(1024); while (cin.gcount() == 1024);
 
     return clen;
 }
