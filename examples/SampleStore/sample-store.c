@@ -46,22 +46,23 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: sample-store.c,v 1.1 1999/07/28 01:11:45 roberts Exp $";
+static const char rcsid[] = "$Id: sample-store.c,v 1.2 2001/06/19 17:49:26 robs Exp $";
 #endif /* not lint */
-
-#include "fcgi_config.h"
 
 #include <assert.h>      /* assert */
 #include <dirent.h>      /* readdir, closedir, DIR, dirent */
 #include <errno.h>       /* errno, ENOENT */
 #include <stdlib.h>      /* malloc/free, getenv, strtol */
 #include <string.h>      /* strcmp, strncmp, strlen, strstr, strchr */
-#include <tcl.h>         /* Tcl_*Hash* functions */
 #include <time.h>        /* time, time_t */
+
+#include "fcgi_config.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>      /* fsync */
 #endif
+
+#include "tcl.h"         /* Tcl_*Hash* functions */
 
 #if defined __linux__
 int fsync(int fd);
