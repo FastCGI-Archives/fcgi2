@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.16 2001/06/19 21:03:13 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.17 2001/06/20 02:01:51 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -1790,10 +1790,9 @@ int OS_IpcClose(int ipcFd)
  */
 int OS_IsFcgi(int sock)
 {
-    // This is still broken.  There is not currently a way to differentiate
-    // a CGI from a FCGI pipe (try the Unix method).
-    
-    return (fdTable[sock].type != FD_UNUSED);
+    /* XXX This is broken for sock */
+
+	return (listenType != FD_UNUSED); 
 }
 
 /*
