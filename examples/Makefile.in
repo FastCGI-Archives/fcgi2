@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.6 1999/07/28 02:25:32 roberts Exp $
+#  $Id: Makefile.in,v 1.7 2001/06/22 16:19:14 robs Exp $
 #
 
 SHELL = @SHELL@
@@ -16,69 +16,47 @@ CFLAGS	= @CCDEFS@ @PROFILE@ -I$(INCLUDEDIR)
 LIBS	= @LIBS@
 RANLIB	= @RANLIB@
 
-INCLUDES    = $(INCLUDEDIR)/fastcgi.h $(INCLUDEDIR)/fcgiapp.h \
-	      $(INCLUDEDIR)/fcgimisc.h $(INCLUDEDIR)/fcgiappmisc.h \
-              $(INCLUDEDIR)/fcgi_stdio.h
 LIBDIR      = ../libfcgi
 LIBFCGI	    = $(LIBDIR)/libfcgi.${L}
-TARGETS	    = tiny-fcgi tiny-fcgi2 tiny-authorizer \
-	      echo echo2 SampleStore/sample-store sockets echo.fcg \
-              SampleStore/SampleStore.state.0 SampleStore/SampleStore.state.1 log-dump threaded.fcg
+
+INCLUDES    = $(INCLUDEDIR)/fastcgi.h    \
+              $(INCLUDEDIR)/fcgiapp.h    \
+	      $(INCLUDEDIR)/fcgimisc.h   \
+              $(INCLUDEDIR)/fcgi_stdio.h
+
+TARGETS	    = authorizer \
+	      echo \
+              echo-x\
+              SampleStore/sample-store \
+              log-dump \
+              threaded
 
 all: $(TARGETS)
 
-threaded.fcg: threaded.c $(INCLUDES)
-	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) $(LIBS) -lpthread
+threaded: threaded.c $(INCLUDES) $(LIBFCGI)
+	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded $(LIBFCGI) $(LIBS) -lpthread
 
-tiny-fcgi: tiny-fcgi.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) tiny-fcgi.${O} -o tiny-fcgi $(LIBFCGI) $(LIBS)
+authorizer: authorizer.c $(INCLUDES) $(LIBFCGI)
+	$(CC) $(CFLAGS) authorizer.c -o authorizer $(LIBFCGI) $(LIBS)
 
-tiny-fcgi2: tiny-fcgi2.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) tiny-fcgi2.${O} -o tiny-fcgi2 $(LIBFCGI) $(LIBS)
+echo: echo.c $(INCLUDES) $(LIBFCGI)
+	$(CC) $(CFLAGS) echo.c -o echo $(LIBFCGI) $(LIBS)
 
-tiny-authorizer: tiny-authorizer.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) tiny-authorizer.${O} -o tiny-authorizer $(LIBFCGI) $(LIBS)
-
-echo: echo.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) echo.${O} -o echo $(LIBFCGI) $(LIBS)
-
-echo2: echo2.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) echo2.${O} -o echo2 $(LIBFCGI) $(LIBS)
+echo-x: echo-x.c $(INCLUDES) $(LIBFCGI)
+	$(CC) $(CFLAGS) echo-x.c -o echo-x $(LIBFCGI) $(LIBS)
 
 SampleStore/sample-store: SampleStore/sample-store.${O} SampleStore/tclHash.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) -ISampleStore SampleStore/sample-store.${O} SampleStore/tclHash.${O} -o SampleStore/sample-store $(LIBFCGI) $(LIBS)
+	mkdir SampleStore/SampleStore.state.0 SampleStore/SampleStore.state.1
 
-log-dump: log-dump.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) log-dump.${O} -o log-dump $(LIBFCGI) $(LIBS)
-
-sockets:
-	mkdir sockets
-
-echo.fcg:
-	rm -f echo.fcg
-	ln -s echo echo.fcg
-
-SampleStore/SampleStore.state.0:
-	mkdir SampleStore/SampleStore.state.0
-
-SampleStore/SampleStore.state.1:
-	mkdir SampleStore/SampleStore.state.1
+log-dump: log-dump.c $(INCLUDES) $(LIBFCGI)
+	$(CC) $(CFLAGS) log-dump.c -o log-dump $(LIBFCGI) $(LIBS)
 
 clean:
-	rm -rf sockets SampleStore/SampleStore.state.?
+	rm -rf SampleStore/SampleStore.state.?
 	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out $(TARGETS)
 
 # ----------------------------------------------------------------------------
-
-tiny-fcgi.${O}: tiny-fcgi.c $(INCLUDES)
-
-tiny-fcgi2.${O}: tiny-fcgi2.c $(INCLUDES)
-
-tiny-authorizer.${O}: tiny-authorizer.c $(INCLUDES)
-
-echo.${O}: echo.c $(INCLUDES)
-
-echo2.${O}: echo2.c $(INCLUDES)
 
 SampleStore/sample-store.${O}: SampleStore/sample-store.c $(INCLUDES)
 	$(CC) $(CFLAGS) -ISampleStore -c SampleStore/sample-store.c -o SampleStore/sample-store.${O}
@@ -86,4 +64,3 @@ SampleStore/sample-store.${O}: SampleStore/sample-store.c $(INCLUDES)
 SampleStore/tclHash.${O}: SampleStore/tclHash.c
 	$(CC) $(CFLAGS) -ISampleStore -c SampleStore/tclHash.c -o SampleStore/tclHash.${O}
 
-log-dump.${O}: log-dump.c $(INCLUDES)
