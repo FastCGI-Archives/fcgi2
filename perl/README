@@ -1,4 +1,4 @@
-$Id: README,v 1.3 2000/04/09 19:00:12 skimo Exp $
+$Id: README,v 1.4 2000/04/21 18:10:53 skimo Exp $
 
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
@@ -19,7 +19,7 @@ to have configured it with eg './Configure -Duseperlio -Dusesfio'.
 To compile without sfio you'll need an even more recent perl version.
 (perl 5.004 and up should be fine.)
 
-See http://fastcgi.idle.com/ for more information about fastcgi.
+See http://www.fastcgi.com/ for more information about fastcgi.
 Lincoln D. Stein's perl CGI module also contains some information
 about fastcgi programming.
 

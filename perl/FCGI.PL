@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.13 2000/01/31 21:34:24 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.14 2000/04/21 18:10:53 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -188,13 +188,13 @@ HV *hv;
 static int 
 FCGI_Accept(FCGP_Request* request)
 {
-    dTHX;
-
     static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: FCGI */
 
     int req_isCGI = 
 	request->requestPtr->listen_sock == FCGI_LISTENSOCK_FILENO ?
 	isCGI : 0;
+
+    dTHX;
 
     if(req_isCGI == -1) {
         /*
