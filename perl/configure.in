@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.8 2001/09/21 22:38:59 skimo Exp $
+dnl     $Id: configure.in,v 1.9 2001/09/22 09:30:45 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -10,7 +10,6 @@ AM_CONFIG_HEADER([fcgi_config.h])
 
 AC_PROG_CC
 AC_PROG_CPP 
-AC_PROG_INSTALL 
 
 FCGI_COMMON_CHECKS
 
