@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.21 2001/08/27 19:54:30 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.22 2001/09/04 18:44:11 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -686,12 +686,12 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 
     if (mutex == NULL)
     {
-        return -1;
+        return -2;
     }
 
     if (! SetHandleInformation(mutex, HANDLE_FLAG_INHERIT, TRUE))
     {
-        return -1;
+        return -3;
     }
 
     // This is a nail for listening to more than one port..
@@ -728,13 +728,17 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
         listenSock = socket(AF_INET, SOCK_STREAM, 0);
         if (listenSock == INVALID_SOCKET) 
         {
-	        return -1;
+	        return -4;
 	    }
 
-	    if (! bind(listenSock, (struct sockaddr *) &sockAddr, sockLen)
-	        || ! listen(listenSock, backlog)) 
+	    if (bind(listenSock, (struct sockaddr *) &sockAddr, sockLen)  )
         {
-	        return -1;
+	        return -12;
+	    }
+
+	    if (listen(listenSock, backlog)) 
+        {
+	        return -5;
 	    }
 
         pseudoFd = Win32NewDescriptor(listenType, listenSock, -1);
@@ -742,7 +746,7 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
         if (pseudoFd == -1) 
         {
             closesocket(listenSock);
-            return -1;
+            return -6;
         }
 
         hListen = (HANDLE) listenSock;        
@@ -754,7 +758,7 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
         
         if (! pipePath) 
         {
-            return -1;
+            return -7;
         }
 
         strcpy(pipePath, bindPathPrefix);
@@ -770,12 +774,12 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 
         if (hListenPipe == INVALID_HANDLE_VALUE)
         {
-            return -1;
+            return -8;
         }
 
         if (! SetHandleInformation(hListenPipe, HANDLE_FLAG_INHERIT, TRUE))
         {
-            return -1;
+            return -9;
         }
 
         pseudoFd = Win32NewDescriptor(listenType, (int) hListenPipe, -1);
@@ -783,7 +787,7 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
         if (pseudoFd == -1) 
         {
             CloseHandle(hListenPipe);
-            return -1;
+            return -10;
         }
 
         hListen = (HANDLE) hListenPipe;
@@ -1485,53 +1489,56 @@ int OS_DoIo(struct timeval *tmo)
     return 0;
 }
 
-
-static int CALLBACK isAddrOK(LPWSABUF  lpCallerId,
-                             LPWSABUF  dc0,
-                             LPQOS     dc1,
-                             LPQOS     dc2,
-                             LPWSABUF  dc3,
-                             LPWSABUF  dc4,
-                             GROUP     *dc5,
-                             DWORD     dwCallbackData)
+static int isAddrOK(struct sockaddr_in * inet_sockaddr, const char * okAddrs)
 {
-    const char *okAddrs = (char *) dwCallbackData;
-    struct sockaddr *sockaddr = (struct sockaddr *) lpCallerId->buf;
+    static const char *token = " ,;:\t";
+    char *ipaddr;
+    char *p;
+
+    if (okAddrs == NULL) return TRUE;
+
+    ipaddr = inet_ntoa(inet_sockaddr->sin_addr);
+    p = strstr(okAddrs, ipaddr);
+
+    if (p == NULL) return FALSE;
+
+    if (p == okAddrs)
+    {
+        p += strlen(ipaddr);
+        return (strchr(token, *p) != NULL);
+    }
+
+    if (strchr(token, *--p) != NULL)
+    {
+        p += strlen(ipaddr) + 1;
+        return (strchr(token, *p) != NULL);
+    }
+
+    return FALSE;
+}
+
+#ifndef NO_WSAACEPT
+static int CALLBACK isAddrOKCallback(LPWSABUF  lpCallerId,
+                                     LPWSABUF  dc0,
+                                     LPQOS     dc1,
+                                     LPQOS     dc2,
+                                     LPWSABUF  dc3,
+                                     LPWSABUF  dc4,
+                                     GROUP     *dc5,
+                                     DWORD     data)
+{
+    struct sockaddr_in *sockaddr = (struct sockaddr_in *) lpCallerId->buf;
 
     // Touch the args to avoid warnings
     dc0 = NULL; dc1 = NULL; dc2 = NULL; dc3 = NULL; dc4 = NULL; dc5 = NULL;
 
-    if (okAddrs == NULL || sockaddr->sa_family != AF_INET)
-    {
-        return TRUE;
-    }
-    else
-    {
-        static const char *token = " ,;:\t";
-        struct sockaddr_in * inet_sockaddr = (struct sockaddr_in *) sockaddr;
-        char *ipaddr = inet_ntoa(inet_sockaddr->sin_addr);
-        char *p = strstr(okAddrs, ipaddr);
+    if ((void *) data == NULL) return CF_ACCEPT;
 
-        if (p == NULL)
-        {
-            return FALSE;
-        }
-        else if (p == okAddrs)
-        {
-            p += strlen(ipaddr);
-            return (strchr(token, *p) != NULL);
-        }
-        else if (strchr(token, *--p))
-        {
-            p += strlen(ipaddr) + 1;
-            return (strchr(token, *p) != NULL);
-        }
-        else
-        {
-            return FALSE;
-        }
-    }
+    if (sockaddr->sin_family != AF_INET) return CF_ACCEPT;
+
+    return isAddrOK(sockaddr, (const char *) data) ? CF_ACCEPT : CF_REJECT;
 }
+#endif
 
 static printLastError(const char * text)
 {
@@ -1610,39 +1617,72 @@ static int acceptNamedPipe()
 
 static int acceptSocket(const char *webServerAddrs)
 {
-    struct sockaddr sockaddr;
-    int sockaddrLen = sizeof(sockaddr);
-    fd_set readfds;
-    const struct timeval timeout = {1, 0};
     SOCKET hSock;
     int ipcFd = -1;
- 
-    FD_ZERO(&readfds);
-    FD_SET((unsigned int) hListen, &readfds);
-    
-    while (select(0, &readfds, NULL, NULL, &timeout) == 0)
+
+    for (;;)
     {
-        if (shutdownPending) 
+        struct sockaddr sockaddr;
+        int sockaddrLen = sizeof(sockaddr);
+
+        for (;;)
         {
-            OS_LibShutdown();
-            return -1;
+            const struct timeval timeout = {1, 0};
+            fd_set readfds;
+
+            FD_ZERO(&readfds);
+            FD_SET((unsigned int) hListen, &readfds);
+
+            if (select(0, &readfds, NULL, NULL, &timeout) == 0)
+            {
+                if (shutdownPending) 
+                {
+                    OS_LibShutdown();
+                    return -1;
+                }
+            }
+            else 
+            {
+                break;
+            }
         }
+    
+#if NO_WSAACEPT
+        hSock = accept((SOCKET) hListen, &sockaddr, &sockaddrLen);
+
+        if (hSock == INVALID_SOCKET)
+        {
+            break;
+        }
+
+        if (isAddrOK((struct sockaddr_in *) &sockaddr, webServerAddrs))
+        {
+            break;
+        }
+
+        closesocket(hSock);
+#else
+        hSock = WSAAccept((unsigned int) hListen,                    
+                          &sockaddr,  
+                          &sockaddrLen,               
+                          isAddrOKCallback,  
+                          (DWORD) webServerAddrs);
+
+        if (hSock != INVALID_SOCKET)
+        {
+            break;
+        }
+        
+        if (WSAGetLastError() != WSAECONNREFUSED)
+        {
+            break;
+        }
+#endif
     }
-    
-    hSock = (webServerAddrs == NULL)
-        ? accept((SOCKET) hListen, 
-                          &sockaddr, 
-                          &sockaddrLen)
-        : WSAAccept((unsigned int) hListen,                    
-                                   &sockaddr,  
-                                   &sockaddrLen,               
-                                   isAddrOK,  
-                           (DWORD) webServerAddrs);
-    
 
     if (hSock == INVALID_SOCKET) 
     {
-        // Can I use FormatMessage()?
+        /* Use FormatMessage() */
         fprintf(stderr, "accept()/WSAAccept() failed: %d", WSAGetLastError());
         return -1;
     }
