@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.5 2001/08/30 02:21:25 robs Exp $
+dnl     $Id: configure.in,v 1.6 2001/08/30 14:32:38 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -11,6 +11,8 @@ AC_CONFIG_SRCDIR([fcgiapp.c])
 
 AC_PROG_CC
 AC_PROG_CPP
+
+AC_CHECK_TYPE(ssize_t, int) 
 
 AC_MSG_CHECKING(for sun_len in sys/un.h)
 AC_EGREP_HEADER(sun_len,
