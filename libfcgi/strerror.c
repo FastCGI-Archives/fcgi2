@@ -36,7 +36,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 /*static char *sccsid = "from: @(#)strerror.c	5.6 (Berkeley) 5/4/91";*/
-static char *rcsid = "$Id: strerror.c,v 1.1 1997/09/16 15:36:33 stanleyg Exp $";
+static char *rcsid = "$Id: strerror.c,v 1.2 1999/07/27 14:59:09 roberts Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "fcgi_config.h"
@@ -51,9 +51,7 @@ static char *rcsid = "$Id: strerror.c,v 1.1 1997/09/16 15:36:33 stanleyg Exp $";
  */
 
 char *
-__strerror(num, buf)
-	int num;
-	char *buf;
+__strerror(int num, char *buf)
 {
 #define	UPREFIX	"Unknown error: "
 	extern char *sys_errlist[];
@@ -84,8 +82,7 @@ __strerror(num, buf)
 
 
 char *
-strerror(num)
-	int num;
+strerror(int num)
 {
 	static char buf[40];			/* 64-bit number + slop */
 	return __strerror(num, buf);
