@@ -1,4 +1,4 @@
-/* 
+/*
  * tiny-fcgi.c --
  *
  *	FastCGI example program using fcgi_stdio library
@@ -12,19 +12,22 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.3 1999/07/26 05:32:58 roberts Exp $";
+static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.4 1999/07/28 00:35:28 roberts Exp $";
 #endif /* not lint */
 
-#include "fcgi_stdio.h"
+#include "fcgi_config.h"
+
 #include <stdlib.h>
 
-#if defined HAVE_UNISTD_H || defined __linux__
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
 #ifdef _WIN32
 #include <process.h>
 #endif
+
+#include "fcgi_stdio.h"
 
 int main(void)
 {

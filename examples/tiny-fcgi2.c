@@ -1,4 +1,4 @@
-/* 
+/*
  * tiny-fcgi2.c --
  *
  *	FastCGI example program using fcgiapp library
@@ -12,18 +12,20 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: tiny-fcgi2.c,v 1.3 1999/07/26 05:32:58 roberts Exp $";
+static const char rcsid[] = "$Id: tiny-fcgi2.c,v 1.4 1999/07/28 00:36:11 roberts Exp $";
 #endif /* not lint */
 
-#if defined HAVE_UNISTD_H || defined __linux__
+#include "fcgi_config.h"
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#include "fcgiapp.h"
 
 #ifdef _WIN32
 #include <process.h>
 #endif
+
+#include "fcgiapp.h"
 
 int main(void)
 {
@@ -33,13 +35,13 @@ int main(void)
 
     while (FCGX_Accept(&in, &out, &err, &envp) >= 0) {
         FCGX_FPrintF(out,
-               "Content-type: text/html\r\n"
-               "\r\n"
-               "<title>FastCGI Hello! (C, fcgiapp library)</title>"
-               "<h1>FastCGI Hello! (C, fcgiapp library)</h1>"
-               "Request number %d running on host <i>%s</i>  "
-               "Process ID: %d\n",
-               ++count, FCGX_GetParam("SERVER_NAME", envp), getpid());
+           "Content-type: text/html\r\n"
+           "\r\n"
+           "<title>FastCGI Hello! (C, fcgiapp library)</title>"
+           "<h1>FastCGI Hello! (C, fcgiapp library)</h1>"
+           "Request number %d running on host <i>%s</i>  "
+           "Process ID: %d\n",
+           ++count, FCGX_GetParam("SERVER_NAME", envp), getpid());
     }
 
     return 0;
