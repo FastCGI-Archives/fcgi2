@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.23 2001/09/06 20:08:33 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.24 2001/09/14 19:43:27 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -261,12 +261,6 @@ static void StdinThread(LPDWORD startup){
     }
 
     ExitThread(0);
-}
-
-void OS_Shutdown(void)
-{
-    shutdownNow = TRUE;
-    OS_ShutdownPending();
 }
 
 void OS_ShutdownPending(void)

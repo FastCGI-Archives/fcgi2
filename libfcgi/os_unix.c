@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.31 2001/09/06 20:07:53 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.32 2001/09/14 19:43:27 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -102,12 +102,6 @@ static int volatile maxFd = -1;
 
 static int shutdownPending = FALSE;
 static int shutdownNow = FALSE;
-
-void OS_Shutdown()
-{
-    shutdownNow = TRUE;
-    OS_ShutdownPending();
-}
 
 void OS_ShutdownPending()
 {
@@ -211,8 +205,6 @@ int OS_LibInit(int stdioFds[3])
  */
 void OS_LibShutdown()
 {
-    OS_Shutdown();
-
     if(!libInitialized)
         return;
 
