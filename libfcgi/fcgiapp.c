@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.20 2001/06/18 14:15:51 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.21 2001/06/18 14:25:09 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -37,6 +37,10 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.20 2001/06/18 14:15:51 robs Exp 
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+
+#ifdef HAVE_LIMITS_H
+#include <limits.h>
 #endif
 
 #ifdef _WIN32
