@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.9 1999/08/10 10:05:01 skimo Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.10 1999/08/10 14:19:29 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -64,6 +64,7 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.9 1999/08/10 10:05:01 skimo Exp 
  * Globals
  */
 static int libInitialized = 0;
+static int isFastCGI = -1;
 static char *webServerAddressList = NULL;
 static FCGX_Request reqData;
 static FCGX_Request *reqDataPtr = &reqData;
@@ -1903,17 +1904,10 @@ FCGX_Stream *CreateWriter(
  * Results:
  *      TRUE if the process is a CGI process, FALSE if FastCGI.
  *
- * Side effects:
- *      If this is a FastCGI process there's a chance that a connection
- *      will be accepted while performing the test.  If this occurs,
- *      the connection is saved and used later by the FCGX_Accept logic.
- *
  *----------------------------------------------------------------------
  */
 int FCGX_IsCGI(void)
 {
-    static int isFastCGI = -1;
-
     if (isFastCGI != -1) {
         return !isFastCGI;
     }
@@ -2008,7 +2002,11 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
 
 int FCGX_OpenSocket(const char *path, int backlog)
 {
-    return OS_CreateLocalIpcFd(path, backlog);
+    int rc = OS_CreateLocalIpcFd(path, backlog);
+    if (rc == FCGI_LISTENSOCK_FILENO && isFastCGI == 0) {
+        /* XXX probably need to call OS_LibInit() again for Win */
+        isFastCGI = 1;
+    }
 }
 
 int FCGX_InitRequest(FCGX_Request *request, int sock, int flags)
@@ -2095,14 +2093,22 @@ int FCGX_Accept(
         FCGX_Stream **err,
         FCGX_ParamArray *envp)
 {
+    int rc;
+
     if (!libInitialized) {
-        int rc = FCGX_Init();
-        if (rc) {
+        if ((rc = FCGX_Init())) {
             return (rc < 0) ? rc : -rc;
         }
     }
 
-    return FCGX_Accept_r(&reqData);
+    rc = FCGX_Accept_r(&reqData);
+
+    *in = reqData.in;
+    *out = reqData.out;
+    *err = reqData.err;
+    *envp = reqData.envp;
+
+    return rc;
 }
 
 /*
@@ -2134,11 +2140,6 @@ int FCGX_Accept(
  */
 int FCGX_Accept_r(FCGX_Request *reqDataPtr)
 {
-    FCGX_Stream **in = &reqDataPtr->in;
-    FCGX_Stream **out = &reqDataPtr->out;
-    FCGX_Stream **err = &reqDataPtr->err;
-    FCGX_ParamArray *envp = &reqDataPtr->envp;
-
     if (!libInitialized) {
         return -9998;
     }
@@ -2214,10 +2215,7 @@ int FCGX_Accept_r(FCGX_Request *reqDataPtr)
     reqDataPtr->out = NewWriter(reqDataPtr, 8192, FCGI_STDOUT);
     reqDataPtr->err = NewWriter(reqDataPtr, 512, FCGI_STDERR);
     reqDataPtr->nWriters = 2;
-    *in = reqDataPtr->in;
-    *out = reqDataPtr->out;
-    *err = reqDataPtr->err;
-    *envp = reqDataPtr->paramsPtr->vec;
+    reqDataPtr->envp = reqDataPtr->paramsPtr->vec;
     return 0;
 }
 
