@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.7 2001/10/11 19:36:04 skimo Exp $ */
+/* $Id: FCGI.XL,v 1.8 2002/09/05 16:14:04 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -158,9 +158,25 @@ FCGI_Bind(FCGP_Request* request)
     sfdisc(IoOFP(request->io[1]), sfdcnewfcgi(request->requestPtr->out));
     sfdisc(IoOFP(request->io[2]), sfdcnewfcgi(request->requestPtr->err));
 #else
+#  ifdef USE_PERLIO
+    /* For tied filehandles, we apply tiedscalar magic to the IO
+       slot of the GP rather than the GV itself. */
+
+    if (!GvIOp(request->gv[1]))
+	GvIOp(request->gv[1]) = newIO();
+    if (!GvIOp(request->gv[2]))
+	GvIOp(request->gv[2]) = newIO();
+    if (!GvIOp(request->gv[0]))
+	GvIOp(request->gv[0]) = newIO();
+
+    sv_magic((SV *)GvIOp(request->gv[1]), request->svout, 'q', Nullch, 0);
+    sv_magic((SV *)GvIOp(request->gv[2]), request->sverr, 'q', Nullch, 0);
+    sv_magic((SV *)GvIOp(request->gv[0]), request->svin, 'q', Nullch, 0);
+#  else
     sv_magic((SV *)request->gv[1], request->svout, 'q', Nullch, 0);
     sv_magic((SV *)request->gv[2], request->sverr, 'q', Nullch, 0);
     sv_magic((SV *)request->gv[0], request->svin, 'q', Nullch, 0);
+#  endif
 #endif
     request->bound = TRUE;
 }
