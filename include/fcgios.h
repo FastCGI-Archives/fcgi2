@@ -98,7 +98,7 @@ typedef void (*OS_AsyncProc) (ClientData clientData, int len);
 
 DLLAPI int OS_LibInit(int stdioFds[3]);
 DLLAPI void OS_LibShutdown(void);
-DLLAPI int OS_CreateLocalIpcFd(char *bindPath);
+DLLAPI int OS_CreateLocalIpcFd(const char *bindPath, int backlog);
 DLLAPI int OS_FcgiConnect(char *bindPath);
 DLLAPI int OS_Read(int fd, char * buf, size_t len);
 DLLAPI int OS_Write(int fd, char * buf, size_t len);
@@ -112,9 +112,9 @@ DLLAPI int OS_AsyncWrite(int fd, int offset, void *buf, int len,
 DLLAPI int OS_Close(int fd);
 DLLAPI int OS_CloseRead(int fd);
 DLLAPI int OS_DoIo(struct timeval *tmo);
-DLLAPI int OS_FcgiIpcAccept(char *clientAddrList);
+DLLAPI int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList);
 DLLAPI int OS_IpcClose(int ipcFd);
-DLLAPI int OS_IsFcgi(void);
+DLLAPI int OS_IsFcgi(int sock);
 DLLAPI void OS_SetFlags(int fd, int flags);
 
 #if defined (__cplusplus) || defined (c_plusplus)

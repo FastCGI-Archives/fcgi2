@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.3 1999/07/28 00:27:51 roberts Exp $
+ * $Id: fcgiapp.h,v 1.4 1999/08/05 21:25:52 roberts Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -80,22 +80,36 @@ typedef struct FCGX_Stream {
 typedef char **FCGX_ParamArray;
 
 /*
- * State associated with a request.
+ * FCGX_Request Flags
  *
- * Its exposed for API simplicity, DON'T use it - it WILL change!
+ * Setting FCGI_FAIL_ACCEPT_ON_INTR prevents FCGX_Accept() from
+ * restarting upon being interrupted.
+ */
+#define FCGI_FAIL_ACCEPT_ON_INTR	1
+
+/*
+ * FCGX_Request -- State associated with a request.
+ *
+ * Its exposed for API simplicity, I expect parts of it to change!
  */
 typedef struct FCGX_Request {
+    int requestId;            /* valid if isBeginProcessed */
+    int role;
+    FCGX_Stream *in;
+    FCGX_Stream *out;
+    FCGX_Stream *err;
+	char **envp;
+
+	/* Don't use anything below here */
+
+    struct Params *paramsPtr;
     int ipcFd;               /* < 0 means no connection */
     int isBeginProcessed;     /* FCGI_BEGIN_REQUEST seen */
-    int requestId;            /* valid if isBeginProcessed */
     int keepConnection;       /* don't close ipcFd at end of request */
-    int role;
     int appStatus;
     int nWriters;             /* number of open writers (0..2) */
-    FCGX_Stream *inStream;
-    FCGX_Stream *outStream;
-    FCGX_Stream *errStream;
-    struct Params *paramsPtr;
+	int flags;
+	int listen_sock;
 } FCGX_Request;
 
 
@@ -134,13 +148,35 @@ DLLAPI int FCGX_Init(void);
 /*
  *----------------------------------------------------------------------
  *
- * FCGX_InitRequest --
+ * FCGX_OpenSocket --
  *
- *      Initialize a FCGX_Request for use with FCGX_Accept_r().
+ *	Create a FastCGI listen socket.
+ *
+ *	path is the Unix domain socket (named pipe for WinNT), or a colon
+ *	followed by a port number.  e.g. "/tmp/fastcgi/mysocket", ":5000"
+ *
+ *	backlog is the listen queue depth used in the listen() call.
+ *
+ *  Returns the socket's file descriptor or -1 on error.
  *
  *----------------------------------------------------------------------
  */
-DLLAPI void FCGX_InitRequest(FCGX_Request *request);
+DLLAPI int FCGX_OpenSocket(const char *path, int backlog);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_InitRequest --
+ *
+ *	Initialize a FCGX_Request for use with FCGX_Accept_r().
+ *
+ * 	sock is a file descriptor returned by FCGX_OpenSocket() or 0 (default).
+ * 	The only supported flag at this time is FCGI_FAIL_ON_INTR.
+ *
+ * 	Returns 0 upon success.
+ *----------------------------------------------------------------------
+ */
+DLLAPI int FCGX_InitRequest(FCGX_Request *request, int sock, int flags);
 
 /*
  *----------------------------------------------------------------------
@@ -172,12 +208,7 @@ DLLAPI void FCGX_InitRequest(FCGX_Request *request);
  *
  *----------------------------------------------------------------------
  */
-DLLAPI int FCGX_Accept_r(
-        FCGX_Stream **in,
-        FCGX_Stream **out,
-        FCGX_Stream **err,
-        FCGX_ParamArray *envp,
-        FCGX_Request *request);
+DLLAPI int FCGX_Accept_r(FCGX_Request *request);
 
 /*
  *----------------------------------------------------------------------

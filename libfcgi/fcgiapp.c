@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.7 1999/07/28 00:22:18 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.8 1999/08/05 21:25:53 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1008,7 +1008,7 @@ static ParamsPtr NewParams(int length)
  *	Frees a Params structure and all the parameters it contains.
  *
  * Side effects:
- *      paramsPtr becomes invalid.
+ *      env becomes invalid.
  *
  *----------------------------------------------------------------------
  */
@@ -1925,7 +1925,7 @@ int FCGX_IsCGI(void)
         }
     }
 
-    isFastCGI = OS_IsFcgi();
+    isFastCGI = OS_IsFcgi(FCGI_LISTENSOCK_FILENO);
 
     return !isFastCGI;
 }
@@ -1980,12 +1980,12 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         return;
     }
 
-    if (reqDataPtr->inStream) {
-        int errStatus = FCGX_FClose(reqDataPtr->errStream);
-        int outStatus = FCGX_FClose(reqDataPtr->outStream);
+    if (reqDataPtr->in) {
+        int errStatus = FCGX_FClose(reqDataPtr->err);
+        int outStatus = FCGX_FClose(reqDataPtr->out);
 
         if (errStatus  || outStatus
-            || FCGX_GetError(reqDataPtr->inStream)
+            || FCGX_GetError(reqDataPtr->in)
             || !reqDataPtr->keepConnection)
         {
             OS_IpcClose(reqDataPtr->ipcFd);
@@ -1993,9 +1993,9 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
 
         ASSERT(reqDataPtr->nWriters == 0);
 
-        FreeStream(&reqDataPtr->inStream);
-        FreeStream(&reqDataPtr->outStream);
-        FreeStream(&reqDataPtr->errStream);
+        FreeStream(&reqDataPtr->in);
+        FreeStream(&reqDataPtr->out);
+        FreeStream(&reqDataPtr->err);
 
         FreeParams(&reqDataPtr->paramsPtr);
     }
@@ -2004,11 +2004,23 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         reqDataPtr->ipcFd = -1;
     }
 }
-
 
-void FCGX_InitRequest(FCGX_Request *request)
+int FCGX_OpenSocket(const char *path, int backlog)
+{
+    return OS_CreateLocalIpcFd(path, backlog);
+}
+
+int FCGX_InitRequest(FCGX_Request *request, int sock, int flags)
 {
     memset(request, 0, sizeof(FCGX_Request));
+
+    /* @@@ Should check that sock is open and listening */
+    request->listen_sock = sock;
+
+    /* @@@ Should validate against "known" flags */
+    request->flags = flags;
+
+    return 0;
 }
 
 /*
@@ -2035,7 +2047,7 @@ int FCGX_Init(void)
     /* If our compiler doesn't play by the ISO rules for struct layout, halt. */
     ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
 
-    FCGX_InitRequest(&reqData);
+    FCGX_InitRequest(&reqData, FCGI_LISTENSOCK_FILENO, 0);
 
     if (OS_LibInit(NULL) == -1) {
         return OS_Errno ? OS_Errno : -9997;
@@ -2089,7 +2101,7 @@ int FCGX_Accept(
         }
     }
 
-    return FCGX_Accept_r(in, out, err, envp, &reqData);
+    return FCGX_Accept_r(&reqData);
 }
 
 /*
@@ -2119,13 +2131,13 @@ int FCGX_Accept(
  *
  *----------------------------------------------------------------------
  */
-int FCGX_Accept_r(
-        FCGX_Stream **in,
-        FCGX_Stream **out,
-        FCGX_Stream **err,
-        FCGX_ParamArray *envp,
-        FCGX_Request *reqDataPtr)
+int FCGX_Accept_r(FCGX_Request *reqDataPtr)
 {
+    FCGX_Stream **in = &reqDataPtr->in;
+    FCGX_Stream **out = &reqDataPtr->out;
+    FCGX_Stream **err = &reqDataPtr->err;
+    FCGX_ParamArray *envp = &reqDataPtr->envp;
+
     if (!libInitialized) {
         return -9998;
     }
@@ -2140,7 +2152,9 @@ int FCGX_Accept_r(
          * return -1 to the caller, who should exit.
          */
         if (reqDataPtr->ipcFd < 0) {
-            reqDataPtr->ipcFd = OS_FcgiIpcAccept(webServerAddressList);
+            int fail_on_intr = reqDataPtr->flags & FCGI_FAIL_ACCEPT_ON_INTR;
+
+            reqDataPtr->ipcFd = OS_Accept(reqDataPtr->listen_sock, fail_on_intr, webServerAddressList);
             if (reqDataPtr->ipcFd < 0) {
                 return (errno > 0) ? (0 - errno) : -9999;
             }
@@ -2151,8 +2165,8 @@ int FCGX_Accept_r(
          * errors occur, close the connection and try again.
          */
         reqDataPtr->isBeginProcessed = FALSE;
-        reqDataPtr->inStream = NewReader(reqDataPtr, 8192, 0);
-        FillBuffProc(reqDataPtr->inStream);
+        reqDataPtr->in = NewReader(reqDataPtr, 8192, 0);
+        FillBuffProc(reqDataPtr->in);
         if(!reqDataPtr->isBeginProcessed) {
             goto TryAgain;
         }
@@ -2174,8 +2188,8 @@ int FCGX_Accept_r(
             reqDataPtr->paramsPtr = NewParams(30);
             PutParam(reqDataPtr->paramsPtr, StringCopy(roleStr));
         }
-        SetReaderType(reqDataPtr->inStream, FCGI_PARAMS);
-        if(ReadParams(reqDataPtr->paramsPtr, reqDataPtr->inStream) >= 0) {
+        SetReaderType(reqDataPtr->in, FCGI_PARAMS);
+        if(ReadParams(reqDataPtr->paramsPtr, reqDataPtr->in) >= 0) {
             /*
              * Finished reading the environment.  No errors occurred, so
              * leave the connection-retry loop.
@@ -2187,7 +2201,7 @@ int FCGX_Accept_r(
          */
       TryAgain:
         FreeParams(&reqDataPtr->paramsPtr);
-        FreeStream(&reqDataPtr->inStream);
+        FreeStream(&reqDataPtr->in);
         OS_Close(reqDataPtr->ipcFd);
         reqDataPtr->ipcFd = -1;
     } /* for (;;) */
@@ -2195,13 +2209,13 @@ int FCGX_Accept_r(
      * Build the remaining data structures representing the new
      * request and return successfully to the caller.
      */
-    SetReaderType(reqDataPtr->inStream, FCGI_STDIN);
-    reqDataPtr->outStream = NewWriter(reqDataPtr, 8192, FCGI_STDOUT);
-    reqDataPtr->errStream = NewWriter(reqDataPtr, 512, FCGI_STDERR);
+    SetReaderType(reqDataPtr->in, FCGI_STDIN);
+    reqDataPtr->out = NewWriter(reqDataPtr, 8192, FCGI_STDOUT);
+    reqDataPtr->err = NewWriter(reqDataPtr, 512, FCGI_STDERR);
     reqDataPtr->nWriters = 2;
-    *in = reqDataPtr->inStream;
-    *out = reqDataPtr->outStream;
-    *err = reqDataPtr->errStream;
+    *in = reqDataPtr->in;
+    *out = reqDataPtr->out;
+    *err = reqDataPtr->err;
     *envp = reqDataPtr->paramsPtr->vec;
     return 0;
 }
@@ -2234,7 +2248,7 @@ int FCGX_StartFilterData(FCGX_Stream *stream)
         SetError(stream, FCGX_CALL_SEQ_ERROR);
         return -1;
     }
-    SetReaderType(reqDataPtr->inStream, FCGI_DATA);
+    SetReaderType(reqDataPtr->in, FCGI_DATA);
     return 0;
 }
 

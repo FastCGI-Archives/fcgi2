@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.2 1999/07/28 00:18:31 roberts Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.3 1999/08/05 21:25:56 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -104,8 +104,6 @@ typedef struct OVERLAPPED_REQUEST *POVERLAPPED_REQUEST;
 
 static const char *bindPathPrefix = "\\\\.\\pipe\\FastCGI\\";
 
-static int isFastCGI = FALSE;
-static int isCGI = FALSE;
 static int listenType = FD_UNUSED;
 static HANDLE hListen = INVALID_HANDLE_VALUE;
 static int libInitialized = 0;
@@ -319,7 +317,6 @@ int OS_LibInit(int stdioFds[3])
        (GetStdHandle(STD_INPUT_HANDLE)  != INVALID_HANDLE_VALUE) ) {
 
         hListen = GetStdHandle(STD_INPUT_HANDLE);
-        isFastCGI = TRUE;
 
 	/*
 	 * Set the pipe handle state so that it operates in wait mode.
@@ -572,7 +569,7 @@ static void Win32FreeDescriptor(int fd)
  *
  *----------------------------------------------------------------------
  */
-int OS_CreateLocalIpcFd(char *bindPath)
+int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 {
     int retFd = -1;
     SECURITY_ATTRIBUTES     sa;
@@ -620,7 +617,7 @@ int OS_CreateLocalIpcFd(char *bindPath)
 	servLen = sizeof(sockAddr);
 
 	if(bind(listenSock, (struct sockaddr *) &sockAddr, servLen) < 0
-	   || listen(listenSock, 5) < 0) {
+	   || listen(listenSock, backlog) < 0) {
 	    perror("bind/listen");
 	    exit(errno);
 	}
@@ -1386,7 +1383,7 @@ int OS_DoIo(struct timeval *tmo)
 /*
  *----------------------------------------------------------------------
  *
- * OS_FcgiIpcAccept --
+ * OS_Accept --
  *
  *	Accepts a new FastCGI connection.  This routine knows whether
  *      we're dealing with TCP based sockets or NT Named Pipes for IPC.
@@ -1399,8 +1396,9 @@ int OS_DoIo(struct timeval *tmo)
  *
  *----------------------------------------------------------------------
  */
-int OS_FcgiIpcAccept(char *serverHostList)
+int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList)
 {
+    /* XXX This is broken for listen_sock & fail_on_intr */
     struct sockaddr_in sa;
     int isNewConnection;
     int ipcFd = -1;
@@ -1574,14 +1572,13 @@ int OS_IpcClose(int ipcFd)
  *
  *----------------------------------------------------------------------
  */
-int OS_IsFcgi()
+int OS_IsFcgi(int sock)
 {
+    /* XXX This is broken for sock */
     if(listenType == FD_UNUSED) {
-        isCGI = TRUE;
-        return 0;
+        return FALSE;
     } else {
-        isCGI = FALSE;
-        return 1;
+        return TRUE;
     }
 }
 

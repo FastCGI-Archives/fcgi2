@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.7 1999/07/28 00:38:34 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.8 1999/08/05 21:25:51 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -488,7 +488,8 @@ static void FCGI_Start(char *bindPath, char *appPath, int nServers)
 {
     int listenFd, i;
 
-    if((listenFd = OS_CreateLocalIpcFd(bindPath)) == -1) {
+    /* @@@ Should be able to pick up the backlog as an arg */
+    if((listenFd = OS_CreateLocalIpcFd(bindPath, 5)) == -1) {
         exit(OS_Errno);
     }
 

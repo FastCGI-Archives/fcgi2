@@ -3,7 +3,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.5 1999/08/05 14:18:35 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.6 1999/08/05 21:25:51 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -35,7 +35,7 @@ static void *doit(void *a)
     FCGX_ParamArray envp;
     char *server_name;
 
-    FCGX_InitRequest(&request);
+    FCGX_InitRequest(&request, 0, 0);
 
     for (;;)
     {
@@ -44,7 +44,7 @@ static void *doit(void *a)
 
         /* Some platforms require accept() serialization, some don't.. */
         pthread_mutex_lock(&accept_mutex);
-        rc = FCGX_Accept_r(&in, &out, &err, &envp, &request);
+        rc = FCGX_Accept_r(&request);
         pthread_mutex_unlock(&accept_mutex);
 
         if (rc < 0)

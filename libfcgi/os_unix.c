@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.11 1999/08/02 19:22:00 skimo Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.12 1999/08/05 21:25:55 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -92,7 +92,6 @@ typedef struct {
 static int asyncIoTableSize = 16;
 static AioInfo *asyncIoTable = NULL;
 
-static int isFastCGI = FALSE;
 static int libInitialized = FALSE;
 
 static fd_set readFdSet;
@@ -191,7 +190,7 @@ void OS_LibShutdown()
  *----------------------------------------------------------------------
  */
 
-static int OS_BuildSockAddrUn(char *bindPath,
+static int OS_BuildSockAddrUn(const char *bindPath,
                               struct sockaddr_un *servAddrPtr,
                               int *servAddrLen)
 {
@@ -243,7 +242,7 @@ union SockAddrUnion {
  *
  *----------------------------------------------------------------------
  */
-int OS_CreateLocalIpcFd(char *bindPath)
+int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 {
     int listenSock, servLen;
     union   SockAddrUnion sa;
@@ -303,7 +302,7 @@ int OS_CreateLocalIpcFd(char *bindPath)
 	}
     }
     if(bind(listenSock, (struct sockaddr *) &sa.unixVariant, servLen) < 0
-       || listen(listenSock, 5) < 0) {
+       || listen(listenSock, backlog) < 0) {
 	perror("bind/listen");
         exit(errno);
     }
@@ -839,7 +838,7 @@ int OS_DoIo(struct timeval *tmo)
  *
  *----------------------------------------------------------------------
  */
-static int ClientAddrOK(struct sockaddr_in *saPtr, char *clientList)
+static int ClientAddrOK(struct sockaddr_in *saPtr, const char *clientList)
 {
     int result = FALSE;
     char *clientListCopy, *cur, *next;
@@ -889,22 +888,25 @@ static int ClientAddrOK(struct sockaddr_in *saPtr, char *clientList)
  *
  *----------------------------------------------------------------------
  */
-static int AcquireLock(int blocking)
+static int AcquireLock(int sock, int fail_on_intr)
 {
 #ifdef USE_LOCKING
-    struct flock lock;
-    lock.l_type = F_WRLCK;
-    lock.l_start = 0;
-    lock.l_whence = SEEK_SET;
-    lock.l_len = 0;
+    do {
+        struct flock lock;
+        lock.l_type = F_WRLCK;
+        lock.l_start = 0;
+        lock.l_whence = SEEK_SET;
+        lock.l_len = 0;
 
-    if(fcntl(FCGI_LISTENSOCK_FILENO,
-             blocking ? F_SETLKW : F_SETLK, &lock) < 0) {
-        if (errno != EINTR)
-            return -1;
-    }
-#endif /* USE_LOCKING */
+        if (fcntl(sock, F_SETLKW, &lock) != -1)
+            return 0;
+    } while (errno == EINTR && !fail_on_intr);
+
+    return -1;
+
+#else
     return 0;
+#endif
 }
 
 /*
@@ -924,20 +926,25 @@ static int AcquireLock(int blocking)
  *
  *----------------------------------------------------------------------
  */
-static int ReleaseLock(void)
+static int ReleaseLock(int sock)
 {
 #ifdef USE_LOCKING
-    struct flock lock;
-    lock.l_type = F_UNLCK;
-    lock.l_start = 0;
-    lock.l_whence = SEEK_SET;
-    lock.l_len = 0;
+    do {
+        struct flock lock;
+        lock.l_type = F_UNLCK;
+        lock.l_start = 0;
+        lock.l_whence = SEEK_SET;
+        lock.l_len = 0;
 
-    if(fcntl(FCGI_LISTENSOCK_FILENO, F_SETLK, &lock) < 0) {
-        return -1;
-    }
-#endif /* USE_LOCKING */
+        if (fcntl(sock, F_SETLK, &lock) != -1)
+            return 0;
+    } while (errno == EINTR);
+
+    return -1;
+
+#else
     return 0;
+#endif
 }
 
 
@@ -1022,7 +1029,7 @@ static int is_af_unix_keeper(const int fd)
 /*
  *----------------------------------------------------------------------
  *
- * OS_FcgiIpcAccept --
+ * OS_Accept --
  *
  *	Accepts a new FastCGI connection.  This routine knows whether
  *      we're dealing with TCP based sockets or NT Named Pipes for IPC.
@@ -1035,40 +1042,38 @@ static int is_af_unix_keeper(const int fd)
  *
  *----------------------------------------------------------------------
  */
-int OS_FcgiIpcAccept(char *clientAddrList)
+int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList)
 {
     int socket;
     union {
         struct sockaddr_un un;
         struct sockaddr_in in;
     } sa;
-#ifdef HAVE_SOCKLEN
-    socklen_t len;
-#else
-    int len;
-#endif
 
-    while (1) {
-        if (AcquireLock(TRUE) < 0)
-            return (-1);
+    for (;;) {
+        if (AcquireLock(listen_sock, fail_on_intr))
+            return -1;
 
-        while (1) {
+        for (;;) {
             do {
-                len = sizeof(sa);
-                socket = accept(FCGI_LISTENSOCK_FILENO, (struct sockaddr *) &sa.un, &len);
-            } while (socket < 0 && errno == EINTR);
+#ifdef HAVE_SOCKLEN
+                socklen_t len = sizeof(sa);
+#else
+                int len = sizeof(sa);
+#endif
+                socket = accept(listen_sock, (struct sockaddr *)&sa, &len);
+            } while (socket < 0 && errno == EINTR && !fail_on_intr);
 
             if (socket < 0) {
                 if (!is_reasonable_accept_errno(errno)) {
                     int errnoSave = errno;
-
-                    ReleaseLock();
+                    ReleaseLock(listen_sock);
                     errno = errnoSave;
                     return (-1);
                 }
                 errno = 0;
             }
-            else {
+            else {  /* socket >= 0 */
                 int set = 1;
 
                 if (sa.in.sin_family != AF_INET)
@@ -1084,10 +1089,10 @@ int OS_FcgiIpcAccept(char *clientAddrList)
                     break;
 
                 close(socket);
-            }
-        }  /* while(1) - accept */
+            }  /* socket >= 0 */
+        }  /* for(;;) */
 
-        if (ReleaseLock() < 0)
+        if (ReleaseLock(listen_sock))
             return (-1);
 
         if (sa.in.sin_family != AF_UNIX || is_af_unix_keeper(socket))
@@ -1135,8 +1140,9 @@ int OS_IpcClose(int ipcFd)
  *
  *----------------------------------------------------------------------
  */
-int OS_IsFcgi()
+int OS_IsFcgi(int sock)
 {
+    int isFastCGI = FALSE;
 	union {
         struct sockaddr_in in;
         struct sockaddr_un un;
@@ -1147,13 +1153,12 @@ int OS_IsFcgi()
     int len = sizeof(sa);
 #endif
 
-    if (getpeername(FCGI_LISTENSOCK_FILENO, (struct sockaddr *)&sa, &len) != 0
-            && errno == ENOTCONN)
-        isFastCGI = TRUE;
-    else
-        isFastCGI = FALSE;
-
-    return (isFastCGI);
+    if (getpeername(sock, (struct sockaddr *)&sa, &len) != 0 && errno == ENOTCONN) {
+        return TRUE;
+    }
+    else {
+        return FALSE;
+    }
 }
 
 /*
