@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.9 2001/11/21 21:12:04 robs Exp $
+// $Id: fcgio.h,v 1.10 2001/11/26 18:09:02 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -71,7 +71,10 @@ public:
     // Note: sync() is protected in some implementations.
     DLLAPI virtual int sync();
 
-    // Fill the get area (if buffered) and return the next character.
+    // Remove and return the current character.
+    DLLAPI virtual int uflow();
+
+    // Fill the get area (if buffered) and return the current character.
     DLLAPI virtual int underflow();
 
     // Use a buffer.  The only reasons that a buffer would be useful is

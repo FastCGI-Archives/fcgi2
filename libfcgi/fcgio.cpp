@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.10 2001/11/21 20:54:24 robs Exp $
+// $Id: fcgio.cpp,v 1.11 2001/11/26 18:09:03 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -82,6 +82,15 @@ int fcgi_streambuf::sync()
     return 0;
 }
 
+// uflow() removes the char, underflow() doesn't
+int fcgi_streambuf::uflow() 
+{
+    int rv = underflow();
+    if (this->bufsize) gbump(1);
+    return rv;
+}
+				
+// Note that the expected behaviour when there is no buffer varies
 int fcgi_streambuf::underflow()
 {
     if (this->bufsize)
