@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.11 1999/08/10 11:06:37 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.12 1999/08/27 13:28:47 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -339,6 +339,24 @@ RequestX(in, out, err, env, socket, flags)
     OUTPUT:
     RETVAL
 
+int
+OpenSocket(path, backlog)
+    char* path;
+    int backlog;
+
+    PROTOTYPE: $$
+    CODE:
+    RETVAL = FCGX_OpenSocket(path, backlog);
+    OUTPUT:
+    RETVAL
+
+void
+CloseSocket(socket)
+    int socket;
+
+    PROTOTYPE: $
+    CODE:
+    close(socket);
 
 int
 Accept(request)

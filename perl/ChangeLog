@@ -1,3 +1,9 @@
+Version 0.47 -- 27 August 1999  <skimo@kotnet.org> Sven Verdoolaege
+
+	o perl 5.005_60 compatibility
+	o locking on platforms that need it
+	o support for remote connections
+
 Version 0.47 -- 31 July 1999  <skimo@kotnet.org> Sven Verdoolaege
 
 	o move PRINTF into correct package
