@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.15 2001/09/01 01:14:28 robs Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.16 2003/06/22 02:02:33 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -188,7 +188,7 @@ static int stdinFds[3];
 static void FCGIexit(int exitCode)
 {
     if(appServerSock != -1) {
-        OS_Close(appServerSock);
+        OS_Close(appServerSock, TRUE);
 	appServerSock = -1;
     }
     OS_LibShutdown();
@@ -232,7 +232,7 @@ static void AppServerReadHandler(ClientData dc, int bytesRead)
             exit(FCGX_PROTOCOL_ERROR);
         }
 	if(appServerSock != -1) {
-	    OS_Close(appServerSock);
+	    OS_Close(appServerSock, TRUE);
 	    appServerSock = -1;
 	}
         /*
@@ -531,7 +531,7 @@ static void FCGI_Start(char *bindPath, char *appPath, int nServers)
             exit(OS_Errno);
 	}
     }
-    OS_Close(listenFd);
+    OS_Close(listenFd, TRUE);
 }
 
 /*
