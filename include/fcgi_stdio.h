@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgi_stdio.h,v 1.4 1999/06/09 03:27:25 roberts Exp $
+ * $Id: fcgi_stdio.h,v 1.5 2001/06/22 13:21:15 robs Exp $
  */
 
 #ifndef _FCGI_STDIO
@@ -23,12 +23,12 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
 #ifndef DLLAPI
+#ifdef _WIN32
 #define DLLAPI __declspec(dllimport)
-#endif
 #else
 #define DLLAPI
+#endif
 #endif
 
 /*

@@ -11,7 +11,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiappmisc.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: fcgiappmisc.h,v 1.2 2001/06/22 13:21:15 robs Exp $
  */
 
 #ifndef _FCGIAPPMISC_H
@@ -23,12 +23,12 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
 #ifndef DLLAPI
+#ifdef _WIN32
 #define DLLAPI __declspec(dllimport)
-#endif
 #else
 #define DLLAPI
+#endif
 #endif
 
 DLLAPI FCGX_Stream *CreateWriter(

@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.6 2001/06/22 13:17:18 skimo Exp $
+ * $Id: fcgiapp.h,v 1.7 2001/06/22 13:21:15 robs Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -26,17 +26,13 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
-
 #ifndef DLLAPI
+#ifdef _WIN32
 #define DLLAPI __declspec(dllimport)
-#endif
-
-#else  /* !_WIN32 */
-
+#else
 #define DLLAPI
-
-#endif /* !_WIN32 */
+#endif
+#endif
 
 /*
  * Error codes.  Assigned to avoid conflict with EOF and errno(2).

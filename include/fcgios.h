@@ -37,17 +37,22 @@ extern "C" {
 #ifdef _WIN32
 #define OS_Errno GetLastError()
 #define OS_SetErrno(err) SetLastError(err)
-#ifndef DLLAPI
-#define DLLAPI __declspec(dllimport)
-#endif
 #ifndef O_NONBLOCK
 #define O_NONBLOCK     0x0004  /* no delay */
 #endif
 #else /* !_WIN32 */
-#define DLLAPI
 #define OS_Errno errno
 #define OS_SetErrno(err) errno = (err)
 #endif /* !_WIN32 */
+
+#ifndef DLLAPI
+#ifdef _WIN32
+#define DLLAPI __declspec(dllimport)
+#else
+#define DLLAPI
+#endif
+#endif
+
 
 /* This is the initializer for a "struct timeval" used in a select() call
  * right after a new request is accept()ed to determine readablity.  Its
