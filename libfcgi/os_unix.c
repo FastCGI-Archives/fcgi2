@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.29 2001/09/06 13:06:12 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.30 2001/09/06 15:48:22 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -986,7 +986,9 @@ static int AcquireLock(int sock, int fail_on_intr)
 
         if (fcntl(sock, F_SETLKW, &lock) != -1)
             return 0;
-    } while (errno == EINTR && !fail_on_intr);
+    } while (errno == EINTR 
+             && ! fail_on_intr 
+             && ! shutdownPending);
 
     return -1;
 
@@ -1152,7 +1154,8 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
                 socket = accept(listen_sock, (struct sockaddr *)&sa, &len);
             } while (socket < 0 
                      && errno == EINTR 
-                     && (! fail_on_intr && ! shutdownPending));
+                     && ! fail_on_intr 
+                     && ! shutdownPending);
 
             if (socket < 0) {
                 if (!is_reasonable_accept_errno(errno)) {
