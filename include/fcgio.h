@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.h,v 1.4 2001/06/20 16:05:55 robs Exp $
+// $Id: fcgio.h,v 1.5 2001/06/22 13:15:10 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostream
 // objects
@@ -211,13 +211,9 @@ int main(void)
 
 #include <iostream.h>
 
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#endif
+#include "fcgiapp.h"
 
-#include <fcgiapp.h>
-
-// we aren't pulling from the heap, so it is best not o make it too big
+// we aren't pulling from the heap, so it is best not to make it too big
 #define FCGIO_BUFSIZE 200
 
 // FastCGI streambuf replacement. Implements low level I/O to the
