@@ -10,17 +10,17 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
 #ifndef lint
-static const char rcsid[] = "$Id: echo2.c,v 1.5 1999/07/26 22:07:19 roberts Exp $";
+static const char rcsid[] = "$Id: echo2.c,v 1.6 1999/07/27 19:01:39 roberts Exp $";
 #endif /* not lint */
+
+#include "fcgiapp.h"
 
 #if defined HAVE_UNISTD_H || __linux__
 #include <unistd.h>
 #endif
 
 #include <stdlib.h>
-#include "fcgiapp.h"
 
 #ifdef _WIN32
 #include <process.h>
