@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.8 1999/08/05 21:25:53 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.9 1999/08/10 10:05:01 skimo Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -571,6 +571,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                         break;
 	            case 's':
                         charPtrArg = va_arg(arg, char *);
+			if (!charPtrArg) charPtrArg = "(null)";
                         if(precision == -1) {
 			    buffReqd = strlen(charPtrArg);
 		        } else {
