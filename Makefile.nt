@@ -1,0 +1,25 @@
+#
+#  Windows Makefile for FastCGI development kit
+#
+#  $Id: Makefile.nt,v 1.1 2001/08/31 13:47:29 robs Exp $
+#
+
+!IF "$(CFG)" == ""
+CFG=release
+!ENDIF 
+
+all clean:
+	cd ".\libfcgi"
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F libfcgi.mak     CFG=$(CFG) $@
+	
+	cd ".\..\cgi-fcgi"
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F cgi-fcgi.mak    CFG=$(CFG) $@
+	
+	cd ".\..\examples"
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F authorizer.mak  CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echo.mak 	   	 CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echox.mak 	     CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F size.mak 	     CFG=$(CFG) $@
+	
+install:
+	@echo "Sorry, the install target hasn't been written yet"
