@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.25 2001/04/30 15:00:50 skimo Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.26 2001/06/18 14:24:28 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -59,14 +59,6 @@ static const char rcsid[] = "$Id: os_unix.c,v 1.25 2001/04/30 15:00:50 skimo Exp
 #include "fcgiappmisc.h"
 #include "fcgimisc.h"
 #include "fcgios.h"
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 #ifndef INADDR_NONE
 #define INADDR_NONE ((unsigned long) -1)
