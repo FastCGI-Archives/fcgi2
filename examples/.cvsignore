@@ -6,4 +6,7 @@ echo
 echo-x
 log-dump
 threaded
+Debug
+Release
+
 
