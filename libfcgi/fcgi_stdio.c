@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.8 1999/07/28 00:24:15 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.9 2000/10/30 22:52:24 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -55,6 +55,7 @@ extern int pclose(FILE *stream);
 #else /* _WIN32 */
 
 #define popen _popen
+#define pclose _pclose
 
 #endif /* _WIN32 */
 
@@ -281,13 +282,17 @@ void FCGI_perror(const char *str)
 static FCGI_FILE *FCGI_OpenFromFILE(FILE *stream)
 {
     FCGI_FILE *fp;
-    if(stream == NULL)
+
+    if (stream == NULL)
         return NULL;
-    fp = (FCGI_FILE *)malloc(sizeof(FCGI_FILE));
-    if(fp == NULL)
-        return NULL;
-    fp->stdio_stream = stream;
-    fp->fcgx_stream = NULL;
+
+    fp = (FCGI_FILE *) malloc(sizeof(FCGI_FILE));
+    if (fp != NULL)
+    {
+        fp->stdio_stream = stream;
+        fp->fcgx_stream = NULL;
+    }
+
     return fp;
 }
 
@@ -303,7 +308,13 @@ static FCGI_FILE *FCGI_OpenFromFILE(FILE *stream)
 
 FCGI_FILE *FCGI_fopen(const char *path, const char *mode)
 {
-    return FCGI_OpenFromFILE(fopen(path, mode));
+    FILE * file = fopen(path, mode);
+    FCGI_FILE * fcgi_file = FCGI_OpenFromFILE(file);
+
+    if (file && !fcgi_file)
+        fclose(file);
+
+    return fcgi_file;
 }
 
 int FCGI_fclose(FCGI_FILE *fp)
@@ -746,7 +757,13 @@ void FCGI_clearerr(FCGI_FILE *fp)
  */
 FCGI_FILE *FCGI_tmpfile(void)
 {
-	return FCGI_OpenFromFILE(tmpfile());
+    FILE * file = tmpfile();
+    FCGI_FILE * fcgi_file = FCGI_OpenFromFILE(file);
+
+    if (file && !fcgi_file)
+        fclose(file);
+
+    return fcgi_file;
 }
 
 
@@ -770,25 +787,31 @@ int FCGI_fileno(FCGI_FILE *fp)
 
 FCGI_FILE *FCGI_fdopen(int fd, const char *mode)
 {
-#ifndef _WIN32
-    return FCGI_OpenFromFILE(fdopen(fd, mode));
-#else
-    return NULL;
-#endif
+    FILE * file = fdopen(fd, mode);
+    FCGI_FILE * fcgi_file = FCGI_OpenFromFILE(file);
+
+    if (file && !fcgi_file)
+        fclose(file);
+
+    return fcgi_file;
 }
 
 FCGI_FILE *FCGI_popen(const char *cmd, const char *type)
 {
-    return FCGI_OpenFromFILE(popen(cmd, type));
+    FILE * file = popen(cmd, type);
+    FCGI_FILE * fcgi_file = FCGI_OpenFromFILE(file);
+
+    if (file && !fcgi_file)
+        pclose(file);
+
+    return fcgi_file;
 }
 
 int FCGI_pclose(FCGI_FILE *fp)
 {
     int n = EOF;
-    if(fp->stdio_stream) {
-#ifndef _WIN32
+    if (fp->stdio_stream) {
         n = pclose(fp->stdio_stream);
-#endif
         fp->stdio_stream = NULL;
     } else if(fp->fcgx_stream) {
         /*
