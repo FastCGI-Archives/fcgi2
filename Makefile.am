@@ -1,7 +1,7 @@
 #
 #  Makefile for FastCGI development kit
 #
-#  $Id: Makefile.am,v 1.6 2001/12/22 03:13:06 robs Exp $
+#  $Id: Makefile.am,v 1.7 2001/12/22 13:05:39 robs Exp $
 #
 
 SUBDIRS = libfcgi cgi-fcgi examples include
@@ -31,6 +31,8 @@ EXTRA_DIST = LICENSE.TERMS              \
              java/FCGIMessage.java      \
              java/FCGIOutputStream.java \
              java/FCGIRequest.java      \
+             libfcgi/os_unix.c          \
+             libfcgi/os_win32.c         \
              perl/ChangeLog             \
              perl/FCGI.PL               \
              perl/FCGI.XL               \
