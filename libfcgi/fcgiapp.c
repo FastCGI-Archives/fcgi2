@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.28 2001/08/30 22:27:51 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.29 2001/09/06 20:06:06 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -70,6 +70,16 @@ static int libInitialized = 0;
 static int isFastCGI = -1;
 static char *webServerAddressList = NULL;
 static FCGX_Request the_request;
+
+void FCGX_Shutdown(void)
+{
+    OS_Shutdown();
+}
+
+void FCGX_ShutdownPending(void)
+{
+    OS_ShutdownPending();
+}
 
 static void *Malloc(size_t size)
 {

@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.8 2001/06/22 14:19:23 robs Exp $
+ * $Id: fcgiapp.h,v 1.9 2001/09/06 20:06:03 robs Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -607,6 +607,22 @@ DLLAPI FCGX_Stream *FCGX_CreateWriter(
  */
 DLLAPI void FCGX_FreeStream(FCGX_Stream **stream);
 
+/* ----------------------------------------------------------------------
+ *
+ *  Prevent the lib from accepting any new requests.  Signal handler safe.
+ *
+ * ----------------------------------------------------------------------
+ */
+DLLAPI void FCGX_ShutdownPending(void);
+
+/* ----------------------------------------------------------------------
+ *
+ *  Prevent the lib from interacting with clients in any way
+ *  (including accepting new requests).  Signal handler safe.
+ *
+ * ----------------------------------------------------------------------
+ */
+DLLAPI void FCGX_Shutdown(void);
 
 #if defined (__cplusplus) || defined (c_plusplus)
 } /* terminate extern "C" { */
