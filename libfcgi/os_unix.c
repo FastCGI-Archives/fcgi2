@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.3 1998/12/04 02:57:35 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.4 1998/12/09 03:25:43 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -365,7 +365,7 @@ int OS_FcgiConnect(char *bindPath)
 	    exit(1000);
 	}
 	sa.inetVariant.sin_family = AF_INET;
-	memcpy((caddr_t)&sa.inetVariant.sin_addr, hp->h_addr, hp->h_length);
+	memcpy(&sa.inetVariant.sin_addr, hp->h_addr, hp->h_length);
 	sa.inetVariant.sin_port = htons(port);
 	servLen = sizeof(sa.inetVariant);
 	resultSock = socket(AF_INET, SOCK_STREAM, 0);
