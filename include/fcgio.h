@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.11 2001/11/26 19:03:12 robs Exp $
+// $Id: fcgio.h,v 1.12 2001/11/27 14:01:35 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -70,7 +70,6 @@ protected:
     DLLAPI virtual int overflow(int);
 
     // Flush the put area (if buffered) and the FCGX buffer to the client.
-    // Note: sync() is protected in some implementations.
     DLLAPI virtual int sync();
 
     // Remove and return the current character.
