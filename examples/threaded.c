@@ -3,7 +3,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.2 1999/07/28 00:34:49 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.3 1999/07/30 19:09:46 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -23,11 +23,11 @@ static const char rcsid[] = "$Id: threaded.c,v 1.2 1999/07/28 00:34:49 roberts E
 
 #define THREAD_COUNT 20
 
-int count[THREAD_COUNT];
+static int counts[THREAD_COUNT];
 
 static void *doit(void *a)
 {
-    int i, k = (int)a;
+    int rc, i, thread_id = (int)a;
     FCGX_Request request;
     FCGX_Stream *in, *out, *err;
     FCGX_ParamArray envp;
@@ -35,8 +35,18 @@ static void *doit(void *a)
 
     FCGX_InitRequest(&request);
 
-    while (FCGX_Accept_r(&in, &out, &err, &envp, &request) >= 0)
+    for (;;)
     {
+        static pthread_mutex_t accept_mutex = PTHREAD_MUTEX_INITIALIZER;
+        static pthread_mutex_t counts_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+        pthread_mutex_lock(&accept_mutex);
+        rc = FCGX_Accept_r(&in, &out, &err, &envp, &request);
+        pthread_mutex_unlock(&accept_mutex);
+
+        if (rc < 0)
+            break;
+
         server_name = FCGX_GetParam("SERVER_NAME", envp);
 
         FCGX_FPrintF(out,
@@ -44,12 +54,17 @@ static void *doit(void *a)
             "\r\n"
             "<title>FastCGI Hello! (multi-threaded C, fcgiapp library)</title>"
             "<h1>FastCGI Hello! (multi-threaded C, fcgiapp library)</h1>"
-            "Thread %d, Request %d<p>"
+            "Thread %d<p>"
             "Request counts for %d threads running on host <i>%s</i><p><code>",
-            k, ++count[k], THREAD_COUNT, server_name ? server_name : "?");
+            thread_id, THREAD_COUNT, server_name ? server_name : "?");
 
+        pthread_mutex_lock(&counts_mutex);
+        ++counts[thread_id];
         for (i = 0; i < THREAD_COUNT; i++)
-            FCGX_FPrintF(out, "%5d " , count[i]);
+            FCGX_FPrintF(out, "%5d " , counts[i]);
+        pthread_mutex_unlock(&counts_mutex);
+
+        FCGX_Finish_r(&request);
     }
 
     return NULL;
@@ -61,9 +76,6 @@ int main(void)
     pthread_t id[THREAD_COUNT];
 
     FCGX_Init();
-
-    for (i = 0; i < THREAD_COUNT; i++)
-        count[i] = 0;
 
     for (i = 1; i < THREAD_COUNT; i++)
         pthread_create(&id[i], NULL, doit, (void*)i);
