@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.19 2001/09/01 02:55:48 robs Exp $
+# $Id: Makefile.PL,v 1.20 2001/09/01 13:09:20 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -9,7 +9,7 @@ use Getopt::Long;
 @h1 = qw(fastcgi.h fcgiapp.h fcgimisc.h fcgios.h);
 @h = (@h1, 'fcgi_config.h');
 @o = qw(FCGI.o);
-@dist1 = qw(LICENSE.TERMS configure configure.in);
+@dist1 = qw(LICENSE.TERMS configure configure.in install.sh);
 @dist2 = qw(fcgiapp.c os_unix.c os_win32.c);
 @dist3 = (@h1, qw(fcgi_config.h.in fcgi_config_x86.h));
 
@@ -155,5 +155,5 @@ if ($sys eq "win32") {
     print "Please read configure.readme for information on how to run it yourself\n";
 
     $ENV{'CC'} = $Config{'cc'};
-    system("./configure");
+    system("sh configure");
 }

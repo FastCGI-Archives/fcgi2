@@ -4,8 +4,6 @@ FCGI.XL
 MANIFEST
 Makefile.PL
 README
-configure
-configure.in
 configure.readme
 echo.PL
 remote.PL
