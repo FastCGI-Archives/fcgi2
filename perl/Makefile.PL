@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.20 2001/09/01 13:09:20 skimo Exp $
+# $Id: Makefile.PL,v 1.21 2001/09/04 12:34:10 robs Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -89,7 +89,9 @@ if ($pure) {
 } else {
 
 	if ("$sys" eq "win32") {
-		@libs = (@libs) ? map { "$_ ws2_32.lib" } @libs : ('ws2_32.lib');
+		@libs = (scalar @libs)
+			? map { "$_ :nosearch -lws2_32" } @libs 
+			: (':nosearch -lws2_32');
 		push @extras, 'DEFINE' => '-DDLLAPI=__declspec(dllexport)';
 	}
 
