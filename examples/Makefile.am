@@ -1,11 +1,12 @@
-# $Id: Makefile.am,v 1.4 2001/09/24 18:03:04 skimo Exp $
+# $Id: Makefile.am,v 1.5 2001/11/21 15:32:32 robs Exp $
 noinst_PROGRAMS     = authorizer \
 			  echo \
 			  echo-x \
 			  log-dump \
-			  @threaded@
+			  @threaded@  \
+			  @ECHO_CPP@
 
-EXTRA_PROGRAMS = threaded
+EXTRA_PROGRAMS = threaded echo-cpp
 
 INCLUDEDIR  = $(srcdir)/../include
 CPPFLAGS    = @CPPFLAGS@ -I$(INCLUDEDIR)
@@ -26,3 +27,7 @@ authorizer_SOURCES = $(INCLUDE_FILES) authorizer.c
 
 threaded_SOURCES = $(INCLUDE_FILES) threaded.c
 threaded_LDADD = $(LIBFCGI) -lpthread
+
+echo_cpp_SOURCES = $(INCLUDE_FILES) $(INCLUDEDIR)/fcgio.h echo-cpp.cpp
+echo_cpp_LDADD   = $(LIBDIR)/libfcgi++.la
+
