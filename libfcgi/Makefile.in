@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.1 1997/09/16 15:36:33 stanleyg Exp $
+#  $Id: Makefile.in,v 1.2 2001/06/22 15:28:10 robs Exp $
 #
 
 SHELL = @SHELL@
@@ -16,9 +16,12 @@ RANLIB	= @RANLIB@
 LIBOBJS	= @LIBOBJS@
 
 OBJS	    = fcgiapp.${O} fcgi_stdio.${O} os_@SYSTEM@.${O} $(LIBOBJS)
-INCLUDES    = $(INCLUDEDIR)/fastcgi.h $(INCLUDEDIR)/fcgiapp.h \
-	      $(INCLUDEDIR)/fcgimisc.h $(INCLUDEDIR)/fcgiappmisc.h \
-	      $(INCLUDEDIR)/fcgi_stdio.h $(INCLUDEDIR)/fcgios.h
+
+INCLUDES    = $(INCLUDEDIR)/fastcgi.h    \
+              $(INCLUDEDIR)/fcgiapp.h    \
+	      $(INCLUDEDIR)/fcgimisc.h   \
+	      $(INCLUDEDIR)/fcgi_stdio.h \
+              $(INCLUDEDIR)/fcgios.h
 
 
 all: libfcgi.${L}
