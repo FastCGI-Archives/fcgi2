@@ -8,4 +8,5 @@ configure
 configure.in
 configure.readme
 echo.PL
+threaded.PL
 typemap

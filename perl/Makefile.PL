@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.3 1999/03/08 16:26:05 skimo Exp $
+# $Id: Makefile.PL,v 1.4 1999/07/28 23:09:56 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -72,7 +72,10 @@ WriteMakefile(
 				'$(MV) MANIFEST.old MANIFEST',
 			    },
     'clean'		=> { FILES => 'config.cache fcgi_config.h' },
-    'PL_FILES'	=> { 'echo.PL' => 'echo.fpl', 'FCGI.PL' => 'FCGI.xs' },
+    'PL_FILES'	=> { 'echo.PL' => 'echo.fpl', 
+		     'threaded.PL' => 'threaded.fpl',
+		     'FCGI.PL' => 'FCGI.xs',
+		   },
     @extras,
 );
 

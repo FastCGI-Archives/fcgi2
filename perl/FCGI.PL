@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.5 1999/07/28 19:23:08 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.6 1999/07/28 23:09:56 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -101,6 +101,7 @@ typedef struct FCGP_Request {
     SV*		    svout;
     SV*		    sverr;
     GV*		    gv[3];
+    HV*		    hvEnv;
     FCGX_Stream*    in;
     FCGX_ParamArray envp;
     FCGX_Request*   requestPtr;
@@ -124,8 +125,23 @@ FCGI_Flush(FCGP_Request* request)
 #endif
 }
 
+static void
+FCGI_UndoBinding(FCGP_Request* request)
+{
+#ifdef USE_SFIO
+    sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[0])), SF_POPDISC));
+    sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[1])), SF_POPDISC));
+    sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[2])), SF_POPDISC));
+#else
+    FCGI_Flush(request);
+    sv_unmagic((SV *)request->gv[0], 'q');
+    sv_unmagic((SV *)request->gv[1], 'q');
+    sv_unmagic((SV *)request->gv[2], 'q');
+#endif
+}
+
 static int 
-FCGI_Accept(FCGP_Request* request)
+FCGI_Accept(FCGP_Request* request, GV **gvp)
 {
     if(isCGI == -1) {
         /*
@@ -141,13 +157,7 @@ FCGI_Accept(FCGP_Request* request)
         return(EOF);
     } 
     if(request->acceptCalled && !request->finishCalled) {
-#ifdef USE_SFIO
-	sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[0])), SF_POPDISC));
-	sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[1])), SF_POPDISC));
-	sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[2])), SF_POPDISC));
-#else
-	FCGI_Flush(request);
-#endif
+	FCGI_UndoBinding(request);
     }
     if(!isCGI) {
 	FCGX_Stream *out, *error;
@@ -164,12 +174,12 @@ FCGI_Accept(FCGP_Request* request)
 #else
 	if (!request->svout) {
 	    newSVrv(request->svout = newSV(0), "FCGI::Stream");
-	    sv_magic((SV *)request->gv[1], request->svout, 'q', Nullch, 0);
 	    newSVrv(request->sverr = newSV(0), "FCGI::Stream");
-	    sv_magic((SV *)request->gv[2], request->sverr, 'q', Nullch, 0);
 	    newSVrv(request->svin = newSV(0), "FCGI::Stream");
-	    sv_magic((SV *)request->gv[0], request->svin, 'q', Nullch, 0);
 	}
+	sv_magic((SV *)request->gv[1] = gvp[1], request->svout, 'q', Nullch, 0);
+	sv_magic((SV *)request->gv[2] = gvp[2], request->sverr, 'q', Nullch, 0);
+	sv_magic((SV *)request->gv[0] = gvp[0], request->svin, 'q', Nullch, 0);
 	sv_setiv(SvRV(request->svout), (IV) out);
 	sv_setiv(SvRV(request->sverr), (IV) error);
 	sv_setiv(SvRV(request->svin), (IV) request->in);
@@ -194,15 +204,7 @@ FCGI_Finish(FCGP_Request* request)
     if(!request->acceptCalled || isCGI) {
 	return;
     }
-    if (request->compat) {
-#ifdef USE_SFIO
-	sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[0])), SF_POPDISC));
-	sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[1])), SF_POPDISC));
-	sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[2])), SF_POPDISC));
-#else
-	FCGI_Flush(request);
-#endif
-    }
+    FCGI_UndoBinding(request);
     request->in = NULL;
     FCGX_Finish_r(request->requestPtr);
     request->finishCalled = TRUE;
@@ -252,6 +254,28 @@ FCGI_Release_Request(FCGP_Request *req)
     Safefree(req);
 }
 
+static void
+populate_env(envp, hv)
+char **envp;
+HV *hv;
+{
+    int i;
+    char *p, *p1;
+    SV   *sv;
+
+    for(i = 0; ; i++) {
+	if((p = envp[i]) == NULL) {
+	    break;
+	}
+	p1 = strchr(p, '=');
+	assert(p1 != NULL);
+	sv = newSVpv(p1 + 1, 0);
+	/* call magic for this value ourselves */
+	hv_store(hv, p, p1 - p, sv, 0);
+	SvSETMAGIC(sv);
+    }
+}
+
 /*
  * For each variable in the array envp, either set or unset it
  * in the global hash %ENV.
@@ -261,27 +285,11 @@ DoPerlEnv(envp, set)
 char **envp;
 int set;
 {
-    int i;
-    char *p, *p1;
-    HV   *hv;
-    SV   *sv;
-    hv = perl_get_hv("ENV", TRUE);
-
     if (!set)
 	perl_eval_pv("%ENV = %FCGI::ENV", 0);
     else {
 	perl_eval_pv("%FCGI::ENV = %ENV", 0);
-	for(i = 0; ; i++) {
-	    if((p = envp[i]) == NULL) {
-		break;
-	    }
-	    p1 = strchr(p, '=');
-	    assert(p1 != NULL);
-	    sv = newSVpv(p1 + 1, 0);
-	    /* call magic for this value ourselves */
-	    hv_store(hv, p, p1 - p, sv, 0);
-	    SvSETMAGIC(sv);
-	}
+	populate_env(envp, perl_get_hv("ENV", TRUE));
     }
 }
 
@@ -325,6 +333,7 @@ accept(...)
 
     PREINIT:
     FCGP_Request* request = &global_request;
+    GV *gv[3];
 
     CODE:
     if (items != 0 && items != 5)
@@ -337,13 +346,16 @@ accept(...)
 	REQUEST_ARG(0,request);
 	for(i = 1; i <= 3; ++i) {
 	    if (SvROK(ST(i)) && isGV(SvRV(ST(i)))) {
-		request->gv[i-1] = (GV*)SvRV(ST(i));
+		gv[i-1] = (GV*)SvRV(ST(i));
 	    } else
 		croak("%s is not a GLOB reference", names[i]);
 	}
+	if (SvROK(ST(4)) && SvTYPE(SvRV(ST(4))) == SVt_PVHV) {
+	    request->hvEnv = (HV*)SvRV(ST(4));
+	} else
+	    croak("env is not a reference to a hash");
     }
     {
-        char **savedEnviron;
         int acceptStatus;
         /*
          * Unmake Perl variable settings for the request just completed.
@@ -355,12 +367,17 @@ accept(...)
         /*
          * Call FCGI_Accept but preserve environ.
          */
-        acceptStatus = FCGI_Accept(request);
+        acceptStatus = FCGI_Accept(request, gv);
         /*
          * Make Perl variable settings for the new request.
          */
-        if(request->compat && acceptStatus >= 0 && !isCGI) {
-            DoPerlEnv(request->envp, TRUE);
+        if(acceptStatus >= 0 && !isCGI) {
+	    if (request->compat)
+		DoPerlEnv(request->envp, TRUE);
+	    else {
+		populate_env(request->envp, request->hvEnv);
+		request->envp = NULL;
+	    }
         } else {
             request->envp = NULL;
         }
