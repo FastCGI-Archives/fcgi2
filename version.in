@@ -1,7 +1,0 @@
-dnl OMI_VERSION(Product,
-dnl             VersionType(VTX),
-dnl             MajorNumber,
-dnl             MinorNumber,
-dnl		PatchLevel(build#),
-dnl		Release(alpha,beta,candidate))
-OMI_VERSION(FastCGI,T, 2, 0, a,NT)
