@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.3 1999/08/05 21:25:56 roberts Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.4 1999/08/12 23:56:13 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1396,7 +1396,7 @@ int OS_DoIo(struct timeval *tmo)
  *
  *----------------------------------------------------------------------
  */
-int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList)
+int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 {
     /* XXX This is broken for listen_sock & fail_on_intr */
     struct sockaddr_in sa;
@@ -1461,12 +1461,12 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList)
 	} else {
 	    char	*tp1, *tp2;
 	    int	match = 0;
-	    if (serverHostList == NULL)
+	    if (webServerAddrs == NULL)
 	        isNewConnection = TRUE;
 	    else {
-	        tp1 = (char *) malloc(strlen(serverHostList)+1);
+	        tp1 = (char *) malloc(strlen(webServerAddrs)+1);
             ASSERT(tp1 != NULL);
-		strcpy(tp1, serverHostList);
+		strcpy(tp1, webServerAddrs);
 		while(tp1) {
 		    if ((tp2 = strchr(tp1, ',')) != NULL)
 		        *tp2++ = 0;

@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.13 1999/08/10 22:27:13 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.14 1999/08/12 23:56:11 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1042,7 +1042,7 @@ static int is_af_unix_keeper(const int fd)
  *
  *----------------------------------------------------------------------
  */
-int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList)
+int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 {
     int socket;
     union {
@@ -1085,7 +1085,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *clientAddrList)
 #endif
 
                 /* Check that the client IP address is approved */
-                if (ClientAddrOK(&sa.in, clientAddrList))
+                if (ClientAddrOK(&sa.in, webServerAddrs))
                     break;
 
                 close(socket);
