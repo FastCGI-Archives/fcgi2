@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.7 1999/02/05 04:08:56 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.8 1999/02/06 05:08:33 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -949,6 +949,84 @@ static int ReleaseLock(void)
 }
 
 
+/**********************************************************************
+ * Determine if the errno resulting from a failed accept() warrants a 
+ * retry or exit().  Based on Apache's http_main.c accept() handling
+ * and Stevens' Unix Network Programming Vol 1, 2nd Ed, para. 15.6.
+ */
+static int is_reasonable_accept_errno (const int error)
+{
+    switch (error) {
+#ifdef EPROTO
+        /* EPROTO on certain older kernels really means ECONNABORTED, so      
+         * we need to ignore it for them.  See discussion in new-httpd         
+         * archives nh.9701 search for EPROTO.  Also see nh.9603, search   
+         * for EPROTO:  There is potentially a bug in Solaris 2.x x<6, and   
+         * other boxes that implement tcp sockets in userland (i.e. on top of 
+         * STREAMS).  On these systems, EPROTO can actually result in a fatal 
+         * loop.  See PR#981 for example.  It's hard to handle both uses of 
+         * EPROTO. */
+        case EPROTO:
+#endif
+#ifdef ECONNABORTED
+        case ECONNABORTED:
+#endif
+        /* Linux generates the rest of these, other tcp stacks (i.e.
+         * bsd) tend to hide them behind getsockopt() interfaces.  They
+         * occur when the net goes sour or the client disconnects after the
+         * three-way handshake has been done in the kernel but before
+         * userland has picked up the socket. */
+#ifdef ECONNRESET
+        case ECONNRESET:
+#endif
+#ifdef ETIMEDOUT
+        case ETIMEDOUT:
+#endif
+#ifdef EHOSTUNREACH
+        case EHOSTUNREACH:
+#endif
+#ifdef ENETUNREACH
+        case ENETUNREACH:
+#endif
+            return 1;
+
+        default:
+            return 0;
+    }
+}
+
+/**********************************************************************
+ * This works around a problem on Linux 2.0.x and SCO Unixware (maybe    
+ * others?).  When a connect() is made to a Unix Domain socket, but its    
+ * not accept()ed before the web server gets impatient and close()s, an    
+ * accept() results in a valid file descriptor, but no data to read.   
+ * This causes a block on the first read() - which never returns!            
+ *                                                                          
+ * Another approach to this is to write() to the socket to provoke a       
+ * SIGPIPE, but this is a pain because of the FastCGI protocol, the fact   
+ * that whatever is written has to be universally ignored by all FastCGI   
+ * web servers, and a SIGPIPE handler has to be installed which returns    
+ * (or SIGPIPE is ignored).                                                
+ *                                                                          
+ * READABLE_UNIX_FD_DROP_DEAD_TIMEVAL = 2,0 by default.                   
+ *                                                                          
+ * Making it shorter is probably safe, but I'll leave that to you.  Making 
+ * it 0,0 doesn't work reliably.  The shorter you can reliably make it,   
+ * the faster your application will be able to recover (waiting 2 seconds  
+ * may _cause_ the problem when there is a very high demand). At any rate, 
+ * this is better than perma-blocking. 
+ */                                  
+static int is_af_unix_keeper(const int fd)
+{
+    struct timeval tval = { READABLE_UNIX_FD_DROP_DEAD_TIMEVAL };
+    fd_set read_fds;
+
+    FD_ZERO(&read_fds);
+    FD_SET(fd, &read_fds);
+    
+    return select(fd + 1, &read_fds, NULL, NULL, &tval) >= 0 && FD_ISSET(fd, &read_fds);
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -968,7 +1046,7 @@ static int ReleaseLock(void)
 int OS_FcgiIpcAccept(char *clientAddrList)
 {
     int socket;
-    union u_sockaddr {
+    union {
         struct sockaddr_un un;
         struct sockaddr_in in;
     } sa;
@@ -978,128 +1056,54 @@ int OS_FcgiIpcAccept(char *clientAddrList)
     int len;
 #endif    
 
-    if (AcquireLock(TRUE) < 0) {
-        return (-1);
-    }
-    for (;;) {
-        do {
-            len = sizeof(sa);
-            socket = accept(FCGI_LISTENSOCK_FILENO,
-                            (struct sockaddr *) &sa.un, &len);
-        } while ((socket < 0) && (errno == EINTR));
+    while (1) {
+        if (AcquireLock(TRUE) < 0)
+            return (-1);
 
-        if (socket >= 0) {
-        
-            if (sa.in.sin_family == AF_INET) {
-#ifdef TCP_NODELAY
-                /* No replies to outgoing data, so disable Nagle algorithm */
-                int set = 1;
-                setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, 
-                           (char *)&set, sizeof(set));
-#endif            
-                
-                /* Check that the client IP address is OK */
-                if (ClientAddrOK(&sa.in, clientAddrList))
-                    break;
-            }
-            else {
-                /* This works around a problem on Linux 2.0.x and
-                 * SCO Unixware (maybe others?).  When a connect() is made to 
-                 * a Unix Domain socket, but its not accept()ed before the 
-                 * web server gets impatient and close()s, an accept()
-                 * here results in a valid file descriptor, but no data to
-                 * read.  This causes a block on the first read() - and 
-                 * never returns!  
-                 *
-                 * Another approach to this is to write()
-                 * to the socket to provoke a SIGPIPE, but this is a pain
-                 * because of the FastCGI protocol, the fact that whatever
-                 * is written has to be universally ignored by all FastCGI
-                 * web servers, and a SIGPIPE handler has to be installed
-                 * which returns (or SIGPIPE is ignored).
-                 * 
-                 * READABLE_UNIX_FD_DROP_DEAD_TIMEVAL = 2,0  by default.
-                 *
-                 * Making it shorter is probably safe, but I'll leave that
-                 * to you.  Making it 0,0 doesn't work reliably.  The 
-                 * shorter you can reliably make it, the faster your
-                 * application will be able to recover (waiting 2 seconds
-                 * may _cause_ the problem when there is a very high demand).
-                 * At any rate, this is better than perma-blocking. */
-                 
-                struct timeval tval = { READABLE_UNIX_FD_DROP_DEAD_TIMEVAL };
-                fd_set read_fds;
+        while (1) {
+            do {
+                len = sizeof(sa);
+                socket = accept(FCGI_LISTENSOCK_FILENO, (struct sockaddr *) &sa.un, &len);
+            } while (socket < 0 && errno == EINTR);
 
-                FD_ZERO(&read_fds);
-                FD_SET(socket, &read_fds);
-                if (select(socket + 1, &read_fds, NULL, NULL, &tval) > 0
-                    && FD_ISSET(socket, &read_fds))
-                { 
-                    break;
-                }
-            }
-
-            close(socket);
-            continue;
-        }
-
-        /* Based on Apache's (v1.3.1) http_main.c accept() handling and 
-         * Stevens' Unix Network Programming Vol 1, 2nd Ed, para. 15.6
-         */
-        switch (errno) {
-#ifdef EPROTO
-            /* EPROTO on certain older kernels really means
-             * ECONNABORTED, so we need to ignore it for them.
-             * See discussion in new-httpd archives nh.9701
-             * search for EPROTO.
-             *
-             * Also see nh.9603, search for EPROTO:
-             * There is potentially a bug in Solaris 2.x x<6,
-             * and other boxes that implement tcp sockets in
-             * userland (i.e. on top of STREAMS).  On these
-             * systems, EPROTO can actually result in a fatal
-             * loop.  See PR#981 for example.  It's hard to
-             * handle both uses of EPROTO.
-             */
-            case EPROTO:
-#endif
-#ifdef ECONNABORTED
-            case ECONNABORTED:
-#endif
-            /* Linux generates the rest of these, other tcp
-             * stacks (i.e. bsd) tend to hide them behind
-             * getsockopt() interfaces.  They occur when
-             * the net goes sour or the client disconnects
-             * after the three-way handshake has been done
-             * in the kernel but before userland has picked
-             * up the socket.
-             */
-#ifdef ECONNRESET
-            case ECONNRESET:
-#endif
-#ifdef ETIMEDOUT
-            case ETIMEDOUT:
-#endif
-#ifdef EHOSTUNREACH
-            case EHOSTUNREACH:
-#endif
-#ifdef ENETUNREACH
-            case ENETUNREACH:
-#endif
-                break;  /* switch(errno) */
-
-            default: {
+            if (socket < 0) {
+                if (!is_reasonable_accept_errno(errno)) {
                     int errnoSave = errno;
+                    
                     ReleaseLock();
                     errno = errnoSave;
+                    return (-1);
                 }
-                return (-1);
-        }  /* switch(errno) */
-    }  /* for(;;) */
+                errno = 0;
+            }
+            else {
+                int set = 1;
+                
+                if (sa.in.sin_family != AF_INET)
+                    break;
+                
+#ifdef TCP_NODELAY
+                /* No replies to outgoing data, so disable Nagle */
+                setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char *)&set, sizeof(set));
+#endif            
+                
+                /* Check that the client IP address is approved */
+                if (ClientAddrOK(&sa.in, clientAddrList))
+                    break;
+                
+                close(socket);
+            }
+        }  /* while(1) - accept */
+        
+        if (ReleaseLock() < 0)
+            return (-1);
+        
+        if (sa.in.sin_family != AF_UNIX || is_af_unix_keeper(socket))
+            break;
+            
+        close(socket);
+    }  /* while(1) - lock */
 
-    if (ReleaseLock() < 0) {
-        return (-1);
-    }
     return (socket);
 }
 
