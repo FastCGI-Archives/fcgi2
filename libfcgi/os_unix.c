@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.24 2001/03/27 14:03:20 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.25 2001/04/30 15:00:50 skimo Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -66,6 +66,10 @@ static const char rcsid[] = "$Id: os_unix.c,v 1.24 2001/03/27 14:03:20 robs Exp 
 
 #ifndef TRUE
 #define TRUE 1
+#endif
+
+#ifndef INADDR_NONE
+#define INADDR_NONE ((unsigned long) -1)
 #endif
 
 /*
@@ -244,6 +248,7 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     int listenSock, servLen;
     union   SockAddrUnion sa;
     int	    tcp = FALSE;
+    unsigned long tcp_ia;
     char    *tp;
     short   port;
     char    host[MAXPATHLEN];
@@ -257,12 +262,26 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 	    tcp = TRUE;
 	 }
     }
-    if(tcp && (*host && strcmp(host, "localhost") != 0)) {
-	fprintf(stderr, "To start a service on a TCP port can not "
-			"specify a host name.\n"
-			"You should either use \"localhost:<port>\" or "
-			" just use \":<port>.\"\n");
-	exit(1);
+    if(tcp) {
+      if (!*host || !strcmp(host,"*")) {
+	tcp_ia = htonl(INADDR_ANY);
+      } else {
+	tcp_ia = inet_addr(host);
+	if (tcp_ia == INADDR_NONE) {
+	  struct hostent * hep;
+	  hep = gethostbyname(host);
+	  if ((!hep) || (hep->h_addrtype != AF_INET || !hep->h_addr_list[0])) {
+	    fprintf(stderr, "Cannot resolve host name %s -- exiting!\n", host);
+	    exit(1);
+	  }
+	  if (hep->h_addr_list[1]) {
+	    fprintf(stderr, "Host %s has multiple addresses ---\n", host);
+	    fprintf(stderr, "you must choose one explicitly!!!\n");
+	    exit(1);
+	  }
+	  tcp_ia = ((struct in_addr *) (hep->h_addr))->s_addr;
+	}
+      }
     }
 
     if(tcp) {
@@ -288,7 +307,7 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     if(tcp) {
 	memset((char *) &sa.inetVariant, 0, sizeof(sa.inetVariant));
 	sa.inetVariant.sin_family = AF_INET;
-	sa.inetVariant.sin_addr.s_addr = htonl(INADDR_ANY);
+	sa.inetVariant.sin_addr.s_addr = tcp_ia;
 	sa.inetVariant.sin_port = htons(port);
 	servLen = sizeof(sa.inetVariant);
     } else {
