@@ -12,11 +12,11 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.1 1997/09/16 15:36:25 stanleyg Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.2 1999/01/30 22:33:23 roberts Exp $";
 #endif /* not lint */
 
 #include <stdio.h>
-#ifdef HAVE_UNISTD_H
+#if defined HAVE_UNISTD_H || defined __linux__
 #include <unistd.h>
 #endif
 #include <fcntl.h>
@@ -42,7 +42,6 @@ static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.1 1997/09/16 15:36:25 stanleyg 
 #include "fcgios.h"
 
 static int wsReadPending = 0;
-static int wsWritePending = 0;
 static int fcgiReadPending = 0;
 static int fcgiWritePending = 0;
 
@@ -476,7 +475,6 @@ static void ScheduleIo(void)
 static void FCGI_Start(char *bindPath, char *appPath, int nServers)
 {
     int listenFd, i;
-    int	    tcp = FALSE;
 
     if((listenFd = OS_CreateLocalIpcFd(bindPath)) == -1) {
         exit(OS_Errno);

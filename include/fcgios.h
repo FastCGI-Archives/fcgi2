@@ -18,6 +18,8 @@
 #ifndef _FCGIOS_H
 #define _FCGIOS_H
 
+#include <sys/time.h>
+
 #ifdef _WIN32
 #define OS_Errno GetLastError()
 #define OS_SetErrno(err) SetLastError(err)
