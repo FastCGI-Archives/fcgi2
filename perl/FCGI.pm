@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.13 2000/11/01 14:27:49 skimo Exp $
+# $Id: FCGI.pm,v 1.14 2000/11/01 15:12:27 skimo Exp $
 
 package FCGI;
 
@@ -238,6 +238,10 @@ Returns the environment parameter passed to FCGI::Request.
 =item ($in, $out, $err) = $req->GetHandles()
 
 Returns the file handle parameters passed to FCGI::Request.
+
+=item $isfcgi = $req->IsFastCGI()
+
+Returns whether or not the program was run as a FastCGI.
 
 =back
 
