@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.12 1999/08/14 21:20:56 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.13 2000/08/02 12:21:07 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -421,7 +421,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
         percentPtr = (char *)memchr(f, '%', fStop - f);
         if(percentPtr == NULL) percentPtr = fStop;
         if(percentPtr != f) {
-            if(FCGX_PutStr(f, percentPtr - f, stream) < 0) goto ErrorReturn;
+            if(FCGX_PutStr(f, percentPtr - f, stream) < 0)
+                goto ErrorReturn;
             streamCount += percentPtr - f;
             f = percentPtr;
             if(f == fStop) break;
@@ -477,7 +478,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                  * Scan flags
                  */
                 n = strspn(p, "-0+ #");
-                if(n > 5) goto ErrorReturn;
+                if(n > 5)
+                    goto ErrorReturn;
                 CopyAndAdvance(&fmtBuffPtr, &p, n);
                 /*
                  * Scan minimum field width
@@ -486,7 +488,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                 if(n == 0) {
                     if(*p == '*') {
                         minWidth = va_arg(arg, int);
-                        if(abs(minWidth) > 999999) goto ErrorReturn;
+                        if(abs(minWidth) > 999999)
+                            goto ErrorReturn;
 			/*
 			 * The following use of strlen rather than the
 			 * value returned from sprintf is because SUNOS4
@@ -514,7 +517,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                         if(*p == '*') {
                             precision = va_arg(arg, int);
                             if(precision < 0) precision = 0;
-                            if(precision > 999999) goto ErrorReturn;
+                            if(precision > 999999)
+                                goto ErrorReturn;
 			/*
 			 * The following use of strlen rather than the
 			 * value returned from sprintf is because SUNOS4
@@ -621,7 +625,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
 		        if(auxBuffPtr != NULL) free(auxBuffPtr);
                         auxBuffPtr = (char *)Malloc(buffReqd);
                         auxBuffLen = buffReqd;
-                        if(auxBuffPtr == NULL) goto ErrorReturn;
+                        if(auxBuffPtr == NULL)
+                            goto ErrorReturn;
 		    }
                     buffPtr = auxBuffPtr;
 		    buffLen = auxBuffLen;
@@ -729,7 +734,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                     }
                     break;
                 case 'p':
-                    if(sizeModifier != ' ') goto ErrorReturn;
+                    if(sizeModifier != ' ')
+                        goto ErrorReturn;
                     voidPtrArg = va_arg(arg, void *);
 		    sprintf(buffPtr, fmtBuff, voidPtrArg);
                     buffCount = strlen(buffPtr);
@@ -803,7 +809,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                     break;
             } /* switch(op) */
             if(performedOp) break;
-            if(!fastPath) goto ErrorReturn;
+            if(!fastPath)
+                goto ErrorReturn;
             fastPath = FALSE;
         } /* for (;;) */
         ASSERT(buffCount < buffLen);
@@ -884,6 +891,8 @@ int FCGX_FFlush(FCGX_Stream *stream)
  */
 int FCGX_FClose(FCGX_Stream *stream)
 {
+    if (stream == NULL) return 0;
+
     if(!stream->wasFCloseCalled) {
         if(!stream->isReader) {
             stream->emptyBuffProc(stream, TRUE);
@@ -1974,6 +1983,7 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         return;
     }
 
+    /* This should probably use a 'status' member instead of 'in' */
     if (reqDataPtr->in) {
         int errStatus = FCGX_FClose(reqDataPtr->err);
         int outStatus = FCGX_FClose(reqDataPtr->out);
@@ -1988,10 +1998,16 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         ASSERT(reqDataPtr->nWriters == 0);
 
         FreeStream(&reqDataPtr->in);
+        reqDataPtr->in = NULL;
+
         FreeStream(&reqDataPtr->out);
+        reqDataPtr->out = NULL;
+
         FreeStream(&reqDataPtr->err);
+        reqDataPtr->err = NULL;
 
         FreeParams(&reqDataPtr->paramsPtr);
+        reqDataPtr->paramsPtr = NULL;
     }
 
     if (!reqDataPtr->keepConnection) {
