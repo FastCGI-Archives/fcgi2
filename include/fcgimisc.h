@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgimisc.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: fcgimisc.h,v 1.2 1999/05/28 02:19:58 roberts Exp $
  */
 
 #ifndef _FCGIMISC_H
@@ -60,7 +60,7 @@
 #endif
 
 #ifndef ASSERT
-#define ASSERT(assertion) (assert(assertion))
+#define ASSERT(assertion) assert(assertion)
 #endif
 
 #endif	/* _FCGIMISC_H */
