@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.h,v 1.2 2000/07/21 20:56:28 robs Exp $
+// $Id: fcgio.h,v 1.3 2001/06/18 14:40:01 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostream
 // objects
@@ -113,9 +113,9 @@
 // fcgio2 iostream implementation is complete.
 
 #include <stdlib.h>
-#include "fcgio2.h"  // fcgio2.h includes fcgiapp.h
+#include "fcgio.h"   // fcgio.h includes fcgiapp.h
                      // however you must include fcgi_stdio.h if
-                     // you want to use it as fcgio2.h does not
+                     // you want to use it as fcgio.h does not
                      // include it for you
 
 #undef cin  // remember you have to undo the stuff predefined
@@ -210,8 +210,15 @@ int main(void)
 #define FCGIO_H
 
 #include <iostream.h>
+
+#ifdef _WIN32
+#define DLLAPI  __declspec(dllexport)
+#endif
+
 #include <fcgiapp.h>
 
+// we aren't pulling from the heap, so it is best not o make it too big
+#define FCGIO_BUFSIZE 200
 
 // FastCGI streambuf replacement. Implements low level I/O to the
 // FastCGI C functions so our higher level iostreams will talk
@@ -265,17 +272,15 @@ class fcgi_streambuf : public streambuf
     FCGX_Stream * fcgx_strm;
 
     // our buffer
-    // we aren't pulling from the heap, so it is best not
-    // to make it too big
-    static const int buffersize=200;
-    char buffer[buffersize];
+    static const int buffersize;
+    char buffer[FCGIO_BUFSIZE];
 
     // little flag so that we can tell if the
     // fcgi_str pointer was ever set
     int defined;
 };
 
-
+const int fcgi_streambuf::buffersize = FCGIO_BUFSIZE;
 
 // Here's the istream class definition.
 class fcgi_istream : public istream
