@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.11 2000/10/08 19:48:23 skimo Exp $
+# $Id: FCGI.pm,v 1.12 2000/10/18 20:39:15 skimo Exp $
 
 package FCGI;
 
@@ -13,7 +13,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.54';
+$VERSION = '0.55';
 
 bootstrap FCGI;
 
@@ -111,7 +111,14 @@ sub READLINE {
 
 sub OPEN {
     $_[0]->CLOSE;
-    @_ == 2 ? open($_[0], $_[1]) : open($_[0], $_[1], $_[2]);
+    if (@_ == 2) {
+	return open($_[0], $_[1]);
+    } else {
+	my $rc;
+	eval("$rc = open($_[0], $_[1], $_[2])");
+	die $@ if $@;
+	return $rc;
+    }
 }
 
 1;
@@ -129,7 +136,7 @@ FCGI - Fast CGI module
     my $count = 0;
     my $request = FCGI::Request();
 
-    while($request->accept() >= 0) {
+    while($request->Accept() >= 0) {
 	print("Content-type: text/html\r\n\r\n", ++$count);
     }
 
