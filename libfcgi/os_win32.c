@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.24 2001/09/14 19:43:27 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.25 2001/11/30 17:48:57 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -52,6 +52,7 @@ static HANDLE hStdinThread = INVALID_HANDLE_VALUE;
 static HANDLE stdioHandles[3] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 				 INVALID_HANDLE_VALUE};
 
+// This is a nail for listening to more than one port..
 static HANDLE acceptMutex = INVALID_HANDLE_VALUE;
 
 static BOOLEAN shutdownPending = FALSE;
@@ -363,15 +364,15 @@ int OS_LibInit(int stdioFds[3])
         }
     }
 
-    /*
-     * If an accept mutex is in the env, save it and remove it.
-     */
-    val = getenv(MUTEX_VARNAME);
-    if (val != NULL) 
+    if (acceptMutex == INVALID_HANDLE_VALUE)
     {
-        acceptMutex = (HANDLE) atoi(val);
+        /* If an accept mutex is in the env, use it */
+        val = getenv(MUTEX_VARNAME);
+        if (val != NULL) 
+        {
+            acceptMutex = (HANDLE) atoi(val);
+        }
     }
-
 
     /*
      * Determine if this library is being used to listen for FastCGI
@@ -688,25 +689,13 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 {
     int pseudoFd = -1;
     short port = getPort(bindPath);
-    HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
-    char * mutexEnvString;
 
-    if (mutex == NULL)
+    if (acceptMutex == INVALID_HANDLE_VALUE)
     {
-        return -2;
+        acceptMutex = CreateMutex(NULL, FALSE, NULL);
+        if (acceptMutex == NULL) return -2;
+        if (! SetHandleInformation(acceptMutex, HANDLE_FLAG_INHERIT, TRUE)) return -3;
     }
-
-    if (! SetHandleInformation(mutex, HANDLE_FLAG_INHERIT, TRUE))
-    {
-        return -3;
-    }
-
-    // This is a nail for listening to more than one port..
-    // This should really be handled by the caller.
-
-    mutexEnvString = malloc(strlen(MUTEX_VARNAME) + 7);
-    sprintf(mutexEnvString, MUTEX_VARNAME "=%d", (int) mutex);
-    putenv(mutexEnvString);
 
     // There's nothing to be gained (at the moment) by a shutdown Event    
 
