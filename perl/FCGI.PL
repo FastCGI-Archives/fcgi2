@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.6 1999/07/28 23:09:56 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.7 1999/07/29 12:01:00 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -105,6 +105,9 @@ typedef struct FCGP_Request {
     FCGX_Stream*    in;
     FCGX_ParamArray envp;
     FCGX_Request*   requestPtr;
+#ifdef USE_SFIO
+    int		    sfcreated[3];
+#endif
 } FCGP_Request;
 
 static FCGP_Request global_request;
@@ -117,8 +120,8 @@ FCGI_Flush(FCGP_Request* request)
 	return;
     }
 #ifdef USE_SFIO
-    sfsync(IoIFP(GvIOp(request->gv[1])));
-    sfsync(IoIFP(GvIOp(request->gv[2])));
+    sfsync(IoOFP(GvIOp(request->gv[1])));
+    sfsync(IoOFP(GvIOp(request->gv[2])));
 #else
     FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->svout)));
     FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->sverr)));
@@ -129,9 +132,21 @@ static void
 FCGI_UndoBinding(FCGP_Request* request)
 {
 #ifdef USE_SFIO
-    sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[0])), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[1])), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(IoIFP(GvIOp(request->gv[2])), SF_POPDISC));
+    IO *io[3];
+    int i;
+#endif
+
+#ifdef USE_SFIO
+    sfdcdelfcgi(sfdisc(IoIFP(io[0] = GvIOp(request->gv[0])), SF_POPDISC));
+    sfdcdelfcgi(sfdisc(IoOFP(io[1] = GvIOp(request->gv[1])), SF_POPDISC));
+    sfdcdelfcgi(sfdisc(IoOFP(io[2] = GvIOp(request->gv[2])), SF_POPDISC));
+    for (i = 0; i < 3; ++i) {
+	if (request->sfcreated[i]) {
+	    sfclose(IoIFP(io[i]));
+	    IoIFP(io[i]) = IoOFP(io[i]) = Nullfp;
+	    request->sfcreated[i] = FALSE;
+	}
+    }
 #else
     FCGI_Flush(request);
     sv_unmagic((SV *)request->gv[0], 'q');
@@ -160,6 +175,10 @@ FCGI_Accept(FCGP_Request* request, GV **gvp)
 	FCGI_UndoBinding(request);
     }
     if(!isCGI) {
+#ifdef USE_SFIO
+	IO *io[3];
+	int i;
+#endif
 	FCGX_Stream *out, *error;
         int acceptResult = FCGX_Accept_r(&request->in, &out, &error, 
 					 &request->envp,
@@ -168,9 +187,19 @@ FCGI_Accept(FCGP_Request* request, GV **gvp)
             return acceptResult;
         }
 #ifdef USE_SFIO
-        sfdisc(IoIFP(GvIOp(request->gv[0])), sfdcnewfcgi(request->in));
-        sfdisc(IoIFP(GvIOp(request->gv[1])), sfdcnewfcgi(out));
-        sfdisc(IoIFP(GvIOp(request->gv[2])), sfdcnewfcgi(error));
+	for (i = 0; i < 3; ++i) {
+	    io[i] = GvIOn(request->gv[i] = gvp[i]);
+	    if (!(i == 0 ? IoIFP(io[i]) : IoOFP(io[i]))) {
+		IoIFP(io[i]) = sftmp(0);
+		/*IoIFP(io[i]) = sfnew(NULL, NULL, SF_UNBOUND, 0, 
+				     SF_STRING | (i ? SF_WRITE : SF_READ));*/
+		if (i != 0) IoOFP(io[i]) = IoIFP(io[i]);
+		request->sfcreated[i] = TRUE;
+	    }
+	}
+        sfdisc(IoIFP(io[0]), sfdcnewfcgi(request->in));
+        sfdisc(IoOFP(io[1]), sfdcnewfcgi(out));
+        sfdisc(IoOFP(io[2]), sfdcnewfcgi(error));
 #else
 	if (!request->svout) {
 	    newSVrv(request->svout = newSV(0), "FCGI::Stream");
