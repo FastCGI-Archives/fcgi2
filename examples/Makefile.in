@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.5 1999/07/28 01:08:15 roberts Exp $
+#  $Id: Makefile.in,v 1.6 1999/07/28 02:25:32 roberts Exp $
 #
 
 SHELL = @SHELL@
@@ -28,7 +28,7 @@ TARGETS	    = tiny-fcgi tiny-fcgi2 tiny-authorizer \
 all: $(TARGETS)
 
 threaded.fcg: threaded.c $(INCLUDES)
-	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) -lpthread
+	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) $(LIBS) -lpthread
 
 tiny-fcgi: tiny-fcgi.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) tiny-fcgi.${O} -o tiny-fcgi $(LIBFCGI) $(LIBS)
@@ -80,8 +80,10 @@ echo.${O}: echo.c $(INCLUDES)
 
 echo2.${O}: echo2.c $(INCLUDES)
 
-sample-store.${O}: sample-store.c $(INCLUDES)
+SampleStore/sample-store.${O}: SampleStore/sample-store.c $(INCLUDES)
+	$(CC) $(CFLAGS) -ISampleStore -c SampleStore/sample-store.c -o SampleStore/sample-store.${O}
 
 SampleStore/tclHash.${O}: SampleStore/tclHash.c
+	$(CC) $(CFLAGS) -ISampleStore -c SampleStore/tclHash.c -o SampleStore/tclHash.${O}
 
 log-dump.${O}: log-dump.c $(INCLUDES)
