@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.9 1999/08/14 21:36:58 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.10 1999/08/27 19:39:17 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -346,6 +346,18 @@ static int webServerReadHandlerEOF;
                          * the Web server. Used in main to prevent
                          * rescheduling WebServerReadHandler. */
 
+static void WriteStdinEof(void)
+{
+    static int stdin_eof_sent = 0;
+
+    if (stdin_eof_sent)
+    	return;
+
+    *((FCGI_Header *)fromWS.stop) = MakeHeader(FCGI_STDIN, requestId, 0, 0);
+    fromWS.stop += sizeof(FCGI_Header);
+    stdin_eof_sent = 1;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -373,6 +385,10 @@ static void WebServerReadHandler(ClientData clientData, int bytesRead)
     bytesToRead -= bytesRead;
     fromWS.stop = &fromWS.buff[sizeof(FCGI_Header) + bytesRead];
     webServerReadHandlerEOF = (bytesRead == 0);
+
+    if (bytesToRead <= 0)
+	WriteStdinEof();
+
     ScheduleIo();
 }
 
@@ -802,7 +818,11 @@ int main(int argc, char **argv)
     numFDs = max(appServerSock, STDIN_FILENO) + 1;
     OS_SetFlags(appServerSock, O_NONBLOCK);
 
+    if (bytesToRead <= 0)
+	WriteStdinEof();
+
     ScheduleIo();
+
     while(!exitStatusSet) {
         /*
 	 * NULL = wait forever (or at least until there's something
