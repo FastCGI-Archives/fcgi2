@@ -104,7 +104,17 @@ SOURCE=..\libfcgi\fcgiapp.c
 # Begin Source File
 
 SOURCE=..\libfcgi\fcgio.cpp
+
+!IF  "$(CFG)" == "libfcgi - Win32 Release"
+
 # ADD CPP /GX
+
+!ELSEIF  "$(CFG)" == "libfcgi - Win32 Debug"
+
+# ADD CPP /W3 /GX
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
