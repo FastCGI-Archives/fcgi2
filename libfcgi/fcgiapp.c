@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.34 2001/12/12 22:54:10 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.35 2003/06/22 00:16:43 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -2031,8 +2031,9 @@ void FCGX_Free(FCGX_Request * request, int close)
     FreeParams(&request->paramsPtr);
 
     if (close) {
-        OS_IpcClose(request->ipcFd);
+        OS_IpcClose(request->ipcFd, ! request->detached);
         request->ipcFd = -1;
+        request->detached = 0;
     }
 }
 
@@ -2307,3 +2308,23 @@ void FCGX_SetExitStatus(int status, FCGX_Stream *stream)
     data->reqDataPtr->appStatus = status;
 }
 
+
+int 
+FCGX_Attach(FCGX_Request * r)
+{
+    r->detached = FALSE;
+    return 0;
+}
+
+
+int 
+FCGX_Detach(FCGX_Request * r)
+{
+    if (r->ipcFd <= 0)
+    {
+        return -1;
+    }
+
+    r->detached = TRUE;
+    return 0;
+}

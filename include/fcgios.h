@@ -113,11 +113,11 @@ DLLAPI int OS_AsyncRead(int fd, int offset, void *buf, int len,
                         OS_AsyncProc procPtr, ClientData clientData);
 DLLAPI int OS_AsyncWrite(int fd, int offset, void *buf, int len,
                          OS_AsyncProc procPtr, ClientData clientData);
-DLLAPI int OS_Close(int fd);
+DLLAPI int OS_Close(int fd, int shutdown);
 DLLAPI int OS_CloseRead(int fd);
 DLLAPI int OS_DoIo(struct timeval *tmo);
 DLLAPI int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs);
-DLLAPI int OS_IpcClose(int ipcFd);
+DLLAPI int OS_IpcClose(int ipcFd, int shutdown);
 DLLAPI int OS_IsFcgi(int sock);
 DLLAPI void OS_SetFlags(int fd, int flags);
 

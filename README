@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.21 2003/01/19 17:19:41 robs Exp $
+    $Id: README,v 1.22 2003/06/22 00:16:45 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,10 @@ CHANGES
 
 For more detail regarding changes, please consult the cvs log available 
 on http://fastcgi.com/.
+
+2.4.1
+
+ *) Add attach() and detach() support.
 
 
 2.4.0

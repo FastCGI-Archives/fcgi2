@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.13 2003/02/04 01:31:38 robs Exp $
+ * $Id: fcgiapp.h,v 1.14 2003/06/22 00:16:44 robs Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -106,6 +106,7 @@ typedef struct FCGX_Request {
     int nWriters;             /* number of open writers (0..2) */
     int flags;
     int listen_sock;
+    int detached;
 } FCGX_Request;
 
 
@@ -614,6 +615,15 @@ DLLAPI void FCGX_FreeStream(FCGX_Stream **stream);
  * ----------------------------------------------------------------------
  */
 DLLAPI void FCGX_ShutdownPending(void);
+
+
+/*
+ *  Attach/Detach an accepted request from its listen socket.
+ *  XXX This is not fully implemented at this time (patch welcome).
+ */
+DLLAPI int FCGX_Attach(FCGX_Request * r);
+DLLAPI int FCGX_Detach(FCGX_Request * r);
+
 
 #if defined (__cplusplus) || defined (c_plusplus)
 } /* terminate extern "C" { */
