@@ -924,8 +924,8 @@ Make sure you have /opt/SUNWspro/SC*/bin (or a link to it) in your path." 1>&2
         rm -f conftest*
 
         # check for the berkley env. shell - don't want it
-        for dir in `echo $PATH | sed -e "s/\:/ /g"`
-        {
+        for dir in `echo $PATH | sed -e "s/\:/ /g"`; do
+        
             if test -x "$dir/cc"; then
                 if egrep SUNWspro < `echo $dir/cc` > /dev/null 2>&1; then
                     break # SUNWpro version used - OK!
@@ -938,7 +938,7 @@ your path includes /opt/SUNWspro/bin ahead of /usr/ucb." 1>&2
                     break
                 fi
             fi
-        }
+        done
     fi
 
             ;;
