@@ -1,5 +1,5 @@
-/* include/fcgi_config.h.in.  Generated automatically from configure.in by autoheader.  */
-/* File used by autoheader to generate include/fcgi_config.h */
+/* fcgi_config.h.in.  Generated automatically from configure.in by autoheader.  */
+/* acconfig.h -  Used by autoheader to generate include/fcgi_config.h. */
 
 /* Define if socklen_t exists. */
 #undef HAVE_SOCKLEN
@@ -20,6 +20,9 @@
 /* Define if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
 
+/* Define if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
 /* Define if you have the `dnet_stub' library (-ldnet_stub). */
 #undef HAVE_LIBDNET_STUB
 
@@ -38,17 +41,47 @@
 /* Define if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
+/* Define if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
 /* Define if you have the <netdb.h> header file. */
 #undef HAVE_NETDB_H
 
 /* Define if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
+/* Define if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
 /* Define if you have the `strerror' function. */
 #undef HAVE_STRERROR
+
+/* Define if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define if you have the <string.h> header file. */
+#undef HAVE_STRING_H
 
 /* Define if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H
 
+/* Define if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
 /* Define if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
+
+/* Define if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef ssize_t
