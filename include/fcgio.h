@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.7 2001/11/20 03:24:18 robs Exp $
+// $Id: fcgio.h,v 1.8 2001/11/21 20:18:13 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -49,11 +49,20 @@ class fcgi_streambuf : public streambuf
 {
 public:
 
-    DLLAPI fcgi_streambuf(FCGX_Stream * strm = NULL);
+    // Note that if no buf is assigned (the default), iostream methods
+    // such as peek(), unget() and putback() will fail.  If a buf is
+    // assigned, I/O is a bit less effecient and output streams will
+    // have to be flushed (or the streambuf destroyed) before the next 
+    // call to "accept".
+    DLLAPI fcgi_streambuf(FCGX_Stream * fcgx, char * buf, int len);
+    
+    DLLAPI fcgi_streambuf(char * buf, int len);
+    
+    DLLAPI fcgi_streambuf(FCGX_Stream * fcgx = NULL);
 
     DLLAPI ~fcgi_streambuf(void);
 
-    DLLAPI int attach(FCGX_Stream * strm);
+    DLLAPI int attach(FCGX_Stream * fcgx);
 
     // Consume the put area (if buffered) and c (if c is not EOF).
     DLLAPI virtual int overflow(int);
@@ -85,6 +94,8 @@ private:
     // this isn't kept by the base class
     int bufsize;
     
+    void init(FCGX_Stream * fcgx, char * buf, int bufsize);
+
     void reset(void);
 };
 
@@ -96,13 +107,13 @@ class fcgi_istream : public istream
 public:
 
     // deprecated
-    DLLAPI fcgi_istream(FCGX_Stream * strm = NULL);
+    DLLAPI fcgi_istream(FCGX_Stream * fcgx = NULL);
     
     // deprecated
     DLLAPI ~fcgi_istream(void) {}
 
     // deprecated
-    DLLAPI virtual void attach(FCGX_Stream * strm);
+    DLLAPI virtual void attach(FCGX_Stream * fcgx);
 
 private:
 
@@ -117,13 +128,13 @@ class fcgi_ostream : public ostream
 public:
     
     // deprecated
-    DLLAPI fcgi_ostream(FCGX_Stream * strm = NULL);
+    DLLAPI fcgi_ostream(FCGX_Stream * fcgx = NULL);
     
     // deprecated
     DLLAPI ~fcgi_ostream(void) {}
 
     // deprecated
-    DLLAPI virtual void attach(FCGX_Stream *str);
+    DLLAPI virtual void attach(FCGX_Stream *fcgx);
 
 private:
 

@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.8 2001/11/20 13:11:12 robs Exp $
+// $Id: fcgio.cpp,v 1.9 2001/11/21 20:18:12 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -24,19 +24,34 @@
 
 #include "fcgio.h"
 
-fcgi_streambuf::fcgi_streambuf(FCGX_Stream * strm) 
+fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fcgx, char * buf, int bufsize)
+{
+    init(fcgx, buf, bufsize);
+}
+    
+fcgi_streambuf::fcgi_streambuf(char * buf, int bufsize)
+{
+    init(NULL, buf, bufsize);
+}
+    
+fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fcgx) 
 { 
-    this->fcgx = strm;
-    this->buf = NULL;
-    this->bufsize = 0;
-    setbuf(NULL, 0);
+    init(fcgx, NULL, 0);
 }
 
 fcgi_streambuf::~fcgi_streambuf(void)
 {
     overflow(EOF);
     // FCGX_Finish()/FCGX_Accept() will flush and close
-} 
+}
+
+void fcgi_streambuf::init(FCGX_Stream * fcgx, char * buf, int bufsize)
+{
+    this->fcgx = fcgx;
+    this->buf = NULL;
+    this->bufsize = NULL;
+    setbuf(buf, bufsize);    
+}
 
 int fcgi_streambuf::overflow(int c)
 {
@@ -90,9 +105,8 @@ int fcgi_streambuf::underflow()
 void fcgi_streambuf::reset(void)
 {
     // it should be ok to set up both the get and put areas
-    char * end = this->buf + this->bufsize;
-    setg(this->buf, this->buf, end);
-    setp(this->buf, end);
+    setg(this->buf, this->buf, this->buf);
+    setp(this->buf, this->buf + this->bufsize);
 }
 
 streambuf * fcgi_streambuf::setbuf(char * buf, int len)
