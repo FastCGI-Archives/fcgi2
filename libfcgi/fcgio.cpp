@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.3 2000/07/27 12:21:54 robs Exp $
+// $Id: fcgio.cpp,v 1.4 2001/06/20 16:08:51 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostream
 // objects
@@ -152,8 +152,8 @@ int fcgi_streambuf::overflow(int c)
 // in case somebody calls this, ignore it
 streambuf * fcgi_streambuf::setbuf(char *s, int n)
    {
-   // tell them what they want to hear to make them
-   // go away
+   // Touch the args to avoid compiler warnings
+   s = NULL; n = 0;
    return this;
    }
 
