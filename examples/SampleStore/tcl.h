@@ -40,7 +40,7 @@
  * of the Rights in Technical Data and Computer Software Clause as DFARS
  * 252.227-7013 and FAR 52.227-19.
  *
- * $Id: tcl.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: tcl.h,v 1.1 1999/07/28 01:11:46 roberts Exp $
  *
  * @(#) tcl.h 1.153 95/06/27 15:42:31
  */
