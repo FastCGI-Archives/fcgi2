@@ -10,42 +10,48 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.6 1999/07/27 13:56:59 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.7 1999/07/28 00:38:34 roberts Exp $";
 #endif /* not lint */
 
-#include <stdio.h>
-#if defined HAVE_UNISTD_H || defined __linux__
-#include <unistd.h>
-#endif
-#include <fcntl.h>
+#include "fcgi_config.h"
+
 #include <assert.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <ctype.h>
+
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
-#endif
-#ifdef HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif
-#include "fcgimisc.h"
-#include "fcgiapp.h"
-#include "fcgiappmisc.h"
-#include "fastcgi.h"
-#include "fcgi_config.h"
-#include "fcgios.h"
 
 #ifdef _WIN32
 #include <stdlib.h>
 #else
 extern char **environ;
 #endif
+
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+#if defined HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#include "fcgimisc.h"
+#include "fcgiapp.h"
+#include "fcgiappmisc.h"
+#include "fastcgi.h"
+#include "fcgios.h"
+
 
 static int wsReadPending = 0;
 static int fcgiReadPending = 0;
@@ -526,7 +532,7 @@ static void FCGIUtil_BuildNameValueHeader(
     unsigned char *startHeaderBuffPtr = headerBuffPtr;
 
     ASSERT(nameLen >= 0);
-    if (nameLen < 0x80 == 0) {
+    if (nameLen < 0x80) {
         *headerBuffPtr++ = nameLen;
     } else {
         *headerBuffPtr++ = (nameLen >> 24) | 0x80;
@@ -535,7 +541,7 @@ static void FCGIUtil_BuildNameValueHeader(
         *headerBuffPtr++ = nameLen;
     }
     ASSERT(valueLen >= 0);
-    if (valueLen < 0x80 == 0) {
+    if (valueLen < 0x80) {
         *headerBuffPtr++ = valueLen;
     } else {
         *headerBuffPtr++ = (valueLen >> 24) | 0x80;
@@ -606,7 +612,7 @@ static int ParseArgs(int argc, char *argv[],
                                     "%d is max from a file\n", MAXARGS);
 				exit(-1);
 			}
-			if((av[ac] = malloc(strlen(tp1)+1)) == NULL) {
+			if((av[ac] = (char *)malloc(strlen(tp1)+1)) == NULL) {
 			    fprintf(stderr, "Cannot allocate %d bytes\n",
 				    strlen(tp1)+1);
 			    exit(-1);
