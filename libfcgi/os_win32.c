@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.4 1999/08/12 23:56:13 roberts Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.5 1999/08/27 14:03:35 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1520,7 +1520,6 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
  */
 int OS_IpcClose(int ipcFd)
 {
-
     /*
      * Catch it if fd is a bogus value
      */
@@ -1546,6 +1545,7 @@ int OS_IpcClose(int ipcFd)
 
     case FD_SOCKET_SYNC:
 	OS_Close(ipcFd);
+        return 0;
 	break;
 
     case FD_UNUSED:
@@ -1553,7 +1553,6 @@ int OS_IpcClose(int ipcFd)
 	exit(106);
 	break;
     }
-
 }
 
 
@@ -1595,10 +1594,10 @@ int OS_IsFcgi(int sock)
  */
 void OS_SetFlags(int fd, int flags)
 {
-    long int pLong = 1L;
+    unsigned long pLong = 1L;
     int err;
 
-    if(fdTable[fd].type == FD_SOCKET_SYNC && flags == O_NONBLOCK) {
+    if (fdTable[fd].type == FD_SOCKET_SYNC && flags == O_NONBLOCK) {
         if (ioctlsocket(fdTable[fd].fid.sock, FIONBIO, &pLong) ==
 	    SOCKET_ERROR) {
 	    exit(WSAGetLastError());
