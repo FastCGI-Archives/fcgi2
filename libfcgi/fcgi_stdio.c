@@ -12,13 +12,14 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.9 2000/10/30 22:52:24 robs Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.10 2001/06/18 14:44:37 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
 
 #ifdef _WIN32
 #define DLLAPI  __declspec(dllexport)
+#define WIN32_LEAN_AND_MEAN 
 #include <windows.h>
 #endif
 
