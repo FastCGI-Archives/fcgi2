@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.27 2001/09/01 13:07:28 skimo Exp $
+# $Id: FCGI.PL,v 1.28 2001/09/14 17:40:30 skimo Exp $
 
 package FCGI;
 
@@ -47,12 +47,19 @@ use constant FILTER => 3;
 		      AUTHORIZER, "AUTHORIZER",
 		      FILTER, "FILTER",
 		     );
+
+# This only works on Unix; anyone familiar with Windows is welcome
+# to give a hand here
 sub IsFastCGI {
     my ($req) = @_;
     $req->{isfastcgi} =
 	(!defined getpeername shift->{listen_sock}) && $! == ENOTCONN
 	unless exists $req->{isfastcgi};
     return $req->{isfastcgi};
+}
+
+sub GetEnvironment {
+    return shift->{'env'};
 }
 
 sub read_nv_len {
@@ -261,8 +268,9 @@ __END__
 
 *FAIL_ACCEPT_ON_INTR = sub() { 1 };
 
-sub Request(;***$$$) {
+sub Request(;***$*$) {
     my @defaults = (\*STDIN, \*STDOUT, \*STDERR, \%ENV, 0, 0);
+    $_[4] = fileno($_[4]) if defined(fileno($_[4]));
     splice @defaults,0,@_,@_;
     RequestX(@defaults);
 }
