@@ -1,3 +1,8 @@
+Version 0.60 --	8 July 2001   <skimo@kotnet.org> Sven Verdoolaege
+
+	o Allow specification of purity on command line
+	    (suggested by Rob Brown <rbrown@about-inc.com>)
+	o Fix bug in pure perl implementation
 	o Don't try to compile anything on pure perl build
 	o Add BINMODE method
 	o Add comment on socket permissions

@@ -1,9 +1,10 @@
-# $Id: Makefile.PL,v 1.10 2001/06/05 15:52:42 skimo Exp $
+# $Id: Makefile.PL,v 1.11 2001/06/08 15:09:47 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
 use Config;
 use Cwd 'cwd';
+use Getopt::Long;
 
 @h1 = qw(fastcgi.h fcgiapp.h fcgiappmisc.h fcgimisc.h fcgios.h);
 @h = (@h1, 'fcgi_config.h');
@@ -12,9 +13,10 @@ use Cwd 'cwd';
 @dist2 = qw(fcgiapp.c os_unix.c os_win32.c);
 @dist3 = (@h1, qw(fcgi_config.h.in fcgi_config_x86.h));
 
+GetOptions ("pure-perl!" => \$pure);
 $pure = 
     (prompt("Do you want to use the pure perl implementation", "no") =~ /^y/) 
-    ? "1" : "0";
+    ? "1" : "0" unless defined $pure;
 open(CFG,">FCGI.cfg");
 print CFG "\$pure = $pure;1;\n";
 close CFG;
