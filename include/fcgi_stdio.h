@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgi_stdio.h,v 1.2 1998/03/09 16:38:13 roberts Exp $
+ * $Id: fcgi_stdio.h,v 1.3 1999/02/10 12:26:33 roberts Exp $
  */
 
 #ifndef _FCGI_STDIO
