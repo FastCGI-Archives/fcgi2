@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.26 2001/12/21 02:58:33 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.27 2002/02/16 14:45:30 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -27,6 +27,7 @@ static const char rcsid[] = "$Id: os_win32.c,v 1.26 2001/12/21 02:58:33 robs Exp
 #include <assert.h>
 #include <stdio.h>
 #include <sys/timeb.h>
+#include <process.h>
 
 #define DLLAPI  __declspec(dllexport)
 
@@ -270,14 +271,13 @@ void OS_ShutdownPending(void)
 }
 
 /* XXX Need a shutdown now event */
-static DWORD WINAPI ShutdownRequestThread(LPVOID arg)
+static void ShutdownRequestThread(void * arg)
 {
     HANDLE shutdownEvent = (HANDLE) arg;
     
     if (WaitForSingleObject(shutdownEvent, INFINITE) == WAIT_FAILED)
     {
         // Assuming it will happen again, all we can do is exit the thread
-        return 1;
     }
     else
     {
@@ -289,7 +289,6 @@ static DWORD WINAPI ShutdownRequestThread(LPVOID arg)
         // on a connection request for one second, checks the flag, & repeats.
         // Only one process/thread is allowed to do this at time by
         // wrapping the accept() with mutex.
-        return 0;
     }
 }
 
@@ -314,7 +313,6 @@ int OS_LibInit(int stdioFds[3])
     WSADATA wsaData;
     int err;
     int fakeFd;
-    DWORD threadId;
     char *cLenPtr = NULL;
     char *val = NULL;
         
@@ -357,8 +355,7 @@ int OS_LibInit(int stdioFds[3])
     {
         HANDLE shutdownEvent = (HANDLE) atoi(val);
 
-        if (! CreateThread(NULL, 0, ShutdownRequestThread, 
-                           shutdownEvent, 0, NULL))
+        if (_beginthread(ShutdownRequestThread, 0, shutdownEvent) == -1)
         {
             return -1;
         }
@@ -493,10 +490,8 @@ int OS_LibInit(int stdioFds[3])
      */
     if((cLenPtr = getenv("CONTENT_LENGTH")) != NULL &&
        atoi(cLenPtr) > 0) {
-        hStdinThread = CreateThread(NULL, 8192,
-				    (LPTHREAD_START_ROUTINE)&StdinThread,
-				    NULL, 0, &threadId);
-	if (hStdinThread == NULL) {
+        hStdinThread = (HANDLE) _beginthread(StdinThread, 0, NULL);
+	if (hStdinThread == (HANDLE) -1) {
 	    printf("<H2>OS_LibInit Failed to create STDIN thread!  ERROR: %d</H2>\r\n\r\n",
 		   GetLastError());
 	    return -1;
