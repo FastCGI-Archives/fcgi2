@@ -1,3 +1,6 @@
+	o Add BINMODE method
+	o Add comment on socket permissions
+
 Version 0.59 --	31 December 2000   <skimo@kotnet.org> Sven Verdoolaege
 
 	o preliminary pure perl implementation

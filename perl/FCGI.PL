@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.22 2000/12/31 21:56:10 skimo Exp $
+# $Id: FCGI.PL,v 1.23 2001/03/27 11:49:11 skimo Exp $
 
 package FCGI;
 
@@ -21,7 +21,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.59';
+$VERSION = '0.60';
 
 EOP
 
@@ -331,6 +331,9 @@ sub PRINTF {
   shift->PRINT(sprintf(shift, @_));
 }
 
+sub BINMODE {
+}
+
 sub READLINE {
     my $stream = shift;
     my ($s, $c);
@@ -449,6 +452,11 @@ Creates a socket suitable to use as an argument to Request.
 =item path
 
 Pathname of socket or colon followed by local tcp port.
+Note that some systems take file permissions into account
+on Unix domain sockets, so you'll have to make sure that
+the server can write to the created file, by changing
+the umask before the call and/or changing permissions and/or
+group of the file afterwards.
 
 =item backlog
 
