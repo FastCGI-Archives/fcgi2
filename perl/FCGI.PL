@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.12 1999/08/27 13:28:47 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.13 2000/01/31 21:34:24 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -20,6 +20,7 @@ __END__
 
 #include "fcgi_config.h"
 #include "fcgiapp.h"
+#include "fastcgi.h"
 
 #ifndef FALSE
 #define FALSE (0)
@@ -88,13 +89,12 @@ sfdcdelfcgi(disc)
 }
 #endif
 
-static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: FCGI */
-
 #if defined(USE_LOCKING) && defined(USE_THREADS)
 static perl_mutex   accept_mutex;
 #endif
 
 typedef struct FCGP_Request {
+    int		    accepted;
     int		    bound;
     SV*		    svin;
     SV*		    svout;
@@ -104,8 +104,11 @@ typedef struct FCGP_Request {
     FCGX_Request*   requestPtr;
 #ifdef USE_SFIO
     int		    sfcreated[3];
+    IO*		    io[3];
 #endif
 } FCGP_Request;
+
+static void FCGI_Finish(FCGP_Request* request);
 
 static int 
 FCGI_Flush(FCGP_Request* request)
@@ -127,31 +130,35 @@ FCGI_Flush(FCGP_Request* request)
 static void
 FCGI_UndoBinding(FCGP_Request* request)
 {
-#ifdef USE_SFIO
-    IO *io[3];
-    int i;
-#endif
     dTHX;
 
 #ifdef USE_SFIO
-    sfdcdelfcgi(sfdisc(IoIFP(io[0] = GvIOp(request->gv[0])), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(IoOFP(io[1] = GvIOp(request->gv[1])), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(IoOFP(io[2] = GvIOp(request->gv[2])), SF_POPDISC));
-    for (i = 0; i < 3; ++i) {
-	if (request->sfcreated[i]) {
-	    sfclose(IoIFP(io[i]));
-	    IoIFP(io[i]) = IoOFP(io[i]) = Nullfp;
-	    request->sfcreated[i] = FALSE;
-	}
-    }
+    sfdcdelfcgi(sfdisc(IoIFP(request->io[0]), SF_POPDISC));
+    sfdcdelfcgi(sfdisc(IoOFP(request->io[1]), SF_POPDISC));
+    sfdcdelfcgi(sfdisc(IoOFP(request->io[2]), SF_POPDISC));
 #else
-    FCGI_Flush(request);
     sv_unmagic((SV *)request->gv[0], 'q');
     sv_unmagic((SV *)request->gv[1], 'q');
     sv_unmagic((SV *)request->gv[2], 'q');
 #endif
-    FCGX_Finish_r(request->requestPtr);
     request->bound = FALSE;
+}
+
+static void
+FCGI_Bind(FCGP_Request* request)
+{
+    dTHX;
+
+#ifdef USE_SFIO
+    sfdisc(IoIFP(request->io[0]), sfdcnewfcgi(fcgx_req->in));
+    sfdisc(IoOFP(request->io[1]), sfdcnewfcgi(fcgx_req->out));
+    sfdisc(IoOFP(request->io[2]), sfdcnewfcgi(fcgx_req->err));
+#else
+    sv_magic((SV *)request->gv[1], request->svout, 'q', Nullch, 0);
+    sv_magic((SV *)request->gv[2], request->sverr, 'q', Nullch, 0);
+    sv_magic((SV *)request->gv[0], request->svin, 'q', Nullch, 0);
+#endif
+    request->bound = TRUE;
 }
 
 static void
@@ -183,30 +190,30 @@ FCGI_Accept(FCGP_Request* request)
 {
     dTHX;
 
-    if(isCGI == -1) {
+    static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: FCGI */
+
+    int req_isCGI = 
+	request->requestPtr->listen_sock == FCGI_LISTENSOCK_FILENO ?
+	isCGI : 0;
+
+    if(req_isCGI == -1) {
         /*
          * First call to FCGI_Accept.  Is application running
          * as FastCGI or as CGI?
          */
-        isCGI = FCGX_IsCGI();
-    } else if(isCGI) {
+        req_isCGI = isCGI = FCGX_IsCGI();
+    } else if(req_isCGI) {
         /*
          * Not first call to FCGI_Accept and running as CGI means
          * application is done.
          */
         return(EOF);
     } 
-    if(!isCGI) {
-#ifdef USE_SFIO
-	IO *io[3];
-	int i;
-#endif
+    if(!req_isCGI) {
 	FCGX_Request *fcgx_req = request->requestPtr;
         int acceptResult;
 
-	if(request->bound) {
-	    FCGI_UndoBinding(request);
-	}
+	FCGI_Finish(request);
 #if defined(USE_LOCKING) && defined(USE_THREADS)
 	MUTEX_LOCK(&accept_mutex);
 #endif
@@ -222,32 +229,29 @@ FCGI_Accept(FCGP_Request* request)
 
 #ifdef USE_SFIO
 	for (i = 0; i < 3; ++i) {
-	    io[i] = GvIOn(request->gv[i]);
-	    if (!(i == 0 ? IoIFP(io[i]) : IoOFP(io[i]))) {
-		IoIFP(io[i]) = sftmp(0);
-		/*IoIFP(io[i]) = sfnew(NULL, NULL, SF_UNBOUND, 0, 
+	    request->io[i] = GvIOn(request->gv[i]);
+	    if (!(i == 0 ? IoIFP(request->io[i]) 
+			 : IoOFP(request->io[i]))) {
+		IoIFP(request->io[i]) = sftmp(0);
+		/*IoIFP(request->io[i]) = sfnew(NULL, NULL, SF_UNBOUND, 0, 
 				     SF_STRING | (i ? SF_WRITE : SF_READ));*/
-		if (i != 0) IoOFP(io[i]) = IoIFP(io[i]);
+		if (i != 0) 
+		    IoOFP(request->io[i]) = IoIFP(request->io[i]);
 		request->sfcreated[i] = TRUE;
 	    }
 	}
-        sfdisc(IoIFP(io[0]), sfdcnewfcgi(fcgx_req->in));
-        sfdisc(IoOFP(io[1]), sfdcnewfcgi(fcgx_req->out));
-        sfdisc(IoOFP(io[2]), sfdcnewfcgi(fcgx_req->err));
 #else
 	if (!request->svout) {
 	    newSVrv(request->svout = newSV(0), "FCGI::Stream");
 	    newSVrv(request->sverr = newSV(0), "FCGI::Stream");
 	    newSVrv(request->svin = newSV(0), "FCGI::Stream");
 	}
-	sv_magic((SV *)request->gv[1], request->svout, 'q', Nullch, 0);
-	sv_magic((SV *)request->gv[2], request->sverr, 'q', Nullch, 0);
-	sv_magic((SV *)request->gv[0], request->svin, 'q', Nullch, 0);
 	sv_setiv(SvRV(request->svout), (IV) fcgx_req->out);
 	sv_setiv(SvRV(request->sverr), (IV) fcgx_req->err);
 	sv_setiv(SvRV(request->svin), (IV) fcgx_req->in);
 #endif
-	request->bound = TRUE;
+	FCGI_Bind(request);
+	request->accepted = TRUE;
     }
     return 0;
 }
@@ -257,10 +261,24 @@ FCGI_Finish(FCGP_Request* request)
 {
     dTHX;
 
-    if(!request->bound) {
+    if(!request->accepted) {
 	return;
     }
-    FCGI_UndoBinding(request);
+
+    if (request->bound) {
+	FCGI_UndoBinding(request);
+    }
+#ifdef USE_SFIO
+    for (i = 0; i < 3; ++i) {
+	if (request->sfcreated[i]) {
+	    sfclose(IoIFP(request->io[i]));
+	    IoIFP(request->io[i]) = IoOFP(request->io[i]) = Nullfp;
+	    request->sfcreated[i] = FALSE;
+	}
+    }
+#endif
+    FCGX_Finish_r(request->requestPtr);
+    request->accepted = FALSE;
 }
 
 static int 
@@ -398,6 +416,28 @@ Flush(request)
     CODE:
     FCGI_Flush(request);
 
+void
+Detach(request)
+
+    FCGI    request;
+
+    PROTOTYPE: $
+
+    CODE:
+    if (request->accepted && request->bound)
+	FCGI_UndoBinding(request);
+
+void
+Attach(request)
+
+    FCGI    request;
+
+    PROTOTYPE: $
+
+    CODE:
+    if (request->accepted && !request->bound)
+	FCGI_Bind(request);
+
 
 int
 StartFilterData(request)
@@ -509,8 +549,8 @@ bool
 CLOSE(stream)
 	FCGI::Stream	stream;
 
-	ALIAS:
-	DESTROY = 1
+#	ALIAS:
+#	DESTROY = 1
 
 	CODE:
 	RETVAL = FCGX_FClose(stream) != -1;

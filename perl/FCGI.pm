@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.6 1999/09/11 19:41:09 skimo Exp $
+# $Id: FCGI.pm,v 1.7 2000/01/31 21:34:24 skimo Exp $
 
 package FCGI;
 
@@ -13,7 +13,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.48';
+$VERSION = '0.49';
 
 bootstrap FCGI;
 
@@ -59,6 +59,14 @@ sub finish() {
 
 sub flush() {
     Flush($global_request);
+}
+
+sub detach() {
+    Detach($global_request);
+}
+
+sub attach() {
+    Attach($global_request);
 }
 
 # deprecated
