@@ -30,6 +30,10 @@
 #include <sys/time.h>
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 #if defined (c_plusplus) || defined (__cplusplus)
 extern "C" {
 #endif
