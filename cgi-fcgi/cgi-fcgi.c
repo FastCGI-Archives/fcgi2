@@ -11,10 +11,8 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.10 1999/08/27 19:39:17 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.11 2001/06/19 17:12:01 robs Exp $";
 #endif /* not lint */
-
-#include "fcgi_config.h"
 
 #include <assert.h>
 #include <ctype.h>
@@ -23,6 +21,9 @@ static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.10 1999/08/27 19:39:17 roberts 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <io.h>
+
+#include "fcgi_config.h"
 
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
