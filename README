@@ -2,7 +2,7 @@ FastCGI Developer's Kit README
 ------------------------------
 
     Version 2.0b2, 04 April 1997
-    $Id: README,v 1.8 1999/07/26 05:32:57 roberts Exp $
+    $Id: README,v 1.9 1999/07/29 13:37:06 roberts Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,6 +38,9 @@ release of the FDK.
 Changes with devkit 2.1.1
 -------------------------
 
+ *) Fixed an unintentional sign extension during promotion  in Java's
+    FCGIInputStream.read(). Takayuki Tachikawa <tachi@po.ntts.co.jp>
+
  *) Cleaned up warnings in examples (mostly main() complaints).
 
  *) Removed examples/tiny-cgi.c (it wasn't a FastCGI application?!).
@@ -45,7 +48,7 @@ Changes with devkit 2.1.1
  *) Remove some debugging code and clean up some gcc warnings in cgi-fcgi.c.
 
  *) Add multithread support to the fcgiapp lib and an example multithreaded
-    application, threaded.c.  Based on work by Dennis Payne 
+    application, threaded.c.  Based on work by Dennis Payne
     <dpayne@softscape.com> and Gene Sokolov <hook@aktrad.ru>.
 
  *) Remove the printf() and #include of stdio.h from examples/echo2.c.
