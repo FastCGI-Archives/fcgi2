@@ -1,8 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    Version 2.0b2, 04 April 1997
-    $Id: README,v 1.9 1999/07/29 13:37:06 roberts Exp $
+    $Id: README,v 1.10 2001/11/27 12:58:34 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -10,32 +9,40 @@ FastCGI Developer's Kit README
 Basic Directions
 ----------------
 
-Open the kit's index page, index.html in this directory, using the
-"Open File" command in your Web browser.  The index page gives you an
-overview of the kit structure and helps you navigate the kit. The
-index page also contains links that run some example applications, but
-the applications won't work when index.html is opened using the "Open
-File" command because they aren't being accessed through a Web server.
+Unix:
 
-For further instructions see the FastCGI Developer's Kit
-document, accessible via the index page.
+    ./configure
+    make
+    make install
 
+Win32:
 
-TODO:
-----
-The following is a small list of what should be available in the final
-release of the FDK.
-  1. Fix all compilation problems on all Unixes and NT.
-  2. Provide perl.c for perl5.003 (replace run() with runops())
-  3. Provide latest Tcl patches (NT requires Tcl7.5+)
-  4. Provide FCGI_VERSION directive for automatic version recognition.
--- if available
-  5. Provide new Java interface to conform to JDK1.1.1 (due to final
-     System.in)
-  6. Provide samples of Perl on NT.
+    nmake -f Makefile.nt
+
+    (or use the MSVC++ project files in the Win32 directory)
 
 
-Changes with devkit 2.1.1
+CHANGES
+-------
+
+Unfortunately documentation of many of the changes have been lost.
+
+
+2.2.2  
+-----
+
+ *) Added support for shared libraries.
+
+ *) Added support for a graceful shutdown via an event under Win32.
+
+ *) Added default signal handlers for PIPE, USR1, and TERM.
+
+ *) Fix some minor bugs in the 0S_ layer.
+
+ *) Fixed the C++ streambuf implementation.
+
+
+Changes with devkit 2.1.1 
 -------------------------
 
  *) Fixed an unintentional sign extension during promotion  in Java's
