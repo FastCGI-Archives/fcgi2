@@ -18,23 +18,41 @@
 #ifndef _FCGIOS_H
 #define _FCGIOS_H
 
+#include "fcgi_config.h"
+
 #ifdef _WIN32
 #include <io.h>
+#endif
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+
+#if defined (c_plusplus) || defined (__cplusplus)
+extern "C" {
+#endif
+
+
+#ifdef _WIN32
+
 #define OS_Errno GetLastError()
 #define OS_SetErrno(err) SetLastError(err)
+
 #ifndef DLLAPI
 #define DLLAPI __declspec(dllimport)
 #endif
 
-#else /* !_WIN32 */
-#ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#ifndef O_NONBLOCK
+#define O_NONBLOCK     0x0004  /* no delay */
 #endif
+
+#else /* !_WIN32 */
+
 #define DLLAPI
 #define OS_Errno errno
 #define OS_SetErrno(err) errno = (err)
-#endif /* !_WIN32 */
 
+#endif /* !_WIN32 */
 
 /* This is the initializer for a "struct timeval" used in a select() call
  * right after a new request is accept()ed to determine readablity.  Its
@@ -65,16 +83,6 @@
 
 #ifndef X_OK
 #define X_OK       0x01
-#endif
-
-#ifdef _WIN32
-#ifndef O_NONBLOCK
-#define O_NONBLOCK     0x0004  /* no delay */
-#endif
-#endif
-
-#if defined (c_plusplus) || defined (__cplusplus)
-extern "C" {
 #endif
 
 #ifndef _CLIENTDATA

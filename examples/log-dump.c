@@ -1,4 +1,4 @@
-/* 
+/*
  * log-dump.c --
  *
  *	FastCGI example program to illustrate both an Authorizer and a
@@ -14,26 +14,29 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
 #ifndef lint
-static const char rcsid[] = "$Id: log-dump.c,v 1.3 1999/07/26 05:33:01 roberts Exp $";
+static const char rcsid[] = "$Id: log-dump.c,v 1.4 1999/07/28 00:30:10 roberts Exp $";
 #endif /* not lint */
 
-#if defined HAVE_UNISTD_H || defined __linux__
-#include <unistd.h>
-#endif
-#include <sys/types.h>
-#if defined __linux__
-int kill(pid_t pid, int sig);
-#endif
+#include "fcgi_config.h"
 
-#include "fcgi_stdio.h"
+#include <sys/types.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+
+#if defined __linux__
+int kill(pid_t pid, int sig);
+#endif
+
+#if defined HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#include "fcgi_stdio.h"
 
 #ifndef NULL
 #define NULL 0
@@ -51,7 +54,7 @@ int main(void)
     int fd, n, i, j;
     char temp[4096];
     char temp2[5000];
-    
+
     while(FCGI_Accept() >= 0) {
         rolePtr = getenv("FCGI_ROLE");
 	if(rolePtr == NULL) {
@@ -135,6 +138,6 @@ int main(void)
 	    continue;
 	}
     }
-	
+
     exit(0);
 }

@@ -1,4 +1,4 @@
-/* 
+/*
  * fcgiapp.h --
  *
  *      Definitions for FastCGI application server programs
@@ -9,32 +9,34 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.2 1999/07/26 04:28:10 roberts Exp $
+ * $Id: fcgiapp.h,v 1.3 1999/07/28 00:27:51 roberts Exp $
  */
 
 #ifndef _FCGIAPP_H
 #define _FCGIAPP_H
 
-#ifndef TCL_LIBRARY	/* Hack to see if we are building TCL since TCL
-			 * needs varargs not stdarg
-			 */
-#ifdef _WIN32
-#ifndef DLLAPI
-#define DLLAPI __declspec(dllimport)
-#endif
-#else
-#define DLLAPI
-#endif
-
+/* Hack to see if we are building TCL - TCL needs varargs not stdarg */
+#ifndef TCL_LIBRARY
 #include <stdarg.h>
 #else
 #include <varargs.h>
-#endif /* TCL_LIBARARY */
-#include "fcgi_config.h"
+#endif
 
 #if defined (c_plusplus) || defined (__cplusplus)
 extern "C" {
 #endif
+
+#ifdef _WIN32
+
+#ifndef DLLAPI
+#define DLLAPI __declspec(dllimport)
+#endif
+
+#else  /* !_WIN32 */
+
+#define DLLAPI
+
+#endif /* !_WIN32 */
 
 /*
  * Error codes.  Assigned to avoid conflict with EOF and errno(2).
@@ -78,7 +80,7 @@ typedef struct FCGX_Stream {
 typedef char **FCGX_ParamArray;
 
 /*
- * State associated with a request.  
+ * State associated with a request.
  *
  * Its exposed for API simplicity, DON'T use it - it WILL change!
  */
@@ -145,7 +147,7 @@ DLLAPI void FCGX_InitRequest(FCGX_Request *request);
  *
  * FCGX_Accept_r --
  *
- *      Accept a new request (multi-thread safe).  Be sure to call 
+ *      Accept a new request (multi-thread safe).  Be sure to call
  * 	FCGX_Init() first.
  *
  * Results:
@@ -265,7 +267,7 @@ DLLAPI void FCGX_Finish(void);
  *      FCGX_CALL_SEQ_ERROR.
  *
  * Results:
- *      0 for a normal return, < 0 for error 
+ *      0 for a normal return, < 0 for error
  *
  *----------------------------------------------------------------------
  */
@@ -415,7 +417,7 @@ DLLAPI  int FCGX_HasSeenEOF(FCGX_Stream *stream);
  *
  * Results:
  *	The byte, or EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 DLLAPI int FCGX_PutChar(int c, FCGX_Stream *stream);
@@ -432,7 +434,7 @@ DLLAPI int FCGX_PutChar(int c, FCGX_Stream *stream);
  * Results:
  *      Number of bytes written (n) for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 DLLAPI int FCGX_PutStr(const char *str, int n, FCGX_Stream *stream);
@@ -447,7 +449,7 @@ DLLAPI int FCGX_PutStr(const char *str, int n, FCGX_Stream *stream);
  * Results:
  *      number of bytes written for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 DLLAPI int FCGX_PutS(const char *str, FCGX_Stream *stream);
@@ -463,7 +465,7 @@ DLLAPI int FCGX_PutS(const char *str, FCGX_Stream *stream);
  * Results:
  *      number of bytes written for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 DLLAPI int FCGX_FPrintF(FCGX_Stream *stream, const char *format, ...);
@@ -484,7 +486,7 @@ DLLAPI int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg);
  *
  * Results:
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 DLLAPI int FCGX_FFlush(FCGX_Stream *stream);
@@ -510,7 +512,7 @@ DLLAPI int FCGX_FFlush(FCGX_Stream *stream);
  *
  * Results:
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 DLLAPI int FCGX_FClose(FCGX_Stream *stream);

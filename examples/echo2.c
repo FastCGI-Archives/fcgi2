@@ -11,22 +11,24 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: echo2.c,v 1.6 1999/07/27 19:01:39 roberts Exp $";
+static const char rcsid[] = "$Id: echo2.c,v 1.7 1999/07/28 00:29:38 roberts Exp $";
 #endif /* not lint */
 
-#include "fcgiapp.h"
-
-#if defined HAVE_UNISTD_H || __linux__
-#include <unistd.h>
-#endif
+#include "fcgi_config.h"
 
 #include <stdlib.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #include <process.h>
 #else
 extern char **environ;
 #endif
+
+#include "fcgiapp.h"
 
 static void PrintEnv(FCGX_Stream *out, char *label, char **envp)
 {
