@@ -5,3 +5,4 @@ Release
 *.o
 *.a
 Makefile
+*.CS_

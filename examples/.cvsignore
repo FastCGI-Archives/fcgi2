@@ -4,5 +4,6 @@ authorizer size echo echo-x log-dump threaded
 *.exe
 Makefile
 Debug Release
+*.CS_
 
 
