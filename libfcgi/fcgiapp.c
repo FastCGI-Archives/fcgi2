@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.5 1999/07/27 02:17:05 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.6 1999/07/27 15:00:17 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -79,7 +79,7 @@ static void *Malloc(size_t size)
 static char *StringCopy(char *str)
 {
     int strLen = strlen(str);
-    char *newString = Malloc(strLen + 1);
+    char *newString = (char *)Malloc(strLen + 1);
     memcpy(newString, str, strLen);
     newString[strLen] = '\000';
     return newString;
@@ -419,7 +419,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
     f = (char *) format;
     fStop = f + strlen(f);
     while (f != fStop) {
-        percentPtr = memchr(f, '%', fStop - f);
+        percentPtr = (char *)memchr(f, '%', fStop - f);
         if(percentPtr == NULL) percentPtr = fStop;
         if(percentPtr != f) {
             if(FCGX_PutStr(f, percentPtr - f, stream) < 0) goto ErrorReturn;
@@ -575,7 +575,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                         if(precision == -1) {
 			    buffReqd = strlen(charPtrArg);
 		        } else {
-			    p = memchr(charPtrArg, '\0', precision);
+			    p = (char *)memchr(charPtrArg, '\0', precision);
                             buffReqd =
 			      (p == NULL) ? precision : p - charPtrArg;
 			}
@@ -619,7 +619,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
 	        } else {
                     if(auxBuffPtr == NULL || buffReqd > auxBuffLen) {
 		        if(auxBuffPtr != NULL) free(auxBuffPtr);
-                        auxBuffPtr = Malloc(buffReqd);
+                        auxBuffPtr = (char *)Malloc(buffReqd);
                         auxBuffLen = buffReqd;
                         if(auxBuffPtr == NULL) goto ErrorReturn;
 		    }
@@ -993,8 +993,8 @@ typedef Params *ParamsPtr;
 static ParamsPtr NewParams(int length)
 {
     ParamsPtr result;
-    result = Malloc(sizeof(Params));
-    result->vec = (char **) Malloc(length * sizeof(char *));
+    result = (Params *)Malloc(sizeof(Params));
+    result->vec = (char **)Malloc(length * sizeof(char *));
     result->length = length;
     result->cur = result->vec;
     *result->cur = NULL;
@@ -1051,8 +1051,7 @@ static void PutParam(ParamsPtr paramsPtr, char *nameValue)
     size = paramsPtr->cur - paramsPtr->vec;
     if(size >= paramsPtr->length) {
 	paramsPtr->length *= 2;
-	paramsPtr->vec =
-         realloc(paramsPtr->vec, paramsPtr->length * sizeof(char *));
+	paramsPtr->vec = (FCGX_ParamArray)realloc(paramsPtr->vec, paramsPtr->length * sizeof(char *));
 	paramsPtr->cur = paramsPtr->vec + size;
     }
     *paramsPtr->cur = NULL;
@@ -1138,7 +1137,7 @@ static int ReadParams(Params *paramsPtr, FCGX_Stream *stream)
          * nameLen and valueLen are now valid; read the name and value
          * from stream and construct a standard environment entry.
          */
-        nameValue = Malloc(nameLen + valueLen + 2);
+        nameValue = (char *)Malloc(nameLen + valueLen + 2);
         if(FCGX_GetStr(nameValue, nameLen, stream) != nameLen) {
             SetError(stream, FCGX_PARAMS_ERROR);
             free(nameValue);
@@ -1293,7 +1292,7 @@ typedef struct FCGX_Stream_Data {
  */
 static void WriteCloseRecords(struct FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     /*
      * Enter rawWrite mode so final records won't be encapsulated as
      * stream data.
@@ -1353,7 +1352,7 @@ static int write_it_all(int fd, char *buf, int len)
  */
 static void EmptyBuffProc(struct FCGX_Stream *stream, int doClose)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     int cLen, eLen;
     /*
      * If the buffer contains stream data, fill in the header.
@@ -1421,7 +1420,7 @@ static void EmptyBuffProc(struct FCGX_Stream *stream, int doClose)
  */
 static int ProcessManagementRecord(int type, FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     ParamsPtr paramsPtr = NewParams(3);
     char **pPtr;
     char response[64]; /* 64 = 8 + 3*(1+1+14+1)* + padding */
@@ -1494,7 +1493,7 @@ static int ProcessManagementRecord(int type, FCGX_Stream *stream)
  */
 static int ProcessBeginRecord(int requestId, FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     FCGI_BeginRequestBody body;
     if(requestId == 0 || data->contentLen != sizeof(body)) {
         return FCGX_PROTOCOL_ERROR;
@@ -1555,7 +1554,7 @@ static int ProcessBeginRecord(int requestId, FCGX_Stream *stream)
  */
 static int ProcessHeader(FCGI_Header header, FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     int requestId;
     if(header.version != FCGI_VERSION_1) {
         return FCGX_UNSUPPORTED_VERSION;
@@ -1591,7 +1590,7 @@ static int ProcessHeader(FCGI_Header header, FCGX_Stream *stream)
  */
 static void FillBuffProc(FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     FCGI_Header header;
     int headerLen = 0;
     int status, count;
@@ -1730,12 +1729,12 @@ static FCGX_Stream *NewStream(
      * but also data->buff and data->buffStop.  This has implications
      * for procs that want to swap buffers, too.
      */
-    FCGX_Stream *stream = Malloc(sizeof(FCGX_Stream));
-    FCGX_Stream_Data *data = Malloc(sizeof(FCGX_Stream_Data));
+    FCGX_Stream *stream = (FCGX_Stream *)Malloc(sizeof(FCGX_Stream));
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)Malloc(sizeof(FCGX_Stream_Data));
     data->reqDataPtr = reqDataPtr;
     bufflen = AlignInt8(min(max(bufflen, 32), FCGI_MAX_LENGTH + 1));
     data->bufflen = bufflen;
-    data->mBuff = Malloc(bufflen);
+    data->mBuff = (unsigned char *)Malloc(bufflen);
     data->buff = AlignPtr8(data->mBuff);
     if(data->buff != data->mBuff) {
         data->bufflen -= 8;
@@ -1793,7 +1792,7 @@ void FreeStream(FCGX_Stream **streamPtr)
     if(stream == NULL) {
         return;
     }
-    data = stream->data;
+    data = (FCGX_Stream_Data *)stream->data;
     data->reqDataPtr = NULL;
     free(data->mBuff);
     free(data);
@@ -1812,7 +1811,7 @@ void FreeStream(FCGX_Stream **streamPtr)
  */
 static FCGX_Stream *SetReaderType(FCGX_Stream *stream, int streamType)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     ASSERT(stream->isReader);
     data->type = streamType;
     data->eorStop = FALSE;
@@ -1875,7 +1874,7 @@ FCGX_Stream *CreateWriter(
         int bufflen,
         int streamType)
 {
-    FCGX_Request *reqDataPtr = Malloc(sizeof(FCGX_Request));
+    FCGX_Request *reqDataPtr = (FCGX_Request *)Malloc(sizeof(FCGX_Request));
     reqDataPtr->ipcFd = ipcFd;
     reqDataPtr->requestId = requestId;
     /*
@@ -2228,7 +2227,7 @@ int FCGX_Accept_r(
 
 int FCGX_StartFilterData(FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     if(data->reqDataPtr->role != FCGI_FILTER
             || !stream->isReader
             || !stream->isClosed
@@ -2256,7 +2255,7 @@ int FCGX_StartFilterData(FCGX_Stream *stream)
 
 void FCGX_SetExitStatus(int status, FCGX_Stream *stream)
 {
-    FCGX_Stream_Data *data = stream->data;
+    FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
     data->reqDataPtr->appStatus = status;
 }
 

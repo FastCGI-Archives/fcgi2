@@ -1,4 +1,4 @@
-/* 
+/*
  * fcgi_stdio.c --
  *
  *      FastCGI-stdio compatibility package
@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.6 1999/06/07 05:39:03 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.7 1999/07/27 15:00:16 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -189,16 +189,16 @@ void FCGI_Finish(void)
  *
  * FCGI_StartFilterData --
  *
- *      
+ *
  *      The current request is for the filter role, and stdin is
- *      positioned at EOF of FCGI_STDIN.  The call repositions 
+ *      positioned at EOF of FCGI_STDIN.  The call repositions
  *      stdin to the start of FCGI_DATA.
  *      If the preconditions are not met (e.g. FCGI_STDIN has not
  *      been read to EOF), the call sets the stream error code to
  *      FCGX_CALL_SEQ_ERROR.
  *
  * Results:
- *      0 for a normal return, < 0 for error 
+ *      0 for a normal return, < 0 for error
  *
  *----------------------------------------------------------------------
  */
@@ -264,14 +264,14 @@ void FCGI_perror(const char *str)
  *      otherwise the new FCGI_FILE *.
  *
  *----------------------------------------------------------------------
- */ 
+ */
 
 static FCGI_FILE *FCGI_OpenFromFILE(FILE *stream)
 {
     FCGI_FILE *fp;
     if(stream == NULL)
         return NULL;
-    fp = malloc(sizeof(FCGI_FILE));
+    fp = (FCGI_FILE *)malloc(sizeof(FCGI_FILE));
     if(fp == NULL)
         return NULL;
     fp->stdio_stream = stream;
@@ -393,7 +393,7 @@ int FCGI_ftell(FCGI_FILE *fp)
     else {
         OS_SetErrno(ESPIPE);
         return -1;
-    } 
+    }
 }
 
 void FCGI_rewind(FCGI_FILE *fp)
@@ -412,7 +412,7 @@ int FCGI_fgetpos(FCGI_FILE *fp, fpos_t *pos)
     else {
         OS_SetErrno(ESPIPE);
         return -1;
-    } 
+    }
 }
 
 int FCGI_fsetpos(FCGI_FILE *fp, const fpos_t *pos)
@@ -422,7 +422,7 @@ int FCGI_fsetpos(FCGI_FILE *fp, const fpos_t *pos)
     else {
         OS_SetErrno(ESPIPE);
         return -1;
-    } 
+    }
 }
 #endif
 
@@ -493,7 +493,7 @@ char *FCGI_gets(char *str)
     int c;
     for (s = str; ((c = FCGI_getchar()) != '\n');) {
         if(c == EOF) {
-            if(s == str) 
+            if(s == str)
                 return NULL;
             else
                 break;
@@ -532,7 +532,7 @@ char *FCGI_gets(char *str)
 
 int FCGI_fputc(int c, FCGI_FILE *fp)
 {
-    if(fp->stdio_stream) 
+    if(fp->stdio_stream)
         return fputc(c, fp->stdio_stream);
     else if(fp->fcgx_stream)
         return FCGX_PutChar(c, fp->fcgx_stream);
@@ -629,7 +629,7 @@ int FCGI_vfprintf(FCGI_FILE *fp, const char *format, va_list ap)
 {
     if(fp->stdio_stream)
         return vfprintf(fp->stdio_stream, format, ap);
-    else if(fp->fcgx_stream) 
+    else if(fp->fcgx_stream)
         return FCGX_VFPrintF(fp->fcgx_stream, format, ap);
     return EOF;
 }
@@ -638,7 +638,7 @@ int FCGI_vprintf(const char *format, va_list ap)
 {
     if(FCGI_stdout->stdio_stream)
         return vfprintf(FCGI_stdout->stdio_stream, format, ap);
-    else if(FCGI_stdout->fcgx_stream) 
+    else if(FCGI_stdout->fcgx_stream)
         return FCGX_VFPrintF(FCGI_stdout->fcgx_stream, format, ap);
     return EOF;
 }

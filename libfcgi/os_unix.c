@@ -1,4 +1,4 @@
-/* 
+/*
  * os_unix.c --
  *
  *      Description of file.
@@ -8,16 +8,16 @@
  *  All rights reserved.
  *
  *  This file contains proprietary and confidential information and
- *  remains the unpublished property of Open Market, Inc. Use, 
- *  disclosure, or reproduction is prohibited except as permitted by 
- *  express written license agreement with Open Market, Inc. 
+ *  remains the unpublished property of Open Market, Inc. Use,
+ *  disclosure, or reproduction is prohibited except as permitted by
+ *  express written license agreement with Open Market, Inc.
  *
  *  Bill Snapper
  *  snapper@openmarket.com
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.8 1999/02/06 05:08:33 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.9 1999/07/27 15:00:18 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -136,8 +136,8 @@ int OS_LibInit(int stdioFds[3])
 {
     if(libInitialized)
         return 0;
-    
-    asyncIoTable = malloc(asyncIoTableSize * sizeof(AioInfo));
+
+    asyncIoTable = (AioInfo *)malloc(asyncIoTableSize * sizeof(AioInfo));
     if(asyncIoTable == NULL) {
         errno = ENOMEM;
         return -1;
@@ -173,7 +173,7 @@ void OS_LibShutdown()
 {
     if(!libInitialized)
         return;
-    
+
     free(asyncIoTable);
     asyncIoTable = NULL;
     libInitialized = FALSE;
@@ -392,7 +392,7 @@ int OS_FcgiConnect(char *bindPath)
         return -1;
     }
 }
-     
+
 
 /*
  *--------------------------------------------------------------
@@ -524,7 +524,7 @@ int OS_SpawnChild(char *appPath, int listenFd)
  *
  *--------------------------------------------------------------
  */
-int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr, 
+int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr,
                       ClientData clientData)
 {
     int index = AIO_RD_IX(STDIN_FILENO);
@@ -546,9 +546,9 @@ int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr,
 static void GrowAsyncTable(void)
 {
     int oldTableSize = asyncIoTableSize;
-    
+
     asyncIoTableSize = asyncIoTableSize * 2;
-    asyncIoTable = realloc(asyncIoTable, asyncIoTableSize * sizeof(AioInfo));
+    asyncIoTable = (AioInfo *)realloc(asyncIoTable, asyncIoTableSize * sizeof(AioInfo));
     if(asyncIoTable == NULL) {
         errno = ENOMEM;
         exit(errno);
@@ -587,7 +587,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
 		 OS_AsyncProc procPtr, ClientData clientData)
 {
     int index = AIO_RD_IX(fd);
-    
+
     ASSERT(asyncIoTable != NULL);
 
     if(fd > maxFd)
@@ -632,7 +632,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
  *
  *--------------------------------------------------------------
  */
-int OS_AsyncWrite(int fd, int offset, void *buf, int len, 
+int OS_AsyncWrite(int fd, int offset, void *buf, int len,
 		  OS_AsyncProc procPtr, ClientData clientData)
 {
     int index = AIO_WR_IX(fd);
@@ -675,13 +675,13 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
 int OS_Close(int fd)
 {
     int index = AIO_RD_IX(fd);
-    
+
     FD_CLR(fd, &readFdSet);
     FD_CLR(fd, &readFdSetPost);
     if(asyncIoTable[index].inUse != 0) {
         asyncIoTable[index].inUse = 0;
     }
-    
+
     FD_CLR(fd, &writeFdSet);
     FD_CLR(fd, &writeFdSetPost);
     index = AIO_WR_IX(fd);
@@ -713,7 +713,7 @@ int OS_CloseRead(int fd)
         asyncIoTable[AIO_RD_IX(fd)].inUse = 0;
         FD_CLR(fd, &readFdSet);
     }
-    
+
     return shutdown(fd, 0);
 }
 
@@ -755,7 +755,7 @@ int OS_DoIo(struct timeval *tmo)
             FD_SET(fd, &writeFdSetCpy);
         }
     }
-    
+
     /*
      * If there were no completed events from a prior call, see if there's
      * any work to do.
@@ -789,18 +789,18 @@ int OS_DoIo(struct timeval *tmo)
 
     if(numRdPosted == 0 && numWrPosted == 0)
         return 0;
-	    
+
     for(fd = 0; fd <= maxFd; fd++) {
         /*
 	 * Do reads and dispatch callback.
 	 */
-        if(FD_ISSET(fd, &readFdSetPost) 
+        if(FD_ISSET(fd, &readFdSetPost)
 	   && asyncIoTable[AIO_RD_IX(fd)].inUse) {
 
 	    numRdPosted--;
 	    FD_CLR(fd, &readFdSetPost);
 	    aioPtr = &asyncIoTable[AIO_RD_IX(fd)];
-	    
+
 	    len = read(aioPtr->fd, aioPtr->buf, aioPtr->len);
 
 	    procPtr = aioPtr->procPtr;
@@ -820,7 +820,7 @@ int OS_DoIo(struct timeval *tmo)
 	    numWrPosted--;
 	    FD_CLR(fd, &writeFdSetPost);
 	    aioPtr = &asyncIoTable[AIO_WR_IX(fd)];
-	    
+
 	    len = write(aioPtr->fd, aioPtr->buf, aioPtr->len);
 
 	    procPtr = aioPtr->procPtr;
@@ -859,11 +859,11 @@ static int ClientAddrOK(struct sockaddr_in *saPtr, char *clientList)
     }
 
     strLen = strlen(clientList);
-    clientListCopy = malloc(strLen + 1);
+    clientListCopy = (char *)malloc(strLen + 1);
     assert(newString != NULL);
     memcpy(newString, clientList, strLen);
     newString[strLen] = '\000';
-    
+
     for(cur = clientListCopy; cur != NULL; cur = next) {
         next = strchr(cur, ',');
         if(next != NULL) {
@@ -906,7 +906,7 @@ static int AcquireLock(int blocking)
     lock.l_whence = SEEK_SET;
     lock.l_len = 0;
 
-    if(fcntl(FCGI_LISTENSOCK_FILENO, 
+    if(fcntl(FCGI_LISTENSOCK_FILENO,
              blocking ? F_SETLKW : F_SETLK, &lock) < 0) {
         if (errno != EINTR)
             return -1;
@@ -950,7 +950,7 @@ static int ReleaseLock(void)
 
 
 /**********************************************************************
- * Determine if the errno resulting from a failed accept() warrants a 
+ * Determine if the errno resulting from a failed accept() warrants a
  * retry or exit().  Based on Apache's http_main.c accept() handling
  * and Stevens' Unix Network Programming Vol 1, 2nd Ed, para. 15.6.
  */
@@ -958,13 +958,13 @@ static int is_reasonable_accept_errno (const int error)
 {
     switch (error) {
 #ifdef EPROTO
-        /* EPROTO on certain older kernels really means ECONNABORTED, so      
-         * we need to ignore it for them.  See discussion in new-httpd         
-         * archives nh.9701 search for EPROTO.  Also see nh.9603, search   
-         * for EPROTO:  There is potentially a bug in Solaris 2.x x<6, and   
-         * other boxes that implement tcp sockets in userland (i.e. on top of 
-         * STREAMS).  On these systems, EPROTO can actually result in a fatal 
-         * loop.  See PR#981 for example.  It's hard to handle both uses of 
+        /* EPROTO on certain older kernels really means ECONNABORTED, so
+         * we need to ignore it for them.  See discussion in new-httpd
+         * archives nh.9701 search for EPROTO.  Also see nh.9603, search
+         * for EPROTO:  There is potentially a bug in Solaris 2.x x<6, and
+         * other boxes that implement tcp sockets in userland (i.e. on top of
+         * STREAMS).  On these systems, EPROTO can actually result in a fatal
+         * loop.  See PR#981 for example.  It's hard to handle both uses of
          * EPROTO. */
         case EPROTO:
 #endif
@@ -996,26 +996,26 @@ static int is_reasonable_accept_errno (const int error)
 }
 
 /**********************************************************************
- * This works around a problem on Linux 2.0.x and SCO Unixware (maybe    
- * others?).  When a connect() is made to a Unix Domain socket, but its    
- * not accept()ed before the web server gets impatient and close()s, an    
- * accept() results in a valid file descriptor, but no data to read.   
- * This causes a block on the first read() - which never returns!            
- *                                                                          
- * Another approach to this is to write() to the socket to provoke a       
- * SIGPIPE, but this is a pain because of the FastCGI protocol, the fact   
- * that whatever is written has to be universally ignored by all FastCGI   
- * web servers, and a SIGPIPE handler has to be installed which returns    
- * (or SIGPIPE is ignored).                                                
- *                                                                          
- * READABLE_UNIX_FD_DROP_DEAD_TIMEVAL = 2,0 by default.                   
- *                                                                          
- * Making it shorter is probably safe, but I'll leave that to you.  Making 
- * it 0,0 doesn't work reliably.  The shorter you can reliably make it,   
- * the faster your application will be able to recover (waiting 2 seconds  
- * may _cause_ the problem when there is a very high demand). At any rate, 
- * this is better than perma-blocking. 
- */                                  
+ * This works around a problem on Linux 2.0.x and SCO Unixware (maybe
+ * others?).  When a connect() is made to a Unix Domain socket, but its
+ * not accept()ed before the web server gets impatient and close()s, an
+ * accept() results in a valid file descriptor, but no data to read.
+ * This causes a block on the first read() - which never returns!
+ *
+ * Another approach to this is to write() to the socket to provoke a
+ * SIGPIPE, but this is a pain because of the FastCGI protocol, the fact
+ * that whatever is written has to be universally ignored by all FastCGI
+ * web servers, and a SIGPIPE handler has to be installed which returns
+ * (or SIGPIPE is ignored).
+ *
+ * READABLE_UNIX_FD_DROP_DEAD_TIMEVAL = 2,0 by default.
+ *
+ * Making it shorter is probably safe, but I'll leave that to you.  Making
+ * it 0,0 doesn't work reliably.  The shorter you can reliably make it,
+ * the faster your application will be able to recover (waiting 2 seconds
+ * may _cause_ the problem when there is a very high demand). At any rate,
+ * this is better than perma-blocking.
+ */
 static int is_af_unix_keeper(const int fd)
 {
     struct timeval tval = { READABLE_UNIX_FD_DROP_DEAD_TIMEVAL };
@@ -1023,7 +1023,7 @@ static int is_af_unix_keeper(const int fd)
 
     FD_ZERO(&read_fds);
     FD_SET(fd, &read_fds);
-    
+
     return select(fd + 1, &read_fds, NULL, NULL, &tval) >= 0 && FD_ISSET(fd, &read_fds);
 }
 
@@ -1054,7 +1054,7 @@ int OS_FcgiIpcAccept(char *clientAddrList)
     socklen_t len;
 #else
     int len;
-#endif    
+#endif
 
     while (1) {
         if (AcquireLock(TRUE) < 0)
@@ -1069,7 +1069,7 @@ int OS_FcgiIpcAccept(char *clientAddrList)
             if (socket < 0) {
                 if (!is_reasonable_accept_errno(errno)) {
                     int errnoSave = errno;
-                    
+
                     ReleaseLock();
                     errno = errnoSave;
                     return (-1);
@@ -1078,29 +1078,29 @@ int OS_FcgiIpcAccept(char *clientAddrList)
             }
             else {
                 int set = 1;
-                
+
                 if (sa.in.sin_family != AF_INET)
                     break;
-                
+
 #ifdef TCP_NODELAY
                 /* No replies to outgoing data, so disable Nagle */
                 setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, (char *)&set, sizeof(set));
-#endif            
-                
+#endif
+
                 /* Check that the client IP address is approved */
                 if (ClientAddrOK(&sa.in, clientAddrList))
                     break;
-                
+
                 close(socket);
             }
         }  /* while(1) - accept */
-        
+
         if (ReleaseLock() < 0)
             return (-1);
-        
+
         if (sa.in.sin_family != AF_UNIX || is_af_unix_keeper(socket))
             break;
-            
+
         close(socket);
     }  /* while(1) - lock */
 
@@ -1155,12 +1155,12 @@ int OS_IsFcgi()
     int len = sizeof(sa);
 #endif
 
-    if (getpeername(FCGI_LISTENSOCK_FILENO, (struct sockaddr *)&sa, &len) != 0 
+    if (getpeername(FCGI_LISTENSOCK_FILENO, (struct sockaddr *)&sa, &len) != 0
             && errno == ENOTCONN)
         isFastCGI = TRUE;
     else
         isFastCGI = FALSE;
-        
+
     return (isFastCGI);
 }
 
