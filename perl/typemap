@@ -1,20 +1,10 @@
 TYPEMAP
-FCGI		T_FCGIOBJNOMUNGE
-FCGI::Stream	T_FCGISTREAM
+FCGI		T_PTROBJ
+FCGI::Stream	T_PTROBJ
 GLOBREF		T_GLOBREF
 HASHREF		T_HASHREF
 
 INPUT
-T_FCGIOBJNOMUNGE
-    if (sv_isa($arg, \"FCGI\")) {
-	$var = ($type) SvIV((SV*)SvRV($arg));
-    } else
-	croak(\"$var is not of type ${ntype}\")
-T_FCGISTREAM
-    if (sv_isa($arg, \"FCGI::Stream\")) {
-	$var = ($type) SvIV((SV*)SvRV($arg));
-    } else
-	croak(\"$var is not of type ${ntype}\")
 T_GLOBREF
     if (SvROK($arg) && isGV(SvRV($arg))) {
 	$var = (GV*)SvRV($arg);
