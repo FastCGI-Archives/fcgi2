@@ -33,6 +33,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "config_h"=".\config_h.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "echo"=".\echo.dsp" - Package Owner=<4>
 
 Package=<5>
@@ -56,6 +68,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -83,6 +98,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name config_h
+    End Project Dependency
 }}}
 
 ###############################################################################
