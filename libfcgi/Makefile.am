@@ -1,6 +1,6 @@
-# $Id: Makefile.am,v 1.2 2001/09/24 11:29:01 skimo Exp $
+# $Id: Makefile.am,v 1.3 2001/09/24 18:03:07 skimo Exp $
 INCLUDEDIR  = $(srcdir)/../include
-CFLAGS      = @CFLAGS@ -I$(INCLUDEDIR)
+CPPFLAGS    = @CPPFLAGS@ -I$(INCLUDEDIR)
 
 INCLUDE_FILES = $(INCLUDEDIR)/fastcgi.h    \
                 $(INCLUDEDIR)/fcgiapp.h    \

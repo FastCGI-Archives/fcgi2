@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.28 2001/09/23 20:29:40 skimo Exp $
+# $Id: Makefile.PL,v 1.29 2001/09/24 18:03:08 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -64,7 +64,8 @@ if (! $pure) {
 
 $sys = $^O eq 'MSWin32' ? 'win32' : 'unix';
 push @o, "fcgiapp.o", "os_$sys.o" unless $libfound;
-$inc = $prefix ? "-I$prefix/include" : '-I.';
+$inc = '-I.' unless $libfound;
+$inc .= " -I$prefix/include" if $prefix;
 
 push(@extras, CAPI => 'TRUE')
      if ($] >= 5.005 and $^O eq 'MSWin32'
