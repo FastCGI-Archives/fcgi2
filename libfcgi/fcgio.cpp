@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.7 2001/11/20 03:24:19 robs Exp $
+// $Id: fcgio.cpp,v 1.8 2001/11/20 13:11:12 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -91,8 +91,8 @@ void fcgi_streambuf::reset(void)
 {
     // it should be ok to set up both the get and put areas
     char * end = this->buf + this->bufsize;
-    this->setg(this->buf, this->buf, end);
-    this->setb(this->buf, end);
+    setg(this->buf, this->buf, end);
+    setp(this->buf, end);
 }
 
 streambuf * fcgi_streambuf::setbuf(char * buf, int len)
