@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.8 2000/12/31 21:46:59 skimo Exp $
+# $Id: Makefile.PL,v 1.9 2001/03/28 15:49:20 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -69,7 +69,10 @@ $plfiles = { 'echo.PL' => 'echo.fpl',
 	     'FCGI.PL' => 'FCGI.pm',
 	   };
 $plfiles->{'FCGI.XL'} = 'FCGI.xs' unless $pure;
-unless ($pure) {
+if ($pure) {
+    push @extras,
+	LINKTYPE => ' ';
+} else {
     push @extras,
 	'LIBS'	=> [ @libs ],
 	'OBJECT'	=> "@o",
@@ -93,8 +96,9 @@ $mm = MM->new({
 			      'POSTOP' => 
 				'$(MV) MANIFEST.old MANIFEST',
 			    },
-    'clean'		=> { FILES => 'config.cache fcgi_config.h FCGI.pm' . 
-				      ' FCGI.xs FCGI.c FCGI.cfg' },
+    'clean'		=> { FILES => 'config.cache fcgi_config.h' . 
+				      ' FCGI.xs FCGI.c FCGI.cfg ' .
+				      (join ' ', values %$plfiles)},
     'PL_FILES'		=> $plfiles,
     PM			=> {'FCGI.pm' => '$(INST_ARCHLIBDIR)/FCGI.pm'},
     @extras,
@@ -103,7 +107,7 @@ $mm = MM->new({
 delete $mm->{MAN3PODS}{oldinterface.pod};
 $mm->flush;
 
-exit if -f 'fcgi_config.h' or $prefix;
+exit if -f 'fcgi_config.h' or $prefix or $pure;
 
 # CPAN and no installed lib found
 if ($sys eq "win32") {

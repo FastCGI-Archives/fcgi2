@@ -1,3 +1,4 @@
+	o Don't try to compile anything on pure perl build
 	o Add BINMODE method
 	o Add comment on socket permissions
 
