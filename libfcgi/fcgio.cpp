@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.2 2000/07/21 20:56:28 robs Exp $
+// $Id: fcgio.cpp,v 1.3 2000/07/27 12:21:54 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostream
 // objects
@@ -26,7 +26,7 @@
 /*------------------------------------------------------------------*/
 
 
-#include "fcgio2.h"
+#include "fcgio.h"
 
 
 // **** fcgio_streambuf
