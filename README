@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.20 2002/03/05 18:15:17 robs Exp $
+    $Id: README,v 1.21 2003/01/19 17:19:41 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ For more detail regarding changes, please consult the cvs log available
 on http://fastcgi.com/.
 
 
-2.2.3
+2.4.0
 -----
 
  *) When closing connections, shutdown() the send side of TCP sockets to 
