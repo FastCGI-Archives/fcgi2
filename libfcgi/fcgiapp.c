@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.10 1999/08/10 14:19:29 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.11 1999/08/10 22:27:12 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -2007,6 +2007,7 @@ int FCGX_OpenSocket(const char *path, int backlog)
         /* XXX probably need to call OS_LibInit() again for Win */
         isFastCGI = 1;
     }
+    return rc;
 }
 
 int FCGX_InitRequest(FCGX_Request *request, int sock, int flags)

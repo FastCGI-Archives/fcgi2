@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.12 1999/08/05 21:25:55 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.13 1999/08/10 22:27:13 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1142,7 +1142,6 @@ int OS_IpcClose(int ipcFd)
  */
 int OS_IsFcgi(int sock)
 {
-    int isFastCGI = FALSE;
 	union {
         struct sockaddr_in in;
         struct sockaddr_un un;
