@@ -10,17 +10,13 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIInterface.java,v 1.1 1999/01/31 02:45:49 roberts Exp $
+ * $Id: FCGIInterface.java,v 1.2 2000/03/21 12:02:29 robs Exp $
  */
+package com.fastcgi;
 
 import java.net.*;
 import java.io.*;
 import java.util.Properties;
-import FCGIGlobalDefs;
-import FCGIRequest;
-import FCGIInputStream;
-import FCGIOutputStream;
-import FCGIMessage;
 
 /*
  * This is the FastCGI interface that the application calls to communicate with the

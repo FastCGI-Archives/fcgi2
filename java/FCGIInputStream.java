@@ -9,12 +9,11 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIInputStream.java,v 1.2 1999/07/29 13:35:50 roberts Exp $
+ * $Id: FCGIInputStream.java,v 1.3 2000/03/21 12:02:29 robs Exp $
  */
+package com.fastcgi;
 
 import java.io.*;
-import  FCGIRequest;
-import  FCGIGlobalDefs;
 
 /**
  * This stream manages buffered reads of FCGI messages.

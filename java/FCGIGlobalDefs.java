@@ -10,12 +10,15 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIGlobalDefs.java,v 1.1 1999/01/31 02:45:51 roberts Exp $
+ * $Id: FCGIGlobalDefs.java,v 1.2 2000/03/21 12:02:29 robs Exp $
  */
 
 /* This class contains FCGI global definitions corresponding to
  * the #defs in the C version.
  */
+
+package com.fastcgi;
+
 import java.io.PrintStream;
 
 public abstract class FCGIGlobalDefs {
