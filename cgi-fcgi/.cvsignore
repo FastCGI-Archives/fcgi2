@@ -5,3 +5,4 @@ Release
 *.exe
 *.o
 Makefile
+cgi-fcgi
