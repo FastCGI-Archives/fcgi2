@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIInputStream.java,v 1.3 2000/03/21 12:02:29 robs Exp $
+ * $Id: FCGIInputStream.java,v 1.4 2000/03/21 12:12:25 robs Exp $
  */
 package com.fastcgi;
 
@@ -18,7 +18,9 @@ import java.io.*;
 /**
  * This stream manages buffered reads of FCGI messages.
  */
-public class FCGIInputStream extends InputStream {
+public class FCGIInputStream extends InputStream
+{
+    private static final String RCSID = "$Id: FCGIInputStream.java,v 1.4 2000/03/21 12:12:25 robs Exp $";
 
     /* Stream vars */
 

@@ -10,7 +10,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIMessage.java,v 1.2 2000/03/21 12:02:29 robs Exp $
+ * $Id: FCGIMessage.java,v 1.3 2000/03/21 12:12:26 robs Exp $
  */
 package com.fastcgi;
 
@@ -24,7 +24,9 @@ import java.util.Properties;
  * dont need a stream.
  */
 
-public class FCGIMessage {
+public class FCGIMessage 
+{
+    private static final String RCSID = "$Id: FCGIMessage.java,v 1.3 2000/03/21 12:12:26 robs Exp $";
 
     /*
      * Instance variables

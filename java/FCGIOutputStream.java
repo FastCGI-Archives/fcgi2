@@ -8,7 +8,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIOutputStream.java,v 1.2 2000/03/21 12:02:29 robs Exp $
+ * $Id: FCGIOutputStream.java,v 1.3 2000/03/21 12:12:26 robs Exp $
  */
 package com.fastcgi;
 
@@ -18,7 +18,10 @@ import java.io.*;
  * This stream understands FCGI prototcol.
  */
 
-public class FCGIOutputStream extends OutputStream {
+public class FCGIOutputStream 
+    extends OutputStream 
+{
+    private static final String RCSID = "$Id: FCGIOutputStream.java,v 1.3 2000/03/21 12:12:26 robs Exp $";
 
     /* Stream vars */
 

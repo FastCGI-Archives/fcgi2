@@ -10,7 +10,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIInterface.java,v 1.2 2000/03/21 12:02:29 robs Exp $
+ * $Id: FCGIInterface.java,v 1.3 2000/03/21 12:12:26 robs Exp $
  */
 package com.fastcgi;
 
@@ -23,7 +23,9 @@ import java.util.Properties;
  * FastCGI web server. This version is single threaded, and handles one request at
  * a time, which is why we can have a static variable for it.
  */
-public class FCGIInterface {
+public class FCGIInterface 
+{
+    private static final String RCSID = "$Id: FCGIInterface.java,v 1.3 2000/03/21 12:12:26 robs Exp $";
 
     /*
     * Class variables

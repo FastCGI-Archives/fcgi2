@@ -10,7 +10,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIGlobalDefs.java,v 1.2 2000/03/21 12:02:29 robs Exp $
+ * $Id: FCGIGlobalDefs.java,v 1.3 2000/03/21 12:12:25 robs Exp $
  */
 
 /* This class contains FCGI global definitions corresponding to
@@ -21,7 +21,9 @@ package com.fastcgi;
 
 import java.io.PrintStream;
 
-public abstract class FCGIGlobalDefs {
+public abstract class FCGIGlobalDefs 
+{
+    private static final String RCSID = "$Id: FCGIGlobalDefs.java,v 1.3 2000/03/21 12:12:25 robs Exp $";
 
     public static final int def_FCGIMaxLen = 0xffff;
     /*

@@ -8,7 +8,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIRequest.java,v 1.2 2000/03/21 12:02:29 robs Exp $
+ * $Id: FCGIRequest.java,v 1.3 2000/03/21 12:12:26 robs Exp $
  */
 package com.fastcgi;
 
@@ -16,7 +16,9 @@ import java.net.*;
 import java.io.FileDescriptor;
 import java.util.Properties;
 
-public class FCGIRequest {
+public class FCGIRequest 
+{
+    private static final String RCSID = "$Id: FCGIRequest.java,v 1.3 2000/03/21 12:12:26 robs Exp $";
 
     /* This class has no methods. Right now we are single threaded
     * so there is only one request object at any given time which
