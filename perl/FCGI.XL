@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.4 2001/09/06 20:15:49 robs Exp $ */
+/* $Id: FCGI.XL,v 1.5 2001/09/20 11:03:41 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -321,9 +321,13 @@ FCGI_Request(in, out, err, env, socket, flags)
     FCGX_InitRequest(fcgx_req, socket, flags);
     Newz(551, req, 1, FCGP_Request);
     req->requestPtr = fcgx_req;
+    SvREFCNT_inc(in);
     req->gv[0] = in;
+    SvREFCNT_inc(out);
     req->gv[1] = out;
+    SvREFCNT_inc(err);
     req->gv[2] = err;
+    SvREFCNT_inc(env);
     req->hvEnv = env;
 
     return req;
@@ -332,6 +336,10 @@ FCGI_Request(in, out, err, env, socket, flags)
 static void
 FCGI_Release_Request(FCGP_Request *req)
 {
+    SvREFCNT_dec(req->gv[0]);
+    SvREFCNT_dec(req->gv[1]);
+    SvREFCNT_dec(req->gv[2]);
+    SvREFCNT_dec(req->hvEnv);
     FCGI_Finish(req);
     Safefree(req->requestPtr);
     Safefree(req);
