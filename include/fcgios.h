@@ -117,21 +117,8 @@ DLLAPI int OS_IpcClose(int ipcFd);
 DLLAPI int OS_IsFcgi(int sock);
 DLLAPI void OS_SetFlags(int fd, int flags);
 
-#ifdef WIN32
-#define OS_ShutdownNow
-#define OS_ShutdownPending
-#define OS_SigtermHandler
-#define OS_Sigusr1Handler
-#define OS_SigpipeHandler
-#define OS_InstallSignalHandlers
-#else
-void OS_ShutdownNow(void);
-void OS_ShutdownPending(void);
-void OS_SigtermHandler(int signo);
-void OS_Sigusr1Handler(int signo);
-void OS_SigpipeHandler(int signo);
-void OS_InstallSignalHandlers(int force);
-#endif
+DLLAPI void OS_Shutdown(void);
+DLLAPI void OS_ShutdownPending(void);
 
 #if defined (__cplusplus) || defined (c_plusplus)
 } /* terminate extern "C" { */
