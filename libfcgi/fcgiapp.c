@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.24 2001/06/22 09:12:03 skimo Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.25 2001/06/22 13:17:19 skimo Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -1990,26 +1990,26 @@ void FCGX_Finish(void)
  */
 void FCGX_Finish_r(FCGX_Request *reqDataPtr)
 {
+    int close;
+
     if (reqDataPtr == NULL) {
         return;
     }
 
+    close = !reqDataPtr->keepConnection;
+
     /* This should probably use a 'status' member instead of 'in' */
     if (reqDataPtr->in) {
-        int errStatus = FCGX_FClose(reqDataPtr->err);
-        int outStatus = FCGX_FClose(reqDataPtr->out);
+        close |= FCGX_FClose(reqDataPtr->err);
+        close |= FCGX_FClose(reqDataPtr->out);
 
-        if (errStatus || outStatus || FCGX_GetError(reqDataPtr->in))
-        {
-            OS_IpcClose(reqDataPtr->ipcFd);
-            reqDataPtr->ipcFd = -1;
-        }
+	close |= FCGX_GetError(reqDataPtr->in);
     }
 
-    FCGX_Free(reqDataPtr);
+    FCGX_Free(reqDataPtr, close);
 }
 
-void FCGX_Free(FCGX_Request * request)
+void FCGX_Free(FCGX_Request * request, int close)
 {
     if (request == NULL) 
         return;
@@ -2019,8 +2019,7 @@ void FCGX_Free(FCGX_Request * request)
     FreeStream(&request->err);
     FreeParams(&request->paramsPtr);
 
-    if (!request->keepConnection)
-    {
+    if (close) {
         OS_IpcClose(request->ipcFd);
         request->ipcFd = -1;
     }
@@ -2233,8 +2232,7 @@ int FCGX_Accept_r(FCGX_Request *reqDataPtr)
          * Close the connection and try again.
          */
 TryAgain:
-	reqDataPtr->keepConnection = 0;
-        FCGX_Free(reqDataPtr);
+        FCGX_Free(reqDataPtr, 1);
 
     } /* for (;;) */
     /*

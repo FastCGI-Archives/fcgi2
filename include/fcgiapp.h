@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.5 2000/11/05 17:09:36 robs Exp $
+ * $Id: fcgiapp.h,v 1.6 2001/06/22 13:17:18 skimo Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -236,11 +236,12 @@ DLLAPI void FCGX_Finish_r(FCGX_Request *request);
  *
  * FCGX_Free --
  *
- *      Free the memory and IPC FD associated with the request (multi-thread safe).
+ *      Free the memory and, if close is true, 
+ *	    IPC FD associated with the request (multi-thread safe).
  *
  *----------------------------------------------------------------------
  */
-DLLAPI void FCGX_Free(FCGX_Request * request);
+DLLAPI void FCGX_Free(FCGX_Request * request, int close);
 
 /*
  *----------------------------------------------------------------------
