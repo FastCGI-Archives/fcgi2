@@ -1,13 +1,15 @@
 #
 #  Makefile for FastCGI examples directory
 #
-#  $Id: Makefile.in,v 1.9 2001/08/31 14:43:48 robs Exp $
+#  $Id: Makefile.in,v 1.10 2001/09/01 01:06:58 robs Exp $
 #
 
 SHELL = @SHELL@
 O     = @OBJEXT@
 L     = @L@
 CC    = @CC@
+HAVE_LIBPTHREAD  = @HAVE_LIBPTHREAD@
+EXEEXT  = @EXEEXT@
 
 INCLUDEDIR  = ../include
 CFLAGS  = @CCDEFS@ -I$(INCLUDEDIR)
@@ -25,8 +27,9 @@ INCLUDES    = $(INCLUDEDIR)/fastcgi.h    \
 TARGETS     = authorizer \
               echo \
               echo-x\
-              threaded \
               log-dump
+
+if test "$(HAVE_LIBPTHREAD)"; then TARGETS="$TARGETS threaded" fi
 
 all: $(TARGETS)
 
@@ -46,6 +49,6 @@ log-dump: log-dump.c $(INCLUDES) $(LIBFCGI)
 	$(CC) $(CFLAGS) log-dump.c -o log-dump $(LIBFCGI) $(LIBS)
 
 clean:
-	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out $(TARGETS)
+	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out ${TARGETS:=$(EXEEXT)}
 
 # ----------------------------------------------------------------------------
