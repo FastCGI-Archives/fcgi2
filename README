@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.11 2001/11/30 17:48:58 robs Exp $
+    $Id: README,v 1.12 2001/12/07 02:28:14 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,8 @@ Unfortunately documentation of many of the changes have been lost.
 
 2.2.3
 -----
+
+ *) Test for iostreams that support a streambuf assigment operator
 
  *) (WIN32) Fixed initialization of the accept mutex when OpenSocket() was used.
     Niklas Bergh [niklas.bergh@tific.com]

@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.21 2001/11/30 17:50:08 robs Exp $
+dnl     $Id: configure.in,v 1.22 2001/12/07 02:28:14 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -16,35 +16,34 @@ AC_PROG_LIBTOOL
 
 AC_PROG_CXX
 
+AC_LANG([C++])
+
 dnl autoconf defaults CXX to 'g++', so its unclear whether it exists/works
 AC_MSG_CHECKING([whether $CXX works])
-AC_LANG([C++])
 AC_TRY_COMPILE([#include <iostream.h>], [istream is(NULL);], 
-               [CXX_WORKS=1]
-               [AC_MSG_RESULT(yes)], 
+               [LIBFCGIXX=libfcgi++.la
+                ECHO_CPP=echo-cpp${EXEEXT}
+                AC_MSG_RESULT(yes)
+                AC_MSG_CHECKING([whether cin has a streambuf assignment operator])
+                AC_TRY_COMPILE([#include <iostream.h>],  [cin = static_cast<streambuf *>(0);], 
+                               [AC_DEFINE([HAVE_IOSTREAM_WITHASSIGN_STREAMBUF],  [1], 
+                                          [Define if cin/cout/cerr has a streambuf assignment operator])
+                                AC_MSG_RESULT(yes)],
+                               [AC_MSG_RESULT(no)])], 
                [AC_MSG_RESULT(no)])
-AC_LANG([C])
-
-if test -n "${CXX_WORKS}"; then
-	LIBFCGIXX=libfcgi++.la
-	ECHO_CPP=echo-cpp${EXEEXT}
-fi
 AC_SUBST(LIBFCGIXX)
 AC_SUBST(ECHO_CPP)
 
-AC_CHECK_LIB([nsl],       [main]) ac_cv_lib_nsl=ac_cv_lib_nsl_main
-AC_CHECK_LIB([resolv],    [main]) ac_cv_lib_resolv=ac_cv_lib_resolv_main
-AC_CHECK_LIB([socket], 	  [main]) ac_cv_lib_socket=ac_cv_lib_socket_main
-AC_CHECK_LIB([dnet_stub], [main]) ac_cv_lib_dnet_stub=ac_cv_lib_dnet_stub_main
-AC_CHECK_LIB([ieee], 	  [main]) ac_cv_lib_ieee=ac_cv_lib_ieee_main
+AC_LANG([C])
 
-AC_SUBST(threaded)
-AC_CHECK_LIB([pthread],	  [main], 
-	[AC_DEFINE([HAVE_LIBPTHREAD], [1],
-			   [Define if you have the pthread library])
-	 AC_SUBST([HAVE_LIBPTHREAD])
-         threaded='threaded$(EXEEXT)']) 
-ac_cv_lib_pthread=ac_cv_lib_pthread_main
+AC_CHECK_LIB([nsl],       [main])
+AC_CHECK_LIB([resolv],    [main])
+AC_CHECK_LIB([socket],    [main])
+AC_CHECK_LIB([dnet_stub], [main])
+AC_CHECK_LIB([ieee],      [main])
+
+AC_CHECK_LIB([pthread],   [main],  [threaded=threaded${EXEEXT}])
+AC_SUBST([threaded])
 
 FCGI_COMMON_CHECKS
 
@@ -62,13 +61,13 @@ SYSTEM=unix
 AC_SUBST([SYSTEM])
 
 if test "$GCC"; then
-	CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
+    CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
 fi
 
-AC_CONFIG_FILES(Makefile
-		cgi-fcgi/Makefile
-		include/Makefile
-		libfcgi/Makefile
-		examples/Makefile)
+AC_CONFIG_FILES([Makefile
+                 cgi-fcgi/Makefile
+                 include/Makefile
+                 libfcgi/Makefile
+                 examples/Makefile])
 
 AC_OUTPUT

@@ -1,7 +1,7 @@
 /*
  *  A simple FastCGI application example in C++.
  *  
- *  $Id: echo-cpp.cpp,v 1.6 2001/11/26 18:08:25 robs Exp $
+ *  $Id: echo-cpp.cpp,v 1.7 2001/12/07 02:28:16 robs Exp $
  *  
  *  Copyright (c) 2001  Rob Saccoccio and Chelsea Networks
  *  All rights reserved.
@@ -38,6 +38,7 @@
 extern char ** environ;
 #endif
 #include "fcgio.h"
+#include "fcgi_config.h"  // HAVE_IOSTREAM_WITHASSIGN_STREAMBUF
 
 // Maximum number of bytes allowed to be read from stdin
 static const unsigned long STDIN_MAX = 1000000;
@@ -109,7 +110,7 @@ int main (void)
         fcgi_streambuf fout(request.out);
         fcgi_streambuf ferr(request.err);
 
-#ifdef _WIN32
+#ifdef HAVE_IOSTREAM_WITHASSIGN_STREAMBUF
         cin = &fin;
         cout = &fout;
         cerr = &ferr;
