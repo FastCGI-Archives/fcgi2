@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.16 2002/02/23 21:22:01 robs Exp $
+    $Id: README,v 1.17 2002/02/24 20:12:21 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,7 @@ on http://fastcgi.com/.
 
 2.2.3
 -----
+ *) Use streamsize and char_type in the C++ API.
 
  *) [WIN32] Eliminate the (partial and broken) use of OverlappedIO - this 
     was causing a loose spin in acceptNamedPipe().

@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.12 2001/12/04 00:22:06 robs Exp $
+// $Id: fcgio.cpp,v 1.13 2002/02/24 20:12:22 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -22,14 +22,20 @@
 #define DLLAPI  __declspec(dllexport)
 #endif
 
+#include <limits.h>
 #include "fcgio.h"
+
+using std::streambuf;
+using std::istream;
+using std::ostream;
+using std::streamsize;
 
 fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fs, char * b, int bs)
 {
     init(fs, b, bs);
 }
     
-fcgi_streambuf::fcgi_streambuf(char * b, int bs)
+fcgi_streambuf::fcgi_streambuf(char_type * b, streamsize bs)
 {
     init(0, b, bs);
 }
@@ -45,7 +51,7 @@ fcgi_streambuf::~fcgi_streambuf(void)
     // FCGX_Finish()/FCGX_Accept() will flush and close
 }
 
-void fcgi_streambuf::init(FCGX_Stream * fs, char * b, int bs)
+void fcgi_streambuf::init(FCGX_Stream * fs, char_type * b, streamsize bs)
 {
     this->fcgx = fs;
     this->buf = 0;
@@ -118,7 +124,7 @@ void fcgi_streambuf::reset(void)
     setp(this->buf, this->buf + this->bufsize);
 }
 
-streambuf * fcgi_streambuf::setbuf(char * b, int bs)
+std::streambuf * fcgi_streambuf::setbuf(char_type * b, streamsize bs)
 {
     // XXX support moving data from an old buffer
     if (this->bufsize) return 0;
@@ -146,18 +152,20 @@ int fcgi_streambuf::attach(FCGX_Stream * fs)
     return 0;
 }
 
-int fcgi_streambuf::xsgetn(char * s, int n) 
+streamsize fcgi_streambuf::xsgetn(char_type * s, streamsize n) 
 {
+    if (n > INT_MAX) return 0;
     return (this->bufsize) 
         ? streambuf::xsgetn(s, n) 
-        : FCGX_GetStr(s, n, this->fcgx);
+        : (streamsize) FCGX_GetStr((char *) s, (int) n, this->fcgx);
 }
    
-int fcgi_streambuf::xsputn(const char * s, int n) 
+streamsize fcgi_streambuf::xsputn(const char_type * s, streamsize n) 
 {
+    if (n > INT_MAX) return 0;
     return (this->bufsize) 
         ? streambuf::xsputn(s, n) 
-        : FCGX_PutStr(s, n, this->fcgx);
+        : (streamsize) FCGX_PutStr((char *) s, (int) n, this->fcgx);
 }
 
 // deprecated
