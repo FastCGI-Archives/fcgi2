@@ -7,7 +7,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.34 2001/10/04 08:04:16 skimo Exp $
+# $Id: FCGI.PL,v 1.35 2002/12/15 19:18:56 skimo Exp $
 
 package FCGI;
 
@@ -381,6 +381,11 @@ sub OPEN {
 	return $rc;
     }
 }
+
+# Apparently some use fileno to determine if a filehandle is open,
+# so we might want to return a defined, but meaningless value.
+# An alternative would be to return the fcgi stream fd.
+# sub FILENO { -2 }
 
 1;
 
