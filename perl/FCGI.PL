@@ -1,5 +1,4 @@
 use Config;
-use File::Copy;
 
 do 'FCGI.cfg' or die "no FCGI.cfg";
 
@@ -7,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.31 2001/09/21 15:51:29 skimo Exp $
+# $Id: FCGI.PL,v 1.32 2001/09/21 15:54:34 skimo Exp $
 
 package FCGI;
 
