@@ -33,21 +33,9 @@ INTDIR=.\..\examples\size\Release
 OutDir=.\..\examples\size\Release
 # End Custom Macros
 
-!IF "$(RECURSE)" == "0" 
-
 ALL : "$(OUTDIR)\size.exe"
 
-!ELSE 
-
-ALL : "libfcgi-release" "$(OUTDIR)\size.exe"
-
-!ENDIF 
-
-!IF "$(RECURSE)" == "1" 
-CLEAN :"libfcgi-releaseCLEAN" 
-!ELSE 
 CLEAN :
-!ENDIF 
 	-@erase "$(INTDIR)\size.obj"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(OUTDIR)\size.exe"
@@ -114,21 +102,9 @@ INTDIR=.\../examples/size\Debug
 OutDir=.\../examples/size\Debug
 # End Custom Macros
 
-!IF "$(RECURSE)" == "0" 
-
 ALL : "$(OUTDIR)\size.exe" "$(OUTDIR)\size.bsc"
 
-!ELSE 
-
-ALL : "libfcgi-debug" "$(OUTDIR)\size.exe" "$(OUTDIR)\size.bsc"
-
-!ENDIF 
-
-!IF "$(RECURSE)" == "1" 
-CLEAN :"libfcgi-debugCLEAN" 
-!ELSE 
 CLEAN :
-!ENDIF 
 	-@erase "$(INTDIR)\size.obj"
 	-@erase "$(INTDIR)\size.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
@@ -221,33 +197,6 @@ SOURCE=..\examples\size.c
 
 
 !ENDIF 
-
-!IF  "$(CFG)" == "release"
-
-"libfcgi-release" : 
-   cd ".\..\libfcgi"
-   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="release" 
-   cd ".\..\examples"
-
-"libfcgi-releaseCLEAN" : 
-   cd ".\..\libfcgi"
-   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="release" RECURSE=1 CLEAN 
-   cd ".\..\examples"
-
-!ELSEIF  "$(CFG)" == "debug"
-
-"libfcgi-debug" : 
-   cd ".\..\libfcgi"
-   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="debug" 
-   cd ".\..\examples"
-
-"libfcgi-debugCLEAN" : 
-   cd ".\..\libfcgi"
-   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="debug" RECURSE=1 CLEAN 
-   cd ".\..\examples"
-
-!ENDIF 
-
 
 !ENDIF 
 
