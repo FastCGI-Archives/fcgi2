@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.31 2002/02/28 15:21:26 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.32 2002/03/04 22:16:38 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -1368,24 +1368,23 @@ int OS_Close(int fd)
 	case FD_PIPE_ASYNC:
 	case FD_FILE_SYNC:
 	case FD_FILE_ASYNC:
-	    break;
+	    
+        break;
 
-        case FD_SOCKET_SYNC:
+    case FD_SOCKET_SYNC:
 	case FD_SOCKET_ASYNC:
 	    /*
 	     * Closing a socket that has an async read outstanding causes a
 	     * tcp reset and possible data loss.  The shutdown call seems to
 	     * prevent this.
 	     */
-	    shutdown(fdTable[fd].fid.sock, 2);
-	    /*
-	     * closesocket returns: 0 success, SOCKET_ERROR failure
-	     */
-	    if (closesocket(fdTable[fd].fid.sock) == SOCKET_ERROR)
-		ret = -1;
+	    shutdown(fdTable[fd].fid.sock, SD_SEND);
+	    if (closesocket(fdTable[fd].fid.sock) == SOCKET_ERROR) ret = -1;
 	    break;
+
 	default:
-	    return -1;		/* fake failure */
+
+	    ret = -1;		/* fake failure */
     }
 
     Win32FreeDescriptor(fd);

@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.18 2002/02/28 15:21:25 robs Exp $
+    $Id: README,v 1.19 2002/03/04 22:16:40 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,9 @@ on http://fastcgi.com/.
 
 2.2.3
 -----
+
+ *) [WIN32] shutdown only the send side of a TCP socket to prevent a TCP
+    reset from trashing the reciept of data on the client.
 
  *) [WIN32] force an exit from the ShutdownRequestThread when a shutdown is
     signaled and NamedPipes are in use.
