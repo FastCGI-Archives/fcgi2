@@ -1,23 +1,14 @@
-/* 
+/*
  * tiny-authorizer.c --
  *
- *	FastCGI example Authorizer program using fcgi_stdio library
- *
- *
- * Be sure to run this program in a region with CGIPassword
- * in order to get REMOTE_USER and REMOTE_PASSWD in place
- * of HTTP_AUTHORIZATION.
+ * FastCGI example Authorizer program using fcgi_stdio library
  *
  * Copyright (c) 1996 Open Market, Inc.
- *
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
+ * $Id: tiny-authorizer.c,v 1.3 1999/08/03 13:34:36 roberts Exp $
  */
-
-#ifndef lint
-static const char rcsid[] = "$Id: tiny-authorizer.c,v 1.2 1999/07/26 05:32:59 roberts Exp $";
-#endif /* not lint */
 
 #include "fcgi_stdio.h"
 #include <stdlib.h>
@@ -36,7 +27,7 @@ int main(void)
     if (password == NULL) {
         password = "xxxx";
     }
-    
+
     while (FCGI_Accept() >= 0) {
         char *remoteUser, *remotePassword;
 
@@ -48,12 +39,12 @@ int main(void)
              printf("Status: 401 Unauthorized\r\n"
                  "WWW-Authenticate: Basic realm=\"Test\"\r\n"
                  "\r\n");
-	}
+        }
         else {
             char *processId = getenv("QUERY_STRING");
             if (processId == NULL || strlen(processId) == 0) {
                 processId = "0";
-	    }
+        }
             printf("Status: 200 OK\r\n"
                 "Variable-AUTH_TYPE: Basic\r\n"
                 "Variable-REMOTE_PASSWD:\r\n"
