@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.14 2000/08/02 13:07:40 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.15 2000/10/02 12:43:13 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -661,8 +661,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             buffCount = strlen(buffPtr);
                             break;
 	                case 'h':
-                            shortArg = va_arg(arg, short);
-			    sprintf(buffPtr, fmtBuff, shortArg);
+                            shortArg = (short) va_arg(arg, int);
+                            sprintf(buffPtr, fmtBuff, shortArg);
                             buffCount = strlen(buffPtr);
                             break;
 	                default:
@@ -685,8 +685,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             buffCount = strlen(buffPtr);
                             break;
                         case 'h':
-                            uShortArg = va_arg(arg, unsigned short);
-			    sprintf(buffPtr, fmtBuff, uShortArg);
+                            uShortArg = (unsigned short) va_arg(arg, int);
+                            sprintf(buffPtr, fmtBuff, uShortArg);
                             buffCount = strlen(buffPtr);
                             break;
                         default:
