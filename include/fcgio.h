@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.12 2001/11/27 14:01:35 robs Exp $
+// $Id: fcgio.h,v 1.13 2001/12/04 00:22:04 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -58,7 +58,7 @@ public:
     
     DLLAPI fcgi_streambuf(char * buf, int len);
     
-    DLLAPI fcgi_streambuf(FCGX_Stream * fcgx = NULL);
+    DLLAPI fcgi_streambuf(FCGX_Stream * fcgx = 0);
 
     DLLAPI ~fcgi_streambuf(void);
 
@@ -110,7 +110,7 @@ class fcgi_istream : public istream
 public:
 
     // deprecated
-    DLLAPI fcgi_istream(FCGX_Stream * fcgx = NULL);
+    DLLAPI fcgi_istream(FCGX_Stream * fcgx = 0);
     
     // deprecated
     DLLAPI ~fcgi_istream(void) {}
@@ -131,7 +131,7 @@ class fcgi_ostream : public ostream
 public:
     
     // deprecated
-    DLLAPI fcgi_ostream(FCGX_Stream * fcgx = NULL);
+    DLLAPI fcgi_ostream(FCGX_Stream * fcgx = 0);
     
     // deprecated
     DLLAPI ~fcgi_ostream(void) {}

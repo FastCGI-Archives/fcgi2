@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.11 2001/11/26 18:09:03 robs Exp $
+// $Id: fcgio.cpp,v 1.12 2001/12/04 00:22:06 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -24,19 +24,19 @@
 
 #include "fcgio.h"
 
-fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fcgx, char * buf, int bufsize)
+fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fs, char * b, int bs)
 {
-    init(fcgx, buf, bufsize);
+    init(fs, b, bs);
 }
     
-fcgi_streambuf::fcgi_streambuf(char * buf, int bufsize)
+fcgi_streambuf::fcgi_streambuf(char * b, int bs)
 {
-    init(NULL, buf, bufsize);
+    init(0, b, bs);
 }
     
-fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fcgx) 
+fcgi_streambuf::fcgi_streambuf(FCGX_Stream * fs) 
 { 
-    init(fcgx, NULL, 0);
+    init(fs, 0, 0);
 }
 
 fcgi_streambuf::~fcgi_streambuf(void)
@@ -45,12 +45,12 @@ fcgi_streambuf::~fcgi_streambuf(void)
     // FCGX_Finish()/FCGX_Accept() will flush and close
 }
 
-void fcgi_streambuf::init(FCGX_Stream * fcgx, char * buf, int bufsize)
+void fcgi_streambuf::init(FCGX_Stream * fs, char * b, int bs)
 {
-    this->fcgx = fcgx;
-    this->buf = NULL;
+    this->fcgx = fs;
+    this->buf = 0;
     this->bufsize = 0;
-    setbuf(buf, bufsize);    
+    setbuf(b, bs);    
 }
 
 int fcgi_streambuf::overflow(int c)
@@ -118,25 +118,25 @@ void fcgi_streambuf::reset(void)
     setp(this->buf, this->buf + this->bufsize);
 }
 
-streambuf * fcgi_streambuf::setbuf(char * buf, int len)
+streambuf * fcgi_streambuf::setbuf(char * b, int bs)
 {
     // XXX support moving data from an old buffer
-    if (this->bufsize) return NULL;
+    if (this->bufsize) return 0;
 
-    this->buf = buf;
-    this->bufsize = len;
+    this->buf = b;
+    this->bufsize = bs;
 
     // the base setbuf() *has* to be called
-    streambuf::setbuf(buf, len);
+    streambuf::setbuf(b, bs);
 
     reset();
 
     return this;
 }
 
-int fcgi_streambuf::attach(FCGX_Stream * strm)
+int fcgi_streambuf::attach(FCGX_Stream * fs)
 { 
-    this->fcgx = strm;
+    this->fcgx = fs;
 
     if (this->bufsize)
     {
@@ -161,27 +161,27 @@ int fcgi_streambuf::xsputn(const char * s, int n)
 }
 
 // deprecated
-fcgi_istream::fcgi_istream(FCGX_Stream * strm) :
+fcgi_istream::fcgi_istream(FCGX_Stream * fs) :
     istream(&fcgi_strmbuf)
 {
-    fcgi_strmbuf.attach(strm);
+    fcgi_strmbuf.attach(fs);
 }
 
 // deprecated
-void fcgi_istream::attach(FCGX_Stream * strm)
+void fcgi_istream::attach(FCGX_Stream * fs)
 {
-    fcgi_strmbuf.attach(strm);
+    fcgi_strmbuf.attach(fs);
 }
 
 // deprecated
-fcgi_ostream::fcgi_ostream(FCGX_Stream * strm) :
+fcgi_ostream::fcgi_ostream(FCGX_Stream * fs) :
     ostream(&fcgi_strmbuf)
 {
-    fcgi_strmbuf.attach(strm);
+    fcgi_strmbuf.attach(fs);
 }
 
 // deprecated
-void fcgi_ostream::attach(FCGX_Stream * strm)
+void fcgi_ostream::attach(FCGX_Stream * fs)
 {
-    fcgi_strmbuf.attach(strm);
+    fcgi_strmbuf.attach(fs);
 }
