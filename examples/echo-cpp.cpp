@@ -1,7 +1,7 @@
 /*
  *  A simple FastCGI application example in C++.
  *  
- *  $Id: echo-cpp.cpp,v 1.4 2001/11/21 20:18:46 robs Exp $
+ *  $Id: echo-cpp.cpp,v 1.5 2001/11/21 21:15:36 robs Exp $
  *  
  *  Copyright (c) 2001  Rob Saccoccio and Chelsea Networks
  *  All rights reserved.

@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.8 2001/11/21 20:18:13 robs Exp $
+// $Id: fcgio.h,v 1.9 2001/11/21 21:12:04 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
