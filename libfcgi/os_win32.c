@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.6 2000/08/02 12:37:33 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.7 2000/08/26 02:43:49 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -91,6 +91,11 @@ struct FD_TABLE {
 
 typedef struct FD_TABLE *PFD_TABLE;
 
+/* 
+ * XXX Note there is no dyanmic sizing of this table, so if the
+ * number of open file descriptors exceeds WIN32_OPEN_MAX the 
+ * app will blow up.
+ */
 static struct FD_TABLE fdTable[WIN32_OPEN_MAX];
 
 struct OVERLAPPED_REQUEST {
