@@ -20,9 +20,9 @@ sub doit {
     my $out = new IO::Handle;
     my $err = new IO::Handle;
 
-    my $request = FCGI::request();
+    my $request = FCGI::Request();
 
-    while ($request->accept($in, $out, $err, \%env) >= 0) {
+    while ($request->Accept($in, $out, $err, \%env) >= 0) {
 	print $out
            "Content-type: text/html\r\n",
            "\r\n",
@@ -41,7 +41,7 @@ sub doit {
 		print $out " ";
 	    }
 	}
-	$request->flush();
+	$request->Flush();
 	sleep(1);
     }
 }

@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.8 1999/07/30 08:22:31 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.9 1999/07/31 21:54:46 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -27,12 +27,6 @@ __END__
 #ifndef TRUE
 #define TRUE  (1)
 #endif
-
-#ifdef WIN32
-#define environ _environ
-#endif
-
-extern char **environ;
 
 #ifdef USE_SFIO
 typedef struct
@@ -91,10 +85,7 @@ sfdcdelfcgi(disc)
 
 static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: FCGI */
 
-static FCGX_Request global_fcgx_request;
-
 typedef struct FCGP_Request {
-    int		    compat;
     int		    acceptCalled;
     int		    finishCalled;
     SV*		    svin;
@@ -104,15 +95,11 @@ typedef struct FCGP_Request {
     GV*		    gvNew[3];
     HV*		    hvEnv;
     FCGX_Stream*    in;
-    FCGX_ParamArray envp;
     FCGX_Request*   requestPtr;
 #ifdef USE_SFIO
     int		    sfcreated[3];
 #endif
 } FCGP_Request;
-
-static FCGP_Request global_request;
-static SV*	    global_sverr;
 
 static int 
 FCGI_Flush(FCGP_Request* request)
@@ -181,12 +168,15 @@ FCGI_Accept(FCGP_Request* request)
 	int i;
 #endif
 	FCGX_Stream *out, *error;
+	FCGX_ParamArray envp;
         int acceptResult = FCGX_Accept_r(&request->in, &out, &error, 
-					 &request->envp,
-				         request->requestPtr);
+					 &envp, request->requestPtr);
         if(acceptResult < 0) {
             return acceptResult;
         }
+
+	populate_env(envp, request->hvEnv);
+
 #ifdef USE_SFIO
 	for (i = 0; i < 3; ++i) {
 	    io[i] = GvIOn(request->gv[i] = request->gvNew[i]);
@@ -216,14 +206,6 @@ FCGI_Accept(FCGP_Request* request)
 	sv_setiv(SvRV(request->svout), (IV) out);
 	sv_setiv(SvRV(request->sverr), (IV) error);
 	sv_setiv(SvRV(request->svin), (IV) request->in);
-
-	if (request->compat) {
-	    global_sverr = request->sverr;
-	    if (PL_warnhook) SvREFCNT_dec(PL_warnhook);
-	    PL_warnhook = SvREFCNT_inc(GvCV(gv_fetchmethod(Nullhv, "FCGI::WARN")));
-	    if (PL_diehook) SvREFCNT_dec(PL_diehook);
-	    PL_diehook = SvREFCNT_inc(GvCV(gv_fetchmethod(Nullhv, "FCGI::DIE")));
-	}
 #endif
 	request->finishCalled = FALSE;
     }
@@ -241,18 +223,6 @@ FCGI_Finish(FCGP_Request* request)
     request->in = NULL;
     FCGX_Finish_r(request->requestPtr);
     request->finishCalled = TRUE;
-#ifndef USE_SFIO
-    if (request->compat) {
-	if (PL_warnhook == (SV*)GvCV(gv_fetchmethod(Nullhv, "FCGI::WARN"))) {
-	    SvREFCNT_dec(PL_warnhook);
-	    PL_warnhook = Nullsv;
-	}
-	if (PL_diehook == (SV*)GvCV(gv_fetchmethod(Nullhv, "FCGI::DIE"))) {
-	    SvREFCNT_dec(PL_diehook);
-	    PL_diehook = Nullsv;
-	}
-    }
-#endif
 }
 
 static int 
@@ -309,47 +279,16 @@ HV *hv;
     }
 }
 
-/*
- * For each variable in the array envp, either set or unset it
- * in the global hash %ENV.
- */
-static void
-DoPerlEnv(envp, set)
-char **envp;
-int set;
-{
-    if (!set)
-	perl_eval_pv("%ENV = %FCGI::ENV", 0);
-    else {
-	perl_eval_pv("%FCGI::ENV = %ENV", 0);
-	populate_env(envp, perl_get_hv("ENV", TRUE));
-    }
-}
-
-#define REQUEST_ARG(arg,request) \
-	if (sv_isa(ST(arg), "FCGI")) { \
-	    request = (FCGP_Request*) SvIV((SV*)SvRV(ST(arg))); \
-	} else \
-	    croak("request is not of type FCGI")
-
 typedef FCGX_Stream *	FCGI__Stream;
 typedef FCGP_Request *	FCGI;
+typedef	GV*		GLOBREF;
+typedef	HV*		HASHREF;
 
 MODULE = FCGI		PACKAGE = FCGI
 
-BOOT:
-    FCGX_Init();
-    FCGX_InitRequest(&global_fcgx_request);
-    memset(&global_request, 0, sizeof(global_request));
-    global_request.compat = 1;
-    global_request.requestPtr = &global_fcgx_request;
-    global_request.gvNew[0] = gv_fetchpv("STDIN",TRUE, SVt_PVIO);
-    global_request.gvNew[1] = gv_fetchpv("STDOUT",TRUE, SVt_PVIO);
-    global_request.gvNew[2] = gv_fetchpv("STDERR",TRUE, SVt_PVIO);
-
 
 SV *
-request()
+Request()
 
     PROTOTYPE:
     CODE:
@@ -360,88 +299,37 @@ request()
 
 
 int
-accept(...)
+Accept(request, in, out, err, env)
 
-    PROTOTYPE: ;$***$
+    FCGI    request;
+    GLOBREF in;
+    GLOBREF out;
+    GLOBREF err;
+    HASHREF env;
 
-    PREINIT:
-    FCGP_Request* request = &global_request;
+    PROTOTYPE: $***$
 
     CODE:
-    if (items != 0 && items != 5)
-	croak("Usage: FCGI::accept() or "
-	      "FCGI::accept(request, IN, OUT, ERR, env)");
-    if (items) {
-	static const char* names[] = {"", "IN", "OUT", "ERR"};
-	int i;
+    request->gvNew[0] = in;
+    request->gvNew[1] = out;
+    request->gvNew[2] = err;
+    request->hvEnv = env;
 
-	REQUEST_ARG(0,request);
-	for(i = 1; i <= 3; ++i) {
-	    if (SvROK(ST(i)) && isGV(SvRV(ST(i)))) {
-		request->gvNew[i-1] = (GV*)SvRV(ST(i));
-	    } else
-		croak("%s is not a GLOB reference", names[i]);
-	}
-	if (SvROK(ST(4)) && SvTYPE(SvRV(ST(4))) == SVt_PVHV) {
-	    request->hvEnv = (HV*)SvRV(ST(4));
-	} else
-	    croak("env is not a reference to a hash");
-    }
-    {
-        int acceptStatus;
-        /*
-         * Unmake Perl variable settings for the request just completed.
-         */
-        if(request->envp != NULL) {
-            DoPerlEnv(request->envp, FALSE);
-            request->envp = NULL;
-        }
-        /*
-         * Call FCGI_Accept but preserve environ.
-         */
-        acceptStatus = FCGI_Accept(request);
-        /*
-         * Make Perl variable settings for the new request.
-         */
-        if(acceptStatus >= 0 && !isCGI) {
-	    if (request->compat)
-		DoPerlEnv(request->envp, TRUE);
-	    else {
-		populate_env(request->envp, request->hvEnv);
-		request->envp = NULL;
-	    }
-        } else {
-            request->envp = NULL;
-        }
-        RETVAL = acceptStatus;
-    }
+    RETVAL = FCGI_Accept(request);
+
     OUTPUT:
     RETVAL
 
 
 void
-finish(...)
+Finish(request)
 
-    PROTOTYPE: ;$
+    FCGI    request;
 
-    PREINIT:
-    FCGP_Request* request = &global_request;
+    PROTOTYPE: $
 
     CODE:
-    if (items != 0 && items != 1)
-	croak("Usage: FCGI::finish() or "
-	      "FCGI::finish(request)");
-    if (items) {
-	REQUEST_ARG(0,request);
-    }
     {
-        /*
-         * Unmake Perl variable settings for the completed request.
-         */
-        if(request->envp != NULL) {
-            DoPerlEnv(request->envp, FALSE);
-            request->envp = NULL;
-        }
         /*
          * Finish the request.
          */
@@ -450,58 +338,28 @@ finish(...)
 
 
 void
-flush(...)
+Flush(request)
 
-    PROTOTYPE: ;$
+    FCGI    request;
 
-    PREINIT:
-    FCGP_Request* request = &global_request;
+    PROTOTYPE: $
 
     CODE:
-    if (items != 0 && items != 1)
-	croak("Usage: FCGI::flush([request])");
-    if (items) {
-	REQUEST_ARG(0,request);
-    }
     FCGI_Flush(request);
 
-void
-set_exit_status(...)
-
-    PROTOTYPE: $;$
-
-    PREINIT:
-    FCGP_Request* request = &global_request;
-    int status;
-
-    CODE:
-    if (items != 1 && items != 2)
-	croak("Usage: FCGI::set_exit_status(status[,request])");
-    if (items == 2) {
-	REQUEST_ARG(0,request);
-    }
-    status = (int)SvIV(ST(items-1));
-    FCGI_SetExitStatus(request, status);
 
 int
-start_filter_data(...)
+StartFilterData(request)
 
-    PROTOTYPE: ;$
+    FCGI    request;
 
-    PREINIT:
-    FCGP_Request* request = &global_request;
+    PROTOTYPE: $
 
     CODE:
-    if (items != 0 && items != 1)
-	croak("Usage: FCGI::flush([request])");
-    if (items) {
-	REQUEST_ARG(0,request);
-    }
     RETVAL = FCGI_StartFilterData(request);
 
     OUTPUT:
     RETVAL
-
 
 void
 DESTROY(request)
@@ -515,20 +373,6 @@ DESTROY(request)
 MODULE = FCGI		PACKAGE = FCGI::Stream
 
 #ifndef USE_SFIO
-void
-DIE(msg)
-	char *	msg;
-
-	CODE:
-	if (!PL_in_eval) /* ? maybe !(PL_in_eval & 1) */
-	    FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(global_sverr)));
-
-void
-WARN(msg)
-	char *	msg;
-
-	CODE:
-	FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(global_sverr)));
 
 void
 PRINT(stream, ...)
