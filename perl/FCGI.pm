@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.7 2000/01/31 21:34:24 skimo Exp $
+# $Id: FCGI.pm,v 1.8 2000/04/09 19:00:12 skimo Exp $
 
 package FCGI;
 
@@ -20,6 +20,8 @@ bootstrap FCGI;
 # Preloaded methods go here.
 
 # Autoload methods go after __END__, and are processed by the autosplit program.
+
+*FAIL_ACCEPT_ON_INTR = sub() { 1 };
 
 sub Request(;***$$$) {
     my @defaults = (\*STDIN, \*STDOUT, \*STDERR, \%ENV, 0, 0);
@@ -88,6 +90,8 @@ sub PRINTF {
 
 1;
 
+=pod
+
 =head1 NAME
 
 FCGI - Fast CGI module
@@ -96,8 +100,10 @@ FCGI - Fast CGI module
 
     use FCGI;
 
-    $count = 0;
-    while(FCGI::accept() >= 0) {
+    my $count = 0;
+    my $request = FCGI::Request();
+
+    while($request->accept() >= 0) {
 	print("Content-type: text/html\r\n\r\n", ++$count);
     }
 
@@ -107,27 +113,90 @@ Functions:
 
 =over 4
 
-=item FCGI::accept()
+=item FCGI::Request
 
-Accepts a connection. Returns 0 on success.
+Creates a request handle. It has the following optional parameters:
+
+=over 8
+
+=item input perl file handle (default: \*STDIN)
+
+=item output perl file handle (default: \*STDOUT)
+
+=item error perl file handle (default: \*STDERR)
+
+These filehandles will be setup to act as input/output/error
+on succesful Accept.
+
+=item environment hash reference (default: \%ENV)
+
+The hash will be populated with the environment.
+
+=item socket (default: 0)
+
+Socket to communicate with the server.
+Can be the result of the OpenSocket function.
+For the moment, it's the file descriptor of the socket
+that should be passed. This may change in the future.
+
+=item flags (default: 0)
+
+Possible values:
+
+=over 12
+
+=item FCGI::FAIL_ACCEPT_ON_INTR
+
+If set, Accept will fail if interrupted.
+It not set, it will just keep on waiting.
+
+=back
+
+=back
+
+Example usage:
+    my $req = FCGI::Request;
+
+or:
+    my %env;
+    my $in = new IO::Handle;
+    my $out = new IO::Handle;
+    my $err = new IO::Handle;
+    my $req = FCGI::Request($in, $out, $err, \%env);
+
+=item FCGI::OpenSocket(path, backlog)
+
+=item FCGI::CloseSocket(socket)
+
+Close a socket opened with OpenSocket.
+
+=item $req->Accept()
+
+Accepts a connection on $req, attaching the filehandles and
+populating the environment hash.
+Returns 0 on success.
 If a connection has been accepted before, the old
 one will be finished first.
 
-=item FCGI::finish()
+Note that unlike with the old interface, no die and warn
+handlers are installed by default.
+
+=item $req->Finish()
 
 Finishes accepted connection.
+Also detaches filehandles.
 
-=item FCGI::flush()
+=item $req->Flush()
 
 Flushes accepted connection.
 
-=item FCGI::set_exit_status(status)
+=item $req->Detach()
 
-Sets the exit status that finish returns to the server.
+Temporarily detaches filehandles on an accepted connection.
 
-=item FCGI::start_filter_data()
+=item $req->Attach()
 
-Does anyone use this function ?
+Re-attaches filehandles on an accepted connection.
 
 =back
 

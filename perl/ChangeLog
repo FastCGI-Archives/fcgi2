@@ -1,4 +1,12 @@
-Version 0.47 -- 27 August 1999  <skimo@kotnet.org> Sven Verdoolaege
+Version 0.49 -- 9 April 2000  <skimo@kotnet.org> Sven Verdoolaege
+
+	o General clean-ups
+	o Allow attaching/detaching
+	o Changed DESTROY behaviour
+	o Fixed default warn/die handler of old interface
+	o Document new interface
+
+Version 0.48 -- 27 August 1999  <skimo@kotnet.org> Sven Verdoolaege
 
 	o perl 5.005_60 compatibility
 	o locking on platforms that need it
