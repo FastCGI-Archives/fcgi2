@@ -9,3 +9,4 @@ echo.PL
 remote.PL
 threaded.PL
 typemap
+version.pm
