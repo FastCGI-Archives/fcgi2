@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.11 2001/06/19 17:12:01 robs Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.12 2001/06/22 02:19:55 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -112,12 +112,12 @@ static FCGI_Header MakeHeader(
     ASSERT(contentLength >= 0 && contentLength <= FCGI_MAX_LENGTH);
     ASSERT(paddingLength >= 0 && paddingLength <= 0xff);
     header.version = FCGI_VERSION_1;
-    header.type             =  type;
-    header.requestIdB1      = (requestId      >> 8) & 0xff;
-    header.requestIdB0      = (requestId          ) & 0xff;
-    header.contentLengthB1  = (contentLength  >> 8) & 0xff;
-    header.contentLengthB0  = (contentLength      ) & 0xff;
-    header.paddingLength    =  paddingLength;
+    header.type             = (unsigned char) type;
+    header.requestIdB1      = (unsigned char) ((requestId     >> 8) & 0xff);
+    header.requestIdB0      = (unsigned char) ((requestId         ) & 0xff);
+    header.contentLengthB1  = (unsigned char) ((contentLength >> 8) & 0xff);
+    header.contentLengthB0  = (unsigned char) ((contentLength     ) & 0xff);
+    header.paddingLength    = (unsigned char) paddingLength;
     header.reserved         =  0;
     return header;
 }
@@ -137,9 +137,9 @@ static FCGI_BeginRequestBody MakeBeginRequestBody(
 {
     FCGI_BeginRequestBody body;
     ASSERT((role >> 16) == 0);
-    body.roleB1 = (role >>  8) & 0xff;
-    body.roleB0 = (role      ) & 0xff;
-    body.flags = (keepConnection) ? FCGI_KEEP_CONN : 0;
+    body.roleB1 = (unsigned char) ((role >>  8) & 0xff);
+    body.roleB0 = (unsigned char) (role         & 0xff);
+    body.flags  = (unsigned char) ((keepConnection) ? FCGI_KEEP_CONN : 0);
     memset(body.reserved, 0, sizeof(body.reserved));
     return body;
 }
@@ -213,10 +213,13 @@ static void FCGIexit(int exitCode)
  *----------------------------------------------------------------------
  */
 
-static void AppServerReadHandler(ClientData clientData, int bytesRead)
+static void AppServerReadHandler(ClientData dc, int bytesRead)
 {
     int count, outFD;
     char *ptr;
+
+    /* Touch unused parameters to avoid warnings */
+    dc = NULL;
 
     assert(fcgiReadPending == TRUE);
     fcgiReadPending = FALSE;
@@ -371,8 +374,11 @@ static void WriteStdinEof(void)
  *----------------------------------------------------------------------
  */
 
-static void WebServerReadHandler(ClientData clientData, int bytesRead)
+static void WebServerReadHandler(ClientData dc, int bytesRead)
 {
+    /* Touch unused parameters to avoid warnings */
+    dc = NULL;
+
     assert(fromWS.next == fromWS.stop);
     assert(fromWS.next == &fromWS.buff[0]);
     assert(wsReadPending == TRUE);
@@ -405,9 +411,12 @@ static void WebServerReadHandler(ClientData clientData, int bytesRead)
  *----------------------------------------------------------------------
  */
 
-static void AppServerWriteHandler(ClientData clientData, int bytesWritten)
+static void AppServerWriteHandler(ClientData dc, int bytesWritten)
 {
     int length = fromWS.stop - fromWS.next;
+
+    /* Touch unused parameters to avoid warnings */
+    dc = NULL;
 
     assert(length > 0);
     assert(fcgiWritePending == TRUE);
@@ -551,21 +560,21 @@ static void FCGIUtil_BuildNameValueHeader(
 
     ASSERT(nameLen >= 0);
     if (nameLen < 0x80) {
-        *headerBuffPtr++ = nameLen;
+        *headerBuffPtr++ = (unsigned char) nameLen;
     } else {
-        *headerBuffPtr++ = (nameLen >> 24) | 0x80;
-        *headerBuffPtr++ = (nameLen >> 16);
-        *headerBuffPtr++ = (nameLen >> 8);
-        *headerBuffPtr++ = nameLen;
+        *headerBuffPtr++ = (unsigned char) ((nameLen >> 24) | 0x80);
+        *headerBuffPtr++ = (unsigned char) (nameLen >> 16);
+        *headerBuffPtr++ = (unsigned char) (nameLen >> 8);
+        *headerBuffPtr++ = (unsigned char) nameLen;
     }
     ASSERT(valueLen >= 0);
     if (valueLen < 0x80) {
-        *headerBuffPtr++ = valueLen;
+        *headerBuffPtr++ = (unsigned char) valueLen;
     } else {
-        *headerBuffPtr++ = (valueLen >> 24) | 0x80;
-        *headerBuffPtr++ = (valueLen >> 16);
-        *headerBuffPtr++ = (valueLen >> 8);
-        *headerBuffPtr++ = valueLen;
+        *headerBuffPtr++ = (unsigned char) ((valueLen >> 24) | 0x80);
+        *headerBuffPtr++ = (unsigned char) (valueLen >> 16);
+        *headerBuffPtr++ = (unsigned char) (valueLen >> 8);
+        *headerBuffPtr++ = (unsigned char) valueLen;
     }
     *headerLenPtr = headerBuffPtr - startHeaderBuffPtr;
 }
