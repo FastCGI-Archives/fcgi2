@@ -1,4 +1,4 @@
-/* 
+/*
  * cgifcgi.c --
  *
  *	CGI to FastCGI bridge
@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.4 1999/07/26 04:55:14 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.5 1999/07/26 22:03:07 roberts Exp $";
 #endif /* not lint */
 
 #include <stdio.h>
@@ -41,7 +41,7 @@ static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.4 1999/07/26 04:55:14 roberts E
 #include "fcgi_config.h"
 #include "fcgios.h"
 
-extern char *environ[];
+#include <stdlib.h>
 
 static int wsReadPending = 0;
 static int fcgiReadPending = 0;
@@ -396,7 +396,7 @@ static void AppServerWriteHandler(ClientData clientData, int bytesWritten)
     }
 
     ScheduleIo();
-}      
+}
 
 
 /*
@@ -410,7 +410,7 @@ static void AppServerWriteHandler(ClientData clientData, int bytesWritten)
  *
  * Side effects:
  *      This routine will signal the ioEvent upon completion.
- * 
+ *
  */
 static void ScheduleIo(void)
 {
@@ -437,7 +437,7 @@ static void ScheduleIo(void)
     if(!fcgiReadPending && appServerSock != -1) {
 	fromAS.next = &fromAS.buff[0];
 
-	if(OS_AsyncRead(appServerSock, 0, fromAS.next, BUFFLEN, 
+	if(OS_AsyncRead(appServerSock, 0, fromAS.next, BUFFLEN,
 			AppServerReadHandler,
 			(ClientData)appServerSock) == -1) {
 	    FCGIexit(OS_Errno);
@@ -453,7 +453,7 @@ static void ScheduleIo(void)
        !fcgiWritePending &&
        fromWS.next == &fromWS.buff[0]) {
 	if(OS_AsyncReadStdin(fromWS.next + sizeof(FCGI_Header),
-			     BUFFLEN - sizeof(FCGI_Header), 
+			     BUFFLEN - sizeof(FCGI_Header),
 			     WebServerReadHandler, STDIN_FILENO)== -1) {
 	    FCGIexit(OS_Errno);
 	} else {
@@ -481,7 +481,7 @@ static void FCGI_Start(char *bindPath, char *appPath, int nServers)
     if((listenFd = OS_CreateLocalIpcFd(bindPath)) == -1) {
         exit(OS_Errno);
     }
-    
+
     if(access(appPath, X_OK) == -1) {
 	fprintf(stderr, "%s is not executable\n", appPath);
 	exit(1);
@@ -666,7 +666,7 @@ static int ParseArgs(int argc, char *argv[],
         This hack lets me test the ability to create a local process listening
 	to a TCP/IP port for connections and subsequently connect to the app
 	like we do for Unix domain and named pipes.
-	
+
         if(*doStartPtr && *doBindPtr) {
 	    fprintf(stderr,
                     "<connName> of form hostName:portNumber "
@@ -719,7 +719,7 @@ int main(int argc, char **argv)
     } else {
         bytesToRead = 0;
     }
-    
+
     if(doBind) {
         appServerSock = OS_FcgiConnect(bindPath);
     }
