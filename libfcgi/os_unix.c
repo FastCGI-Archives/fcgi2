@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.35 2002/01/03 15:12:50 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.36 2002/02/19 00:45:55 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -638,7 +638,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
     if(fd > maxFd)
         maxFd = fd;
 
-    if(index >= asyncIoTableSize) {
+    while (index >= asyncIoTableSize) {
         GrowAsyncTable();
     }
 
@@ -687,7 +687,7 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
     if(fd > maxFd)
         maxFd = fd;
 
-    if(index >= asyncIoTableSize) {
+    while (index >= asyncIoTableSize) {
         GrowAsyncTable();
     }
 
