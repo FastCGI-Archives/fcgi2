@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.4 1999/08/03 15:52:54 skimo Exp $
+# $Id: FCGI.pm,v 1.5 1999/08/10 11:06:37 skimo Exp $
 
 package FCGI;
 
@@ -21,19 +21,22 @@ bootstrap FCGI;
 
 # Autoload methods go after __END__, and are processed by the autosplit program.
 
-sub request() {
-    Request();
+sub Request(;***$$$) {
+    my @defaults = (\*STDIN, \*STDOUT, \*STDERR, \%ENV, 0, 0);
+    splice @defaults,0,@_,@_;
+    RequestX(@defaults);
 }
 
-sub accept(;$***$) {
-    return Accept(@_) if @_ == 5;
-
+sub accept() {
     if (defined %FCGI::ENV) {
 	%ENV = %FCGI::ENV;
     } else {
 	%FCGI::ENV = %ENV;
     }
-    my $rc = Accept($global_request, \*STDIN, \*STDOUT, \*STDERR, \%ENV);
+    my $rc = Accept($global_request);
+    for (keys %FCGI::ENV) {
+	$ENV{$_} = $FCGI::ENV{$_} unless exists $ENV{$_};
+    }
 
     # not SFIO
     $SIG{__WARN__} = $SIG{__DIE__} = $warn_die_handler if (tied (*STDIN));
@@ -41,9 +44,7 @@ sub accept(;$***$) {
     return $rc;
 }
 
-sub finish(;$) {
-    return Finish(@_) if @_ == 1;
-
+sub finish() {
     %ENV = %FCGI::ENV if (defined %FCGI::ENV);
 
     # not SFIO
@@ -56,9 +57,7 @@ sub finish(;$) {
     Finish ($global_request);
 }
 
-sub flush(;$) {
-    return Flush(@_) if @_ == 1;
-
+sub flush() {
     Flush($global_request);
 }
 
@@ -66,9 +65,7 @@ sub flush(;$) {
 sub set_exit_status {
 }
 
-sub start_filter_data(;$) {
-    return StartFilterData(@_) if @_ == 1;
-
+sub start_filter_data() {
     StartFilterData($global_request);
 }
 

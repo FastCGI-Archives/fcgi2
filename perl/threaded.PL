@@ -20,14 +20,14 @@ sub doit {
     my $out = new IO::Handle;
     my $err = new IO::Handle;
 
-    my $request = FCGI::Request();
+    my $request = FCGI::Request($in, $out, $err, \%env);
 
-    while ($request->Accept($in, $out, $err, \%env) >= 0) {
+    while ($request->Accept() >= 0) {
 	print $out
            "Content-type: text/html\r\n",
            "\r\n",
-           "<title>FastCGI Hello! (multi-threaded C, fcgiapp library)</title>",
-           "<h1>FastCGI Hello! (multi-threaded C, fcgiapp library)</h1>",
+           "<title>FastCGI Hello! (multi-threaded perl, fcgiapp library)</title>",
+           "<h1>FastCGI Hello! (multi-threaded perl, fcgiapp library)</h1>",
            "Request counts for ", THREAD_COUNT ," threads ",
 	   "running on host <i>$env{SERVER_NAME}</i><P><CODE>";
 
