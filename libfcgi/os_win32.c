@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.20 2001/06/22 14:28:29 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.21 2001/08/27 19:54:30 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -118,7 +118,7 @@ typedef struct OVERLAPPED_REQUEST *POVERLAPPED_REQUEST;
 
 static const char *bindPathPrefix = "\\\\.\\pipe\\FastCGI\\";
 
-static enum FILE_TYPE listenType = FD_UNUSED;
+static FILE_TYPE listenType = FD_UNUSED;
 
 // XXX This should be a DESCRIPTOR
 static HANDLE hListen = INVALID_HANDLE_VALUE;
