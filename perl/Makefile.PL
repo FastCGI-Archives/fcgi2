@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.13 2001/08/28 19:14:21 robs Exp $
+# $Id: Makefile.PL,v 1.14 2001/08/29 18:57:44 robs Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -21,44 +21,46 @@ open(CFG,">FCGI.cfg");
 print CFG "\$pure = $pure;1;\n";
 close CFG;
 
-$devkit = cwd() . "/..";
+if (! $pure) {
+	my $cwd = cwd();
+	my $devkit = "$cwd/..";
 
-if (-d "$devkit/libfcgi/" 
-    && -d "$devkit/include" && !grep {!-f "$devkit/include/$_"} (@h)) 
-{
-    # devkit
-    $prefix = $devkit;
+	if (-d "$devkit/libfcgi" && -d "$devkit/include") {
+		# devkit
+		if (grep { ! -f "$devkit/include/$_" } @dist3 
+			or grep { ! -f "$devkit/libfcgi/$_" } @dist2)
+		{
+			warn "This appears to be a FastCGI devkit distribution, " .
+				 "but one or more FastCGI library files are missing. \n" .
+				 "Please check the integrity of the distribution.\n";
+			exit -1;
+		}
 
-    if (-f "$devkit/libfcgi/libfcgi.a") {
-		push @libs, "-L$devkit/libfcgi -lfcgi";
-    }
-    elsif (-f "$devkit/libfcgi/Release/libfcgi.dll") {
-		push @libs, "-L$devkit/libfcgi/Release -lfcgi";
-    }
-    elsif (-f "$devkit/libfcgi/Debug/libfcgi.dll") {
-		push @libs, "-L$devkit/libfcgi/Debug -lfcgi";
-    }
-    else {
-		warn "Please compile the library before attempting " .
-	      	 "to compile the perl module.\n";
-		exit -1;
-    }
-} 
-else {
-    # CPAN  
-    for $dir ("/usr", "/usr/local") {
-        if (-d "$dir/lib/" && -f "$dir/lib/libfcgi.a" 
-        	&& -d "$dir/include" && !grep {!-f "$dir/include/$_"} (@h)) 
-        {
-            print "Found fcgi library and include files in $dir\n";
-            print "Will be using that instead of included files\n";
-            print "Edit Makefile.PL if you don't like it\n";
-            
-            $prefix = $dir;
-            push @libs, "-L$dir/lib -lfcgi"; 
-            last;
-        }
-    }
+		# Copy the C lib files down to ensure a compatible build.
+		print "Copying C library files from the devkit distribution\n";
+	    use File::Copy qw(copy);
+
+		# TODO: stop or save if a local file has been modified
+		foreach (@dist3, @dist2) { unlink };
+		foreach (@dist3) { copy("$devkit/include/$_", ".") || die $! };
+		foreach (@dist2)  { copy("$devkit/libfcgi/$_", ".") || die $! };
+	}
+	else {
+	    # CPAN  
+	    for $dir ("/usr", "/usr/local") {
+	        if (-d "$dir/lib/" && -f "$dir/lib/libfcgi.a" 
+	        	&& -d "$dir/include" && !grep {!-f "$dir/include/$_"} (@h)) 
+	        {
+	            print "Found fcgi library and include files in $dir\n";
+	            print "Will be using those instead of the included files\n";
+	            print "Edit Makefile.PL if you don't like it\n";
+	            
+	            $prefix = $dir;
+	            push @libs, "-L$dir/lib -lfcgi"; 
+	            last;
+	        }
+	    }
+	}
 }
 
 $sys = $^O eq 'MSWin32' ? 'win32' : 'unix';
@@ -84,6 +86,12 @@ if ($pure) {
     push @extras,
 	LINKTYPE => ' ';
 } else {
+
+	if ("$sys" eq "win32") {
+		@libs = (@libs) ? map { "$_ ws2_32.lib" } @libs : ('ws2_32.lib');
+		push @extras, 'DEFINE' => '-DDLLAPI=__declspec(dllexport)';
+	}
+
     push @extras,
 	'LIBS'	=> [ @libs ],
 	'OBJECT'	=> "@o",
@@ -123,15 +131,6 @@ $mm = MM->new({
 delete $mm->{MAN3PODS}{oldinterface.pod};
 $mm->flush;
 
-if ($sys eq "win32") {
-    # Win can't deal with existence of FCGI.xs or absence of FCGI.c
-    unlink("FCGI.xs");
-    open(F, ">FCGI.c"); close(F);
-    $now = time; $before = $now - 600;
-    utime $before, $before, "FCGI.c";
-    utime $now, $now, "FCGI.PL";
-}
-
 exit if -f 'fcgi_config.h' or $prefix or $pure;
 
 # CPAN and no installed lib found
@@ -143,6 +142,13 @@ if ($sys eq "win32") {
     print "Using prebuilt fcgi_config.h file for Windows\n";
     unlink("fcgi_config.h");
     die $! unless copy("fcgi_config_x86.h","fcgi_config.h");
+
+    # Win can't deal with existence of FCGI.xs or absence of FCGI.c
+    unlink("FCGI.xs");
+    open(F, ">FCGI.c"); close(F);
+    $now = time; $before = $now - 600;
+    utime $before, $before, "FCGI.c";
+    utime $now, $now, "FCGI.PL";
 } else {
     print "Running ./configure for you\n";
     print "Please read configure.readme for information on how to run it yourself\n";
