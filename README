@@ -2,7 +2,7 @@ FastCGI Developer's Kit README
 ------------------------------
 
     Version 2.0b2, 04 April 1997
-    $Id: README,v 1.1 1997/09/16 15:36:24 stanleyg Exp $
+    $Id: README,v 1.2 1999/06/07 05:03:47 roberts Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,6 +33,15 @@ release of the FDK.
   5. Provide new Java interface to conform to JDK1.1.1 (due to final
      System.in)
   6. Provide samples of Perl on NT.
+  
+
+Changes with devkit 2.1.1
+-------------------------
+  
+ *) Flush FastCGI buffers at application exit.  <eichin@fastengines.com>
+    
+ << INSERT OTHER STUFF HERE >>
+ 
 
 What's New: Version 2.0b2, 04 April 1997
 --------------------------------------

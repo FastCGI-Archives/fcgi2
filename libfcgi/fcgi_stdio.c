@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.4 1999/01/30 22:24:09 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.5 1999/06/07 05:03:48 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -118,6 +118,7 @@ int FCGI_Accept(void)
          */
         isCGI = FCGX_IsCGI();
         acceptCalled = TRUE;
+        atexit(&FCGI_Finish);
     } else if(isCGI) {
         /*
          * Not first call to FCGI_Accept and running as CGI means
