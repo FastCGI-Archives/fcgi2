@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.23 2001/12/07 21:08:38 robs Exp $
+dnl     $Id: configure.in,v 1.24 2001/12/21 03:12:50 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -43,8 +43,8 @@ dnl AC_CHECK_LIB([resolv],    [main])
 dnl AC_CHECK_LIB([dnet_stub], [main])
 dnl AC_CHECK_LIB([ieee],      [main])
 
-AC_CHECK_LIB([pthread],   [pthread_create],  [threaded=threaded${EXEEXT}])
-AC_SUBST([threaded])
+ACX_PTHREAD([THREADED=threaded${EXEEXT}])
+AC_SUBST([THREADED])
 
 FCGI_COMMON_CHECKS
 
@@ -61,9 +61,7 @@ AC_C_INLINE
 SYSTEM=unix
 AC_SUBST([SYSTEM])
 
-if test "$GCC"; then
-    CFLAGS="$CFLAGS -Wall -Wmissing-prototypes"
-fi
+AC_PROG_CC_WARNINGS
 
 AC_CONFIG_FILES([Makefile
                  cgi-fcgi/Makefile
