@@ -10,6 +10,7 @@ configure.readme
 echo.PL
 fcgi_config.h.in
 remote.PL
+test.pl
 threaded.PL
 typemap
 version.pm
