@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.20 2000/09/20 15:45:29 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.21 2000/11/05 17:09:35 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -671,6 +671,9 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
  */
 int OS_Close(int fd)
 {
+    if (fd == -1)
+        return 0;
+
     if (asyncIoInUse) {
         int index = AIO_RD_IX(fd);
 

@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.15 2000/10/02 12:43:13 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.16 2000/11/05 17:09:35 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1988,30 +1988,29 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         int errStatus = FCGX_FClose(reqDataPtr->err);
         int outStatus = FCGX_FClose(reqDataPtr->out);
 
-        if (errStatus  || outStatus
-            || FCGX_GetError(reqDataPtr->in)
-            || !reqDataPtr->keepConnection)
+        if (errStatus || outStatus || FCGX_GetError(reqDataPtr->in))
         {
             OS_IpcClose(reqDataPtr->ipcFd);
         }
-
-        ASSERT(reqDataPtr->nWriters == 0);
-
-        FreeStream(&reqDataPtr->in);
-        reqDataPtr->in = NULL;
-
-        FreeStream(&reqDataPtr->out);
-        reqDataPtr->out = NULL;
-
-        FreeStream(&reqDataPtr->err);
-        reqDataPtr->err = NULL;
-
-        FreeParams(&reqDataPtr->paramsPtr);
-        reqDataPtr->paramsPtr = NULL;
     }
 
-    if (!reqDataPtr->keepConnection) {
-        reqDataPtr->ipcFd = -1;
+    FCGX_Free(reqDataPtr);
+}
+
+void FCGX_Free(FCGX_Request * request)
+{
+    if (request == NULL) 
+        return;
+
+    FreeStream(&request->in);
+    FreeStream(&request->out);
+    FreeStream(&request->err);
+    FreeParams(&request->paramsPtr);
+
+    if (!request->keepConnection)
+    {
+        OS_IpcClose(request->ipcFd);
+        request->ipcFd = -1;
     }
 }
 
@@ -2219,14 +2218,8 @@ int FCGX_Accept_r(FCGX_Request *reqDataPtr)
          * Close the connection and try again.
          */
 TryAgain:
-        FreeParams(&reqDataPtr->paramsPtr);
-        reqDataPtr->paramsPtr = NULL;
+        FCGX_Free(reqDataPtr);
 
-        FreeStream(&reqDataPtr->in);
-        reqDataPtr->in = NULL;
-
-        OS_Close(reqDataPtr->ipcFd);
-        reqDataPtr->ipcFd = -1;
     } /* for (;;) */
     /*
      * Build the remaining data structures representing the new

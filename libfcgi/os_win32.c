@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.7 2000/08/26 02:43:49 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.8 2000/11/05 17:09:35 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1525,6 +1525,9 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
  */
 int OS_IpcClose(int ipcFd)
 {
+    if (ipcFd == -1)
+        return 0;
+
     /*
      * Catch it if fd is a bogus value
      */
