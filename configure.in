@@ -1,27 +1,13 @@
-dnl     $Id: configure.in,v 1.8 2001/09/21 16:49:36 skimo Exp $
+dnl     $Id: configure.in,v 1.9 2001/09/21 22:38:58 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
 
-# This file and the script it generates is used by both the devkit
-# and the Perl FCGI module.  Although each has slightly different
-# requirements, this allows the build environment to maintained by one
-# file set.  The FCGI build is idendified by the presence of the
-# file FCGI.XL.  If its not found, its consider a devkit build.
-
 AC_INIT
 AM_INIT_AUTOMAKE(fcgi, 2.2.1)
 
-if test -f "FCGI.XL"; then
-	FCGI_BUILD='true'
-fi
-
-if test "$FCGI_BUILD"; then
-	AM_CONFIG_HEADER([fcgi_config.h])
-else
-	AM_CONFIG_HEADER([include/fcgi_config.h])
-fi
+AM_CONFIG_HEADER([include/fcgi_config.h])
 
 AC_PROG_CC
 AC_PROG_CPP 
@@ -44,69 +30,10 @@ AC_CHECK_LIB([pthread],	  [main],
          threaded=threaded]) 
 ac_cv_lib_pthread=ac_cv_lib_pthread_main
 
-AC_CHECK_TYPE([ssize_t], [int]) 
-
-AC_MSG_CHECKING([for sun_len in sys/un.h])
-AC_EGREP_HEADER([sun_len], [sys/un.h],
-    [AC_MSG_RESULT([yes])
-     AC_DEFINE([HAVE_SOCKADDR_UN_SUN_LEN], [1],
-     		   [Define if sockaddr_un in sys/un.h contains a sun_len component])],
-    AC_MSG_RESULT([no]))
+FCGI_COMMON_CHECKS
 
 AC_REPLACE_FUNCS([strerror])
 
-AC_MSG_CHECKING([for fpos_t in stdio.h])
-AC_EGREP_HEADER([fpos_t], [stdio.h],
-    [AC_MSG_RESULT([yes])
-     AC_DEFINE([HAVE_FPOS], [1], [Define if the fpos_t typedef is in stdio.h])],
-    AC_MSG_RESULT([no]))
-
-AC_CHECK_HEADERS([sys/socket.h netdb.h netinet/in.h arpa/inet.h sys/time.h limits.h sys/param.h unistd.h])
-
-AC_MSG_CHECKING([for a fileno() prototype in stdio.h])
-AC_EGREP_HEADER([fileno], [stdio.h], 
-	[AC_MSG_RESULT([yes]) 
-	 AC_DEFINE([HAVE_FILENO_PROTO], [1], 
-	 	       [Define if there's a fileno() prototype in stdio.h])],
-	AC_MSG_RESULT([no]))
-
-if test "$HAVE_SYS_SOCKET_H"; then
-    AC_MSG_CHECKING([for socklen_t in sys/socket.h])
-    AC_EGREP_HEADER([socklen_t], [sys/socket.h],
-        [AC_MSG_RESULT([yes])
-         AC_DEFINE([HAVE_SOCKLEN], [1],
-        		   [Define if the socklen_t typedef is in sys/socket.h])],
-       AC_MSG_RESULT([no]))
-fi
-
-#--------------------------------------------------------------------
-#  Do we need cross-process locking on this platform?
-#--------------------------------------------------------------------
-AC_MSG_CHECKING([whether cross-process locking is required by accept()])
-case "`uname -sr`" in
-    IRIX\ 5.* | SunOS\ 5.* | UNIX_System_V\ 4.0)	
-		AC_MSG_RESULT([yes])
-		AC_DEFINE([USE_LOCKING], [1], 
-				  [Define if cross-process locking is required by accept()])
-    	;;
-    *)
-		AC_MSG_RESULT([no])
-	    ;;
-esac
-
-#--------------------------------------------------------------------
-#  Does va_arg(arg, long double) crash the compiler?
-#  hpux 9.04 compiler does and so does Stratus FTX (uses HP's compiler)
-#--------------------------------------------------------------------
-AC_MSG_CHECKING([whether va_arg(arg, long double) crashes the compiler])
-AC_TRY_COMPILE([#include <stdarg.h>],
-   [long double lDblArg; va_list arg; lDblArg = va_arg(arg, long double);],
-   AC_MSG_RESULT([no]),
-   [AC_MSG_RESULT([yes])
-    AC_DEFINE([HAVE_VA_ARG_LONG_DOUBLE_BUG], [1],
-   			  [Define if va_arg(arg, long double) crashes the compiler])])
-
-AC_C_CONST 
 AC_C_INLINE
 
 #--------------------------------------------------------------------
@@ -130,12 +57,9 @@ AC_SUBST([CCDEFS])
 AC_OBJEXT
 AC_SUBST([EXEEXT]) 
 
-if test -z "$FCGI_BUILD"; then
-	AC_CONFIG_FILES([Makefile 
-					 libfcgi/Makefile 
-					 cgi-fcgi/Makefile 
-					 examples/Makefile])
-fi
+AC_CONFIG_FILES([Makefile 
+		 libfcgi/Makefile 
+		 cgi-fcgi/Makefile 
+		 examples/Makefile])
 
 AC_OUTPUT
-

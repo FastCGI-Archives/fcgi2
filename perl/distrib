@@ -1,0 +1,5 @@
+#!/bin/sh
+# $Id: distrib,v 1.1 2001/09/21 22:38:59 skimo Exp $
+aclocal -I ..
+autoheader
+autoconf
