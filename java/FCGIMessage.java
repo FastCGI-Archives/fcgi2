@@ -10,7 +10,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIMessage.java,v 1.3 2000/03/21 12:12:26 robs Exp $
+ * $Id: FCGIMessage.java,v 1.4 2000/10/02 15:09:07 robs Exp $
  */
 package com.fastcgi;
 
@@ -24,9 +24,9 @@ import java.util.Properties;
  * dont need a stream.
  */
 
-public class FCGIMessage 
+public class FCGIMessage
 {
-    private static final String RCSID = "$Id: FCGIMessage.java,v 1.3 2000/03/21 12:12:26 robs Exp $";
+    private static final String RCSID = "$Id: FCGIMessage.java,v 1.4 2000/10/02 15:09:07 robs Exp $";
 
     /*
      * Instance variables
@@ -280,10 +280,15 @@ public class FCGIMessage
             dest[pos++] = (byte)((valLen >> 8) & 0xff);
             dest[pos++] = (byte)valLen;
         }
-        name.getBytes(0, nameLen, dest, pos);
-        pos += nameLen;
-        value.getBytes(0, valLen, dest, pos);
-        pos += valLen;
+
+        try {
+            System.arraycopy(name.getBytes("UTF-8"), 0, dest, pos, nameLen);
+            pos += nameLen;
+
+            System.arraycopy(value.getBytes("UTF-8"), 0, dest, pos, valLen);
+            pos += valLen;
+        }
+        catch (UnsupportedEncodingException x) {}
     }
 
     /*
@@ -344,8 +349,8 @@ public class FCGIMessage
                     FCGIGlobalDefs.def_FCGIParamsError);
                 return -1;
             }
-            String strName  = new String(name, 0, 0, name.length);
-            String strValue = new String(value, 0, 0, value.length);
+            String strName  = new String(name);
+            String strValue = new String(value);
             props.put(strName, strValue);
         }
         return 0;
