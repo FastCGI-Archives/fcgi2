@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.26 2001/06/18 14:24:28 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.27 2001/06/22 13:13:41 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -842,7 +842,7 @@ int OS_DoIo(struct timeval *tmo)
  * Not all systems have strdup().  
  * @@@ autoconf should determine whether or not this is needed, but for now..
  */
-char * str_dup(const char * str)
+static char * str_dup(const char * str)
 {
     char * sdup = (char *) malloc(strlen(str) + 1);
 
