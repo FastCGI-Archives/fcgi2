@@ -1,3 +1,8 @@
+Version 0.65 --	5 September 2002   <skimo@kotnet.org> Sven Verdoolaege
+
+	o perl 5.8.0 compatibility fix by Autrijus
+	o library fixes from Rob
+
 Version 0.65 --	19 February 2002   <skimo@kotnet.org> Sven Verdoolaege
 
 	o fix perl 5.005 compatibility problem
