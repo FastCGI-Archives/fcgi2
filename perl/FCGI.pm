@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.5 1999/08/10 11:06:37 skimo Exp $
+# $Id: FCGI.pm,v 1.6 1999/09/11 19:41:09 skimo Exp $
 
 package FCGI;
 
@@ -70,7 +70,7 @@ sub start_filter_data() {
 }
 
 $global_request = Request();
-$warn_die_handler = sub { print STDERR @_ };
+$warn_die_handler = sub { print STDERR @_ unless $^S };
 
 package FCGI::Stream;
 
