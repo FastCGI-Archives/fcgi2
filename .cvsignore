@@ -1,5 +1,9 @@
-*~
-bak .bak  *.bak
+*~ bak .bak  *.bak
 config.cache config.status config.log
 FcgiBin
-Makefile
+Makefile Makefile.in
+aclocal.m4 configure
+fcgi_config.h fcgi_config.h.in
+libtool
+stamp-h stamp-h.in stamp-h1
+

@@ -1,9 +1,5 @@
-*~
-bak .bak  *.bak
-authorizer size echo echo-x log-dump threaded
-*.exe
-Makefile
-Debug Release
+*~ bak .bak  *.bak
+authorizer size echo echo-x log-dump threaded echo-cpp *.exe
+Makefile Makefile.in
+Debug Release .deps .libs
 *.CS_
-
-
