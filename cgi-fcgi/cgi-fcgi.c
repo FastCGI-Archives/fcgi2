@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.14 2001/06/22 15:24:19 robs Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.15 2001/09/01 01:14:28 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -43,7 +43,7 @@ extern char **environ;
 #include <sys/time.h>
 #endif
 
-#if defined HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
