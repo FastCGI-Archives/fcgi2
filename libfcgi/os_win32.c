@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.30 2002/02/25 13:17:27 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.31 2002/02/28 15:21:26 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -269,26 +269,28 @@ void OS_ShutdownPending(void)
     shutdownPending = TRUE;
 }
 
-/* XXX Need a shutdown now event */
 static void ShutdownRequestThread(void * arg)
 {
     HANDLE shutdownEvent = (HANDLE) arg;
+    DWORD rv; 
     
-    if (WaitForSingleObject(shutdownEvent, INFINITE) == WAIT_FAILED)
+    WaitForSingleObject(shutdownEvent, INFINITE);
+
+    shutdownPending = TRUE;
+
+    if (listenType == FD_PIPE_SYNC)
     {
-        // Assuming it will happen again, all we can do is exit the thread
+        // Its a hassle to get ConnectNamedPipe to return early,
+        // so just wack the whole process - yes, this will toast
+        // any requests in progress, but at least its a clean 
+        // shutdown (its better than TerminateProcess())
+        exit(0);
     }
-    else
-    {
-        // "Simple reads and writes to properly-aligned 32-bit variables are atomic"
-        shutdownPending = TRUE;
-        
-        // Before an accept() is entered the shutdownPending flag is checked.
-        // If set, OS_Accept() will return -1.  If not, it waits
-        // on a connection request for one second, checks the flag, & repeats.
-        // Only one process/thread is allowed to do this at time by
-        // wrapping the accept() with mutex.
-    }
+       
+    // FD_SOCKET_SYNC: When in Accept(), select() is used to poll
+    // the shutdownPending flag - yeah this isn't pretty either
+    // but its only one process doing it if an Accept mutex is used.
+    // This at least buys no toasted requests.
 }
 
 /*
