@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.5 1999/06/07 05:03:48 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.6 1999/06/07 05:39:03 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -48,11 +48,7 @@ static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.5 1999/06/07 05:03:48 roberts
 #define TRUE  (1)
 #endif
 
-#ifdef _WIN32
 FCGI_FILE _fcgi_sF[3];
-#else
-FCGI_FILE _fcgi_sF[3] = {{stdin, NULL}, {stdout, NULL}, {stderr, NULL}};
-#endif
 
 #ifdef _WIN32
 #define popen _popen
