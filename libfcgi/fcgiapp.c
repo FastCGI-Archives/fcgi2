@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.21 2001/06/18 14:25:09 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.22 2001/06/19 16:18:14 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -48,6 +48,7 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.21 2001/06/18 14:25:09 robs Exp 
 #endif
 
 #include "fcgiapp.h"
+#include "fcgiappmisc.h"
 
 #include "fcgimisc.h"
 #include "fastcgi.h"
