@@ -1,4 +1,4 @@
-/* 
+/*
  * fcgios.h --
  *
  *      Description of file.
@@ -8,17 +8,15 @@
  *  All rights reserved.
  *
  *  This file contains proprietary and confidential information and
- *  remains the unpublished property of Open Market, Inc. Use, 
- *  disclosure, or reproduction is prohibited except as permitted by 
- *  express written license agreement with Open Market, Inc. 
+ *  remains the unpublished property of Open Market, Inc. Use,
+ *  disclosure, or reproduction is prohibited except as permitted by
+ *  express written license agreement with Open Market, Inc.
  *
  *  Bill Snapper
  *  snapper@openmarket.com
  */
 #ifndef _FCGIOS_H
 #define _FCGIOS_H
-
-#include <sys/time.h>
 
 #ifdef _WIN32
 #define OS_Errno GetLastError()
@@ -41,7 +39,7 @@
  * a drop-dead timer.  Its only used for AF_UNIX sockets (not TCP sockets).
  * Its a workaround for a kernel bug in Linux 2.0.x and SCO Unixware.
  * Making this as small as possible, yet remain reliable would be best.
- * 2 seconds is very conservative.  0,0 is not reliable.  The shorter the 
+ * 2 seconds is very conservative.  0,0 is not reliable.  The shorter the
  * timeout, the faster request processing will recover.  The longer the
  * timeout, the more likely this application being "busy" will cause other
  * requests to abort and cause more dead sockets that need this timeout. */
@@ -96,11 +94,11 @@ DLLAPI int OS_FcgiConnect(char *bindPath);
 DLLAPI int OS_Read(int fd, char * buf, size_t len);
 DLLAPI int OS_Write(int fd, char * buf, size_t len);
 DLLAPI int OS_SpawnChild(char *execPath, int listenFd);
-DLLAPI int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr, 
+DLLAPI int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr,
                       ClientData clientData);
 DLLAPI int OS_AsyncRead(int fd, int offset, void *buf, int len,
 		 OS_AsyncProc procPtr, ClientData clientData);
-DLLAPI int OS_AsyncWrite(int fd, int offset, void *buf, int len, 
+DLLAPI int OS_AsyncWrite(int fd, int offset, void *buf, int len,
 		  OS_AsyncProc procPtr, ClientData clientData);
 DLLAPI int OS_Close(int fd);
 DLLAPI int OS_CloseRead(int fd);
