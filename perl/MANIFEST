@@ -1,11 +1,11 @@
 ChangeLog
-FCGI.pm
 FCGI.PL
-INSTALL
+FCGI.pm
 MANIFEST
 Makefile.PL
 README
-echo.PL
 configure
 configure.in
+configure.readme
+echo.PL
 typemap

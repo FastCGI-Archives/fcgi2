@@ -1,4 +1,4 @@
-$Id: README,v 1.1 1999/02/13 05:26:45 roberts Exp $
+$Id: README,v 1.2 1999/02/28 17:46:30 skimo Exp $
 
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
@@ -38,7 +38,7 @@ if you don't want that or if it doesn't find them.
 To configure the library Makefile.PL will run ./configure .
 You may want to run it yourself beforehand because its findings
 may not always be correct.
-The INSTALL file describes how to run ./configure (and only that).
+The configure.readme file describes how to run ./configure (and only that).
 
 If you're on a solaris system and your installed fcgi library is 2.02b
 or earlier, you'll probably want to use the included files.

@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.1 1999/02/13 05:26:44 roberts Exp $
+# $Id: Makefile.PL,v 1.2 1999/02/28 17:46:29 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -87,7 +87,7 @@ if ($sys eq "win32") {
 
 } else {
     print "Running ./configure for you\n";
-    print "Please read INSTALL for information on how to run it yourself\n";
+    print "Please read configure.readme for information on how to run it yourself\n";
 
     $ENV{'CC'} = $Config{'cc'};
     system("./configure");
