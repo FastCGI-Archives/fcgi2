@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.13 2000/08/02 12:21:07 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.14 2000/08/02 13:07:40 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -2214,12 +2214,17 @@ int FCGX_Accept_r(FCGX_Request *reqDataPtr)
              */
             break;
         }
+
         /*
          * Close the connection and try again.
          */
-      TryAgain:
+TryAgain:
         FreeParams(&reqDataPtr->paramsPtr);
+        reqDataPtr->paramsPtr = NULL;
+
         FreeStream(&reqDataPtr->in);
+        reqDataPtr->in = NULL;
+
         OS_Close(reqDataPtr->ipcFd);
         reqDataPtr->ipcFd = -1;
     } /* for (;;) */
