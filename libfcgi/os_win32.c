@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.15 2001/06/19 17:11:39 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.16 2001/06/19 21:03:13 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -1672,11 +1672,6 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 
     // @todo Muliple listen sockets and sockets other than 0 are not
     // supported due to the use of globals.
-    if (listen_sock != (int) hListen)
-    {
-        fprintf(stderr, "illegal listen_sock value (%d) for OS_Accept()\n", listen_sock);
-        return -1;
-    }
 
     if (shutdownPending) 
     {
