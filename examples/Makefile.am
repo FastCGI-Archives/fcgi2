@@ -1,8 +1,9 @@
-# $Id: Makefile.am,v 1.5 2001/11/21 15:32:32 robs Exp $
+# $Id: Makefile.am,v 1.6 2001/11/28 03:21:39 robs Exp $
 noinst_PROGRAMS     = authorizer \
 			  echo \
 			  echo-x \
 			  log-dump \
+                          size \
 			  @threaded@  \
 			  @ECHO_CPP@
 
