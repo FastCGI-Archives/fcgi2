@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.10 2001/11/26 18:09:02 robs Exp $
+// $Id: fcgio.h,v 1.11 2001/11/26 19:03:12 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -64,6 +64,8 @@ public:
 
     DLLAPI int attach(FCGX_Stream * fcgx);
 
+protected:
+
     // Consume the put area (if buffered) and c (if c is not EOF).
     DLLAPI virtual int overflow(int);
 
@@ -81,7 +83,6 @@ public:
     // to support the use of the unget()/putback() or seek() methods.  Using
     // a buffer will result in less efficient I/O.  Note: the underlying
     // FastCGI library (FCGX) maintains its own input and output buffers.  
-    // Note: setbuf() is protected in some implementations.
     DLLAPI virtual streambuf * setbuf(char * buf, int len);
 
     DLLAPI virtual int xsgetn(char * s, int n);
