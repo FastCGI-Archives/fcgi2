@@ -1,3 +1,9 @@
+Version 0.54 --	8 October 2000   <skimo@kotnet.org> Sven Verdoolaege
+	
+	o library fixes  ("Rob Saccoccio" <robs@ipass.net>)
+	o compilation issues with newer gcc
+	o completely untested OPEN and READLINE methods
+
 Version 0.53 --	10 July 2000   <skimo@kotnet.org> Sven Verdoolaege
 	
 	o sfio version compiles again

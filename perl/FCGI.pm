@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.10 2000/07/10 09:56:49 skimo Exp $
+# $Id: FCGI.pm,v 1.11 2000/10/08 19:48:23 skimo Exp $
 
 package FCGI;
 
@@ -13,7 +13,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.53';
+$VERSION = '0.54';
 
 bootstrap FCGI;
 
@@ -86,6 +86,32 @@ package FCGI::Stream;
 
 sub PRINTF {
   shift->PRINT(sprintf(shift, @_));
+}
+
+sub READLINE {
+    my $stream = shift;
+    my ($s, $c);
+    my $rs = $/ eq '' ? "\n\n" : $/;
+    my $l = substr $rs, -1;
+    my $len = length $rs;
+
+    $c = $stream->GETC();
+    if ($/ eq '') {
+	while ($c eq "\n") { 
+	    $c = $stream->GETC();
+	}
+    }
+    while (defined $c) {
+	$s .= $c;
+	last if $c eq $l and substr($s, -$len) eq $rs;
+	$c = $stream->GETC();
+    }
+    $s;
+}
+
+sub OPEN {
+    $_[0]->CLOSE;
+    @_ == 2 ? open($_[0], $_[1]) : open($_[0], $_[1], $_[2]);
 }
 
 1;
