@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.5 2001/09/01 00:57:59 robs Exp $
+dnl     $Id: configure.in,v 1.6 2001/09/21 15:05:20 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -11,15 +11,16 @@ dnl     to configure the system for the local environment.
 # file FCGI.XL.  If its not found, its consider a devkit build.
 
 AC_INIT
+AM_INIT_AUTOMAKE(fcgi, 2.2.1)
 
 if test -f "FCGI.XL"; then
 	FCGI_BUILD='true'
 fi
 
 if test "$FCGI_BUILD"; then
-	AC_CONFIG_HEADER([fcgi_config.h])
+	AM_CONFIG_HEADER([fcgi_config.h])
 else
-	AC_CONFIG_HEADER([include/fcgi_config.h])
+	AM_CONFIG_HEADER([include/fcgi_config.h])
 fi
 
 AC_PROG_CC
