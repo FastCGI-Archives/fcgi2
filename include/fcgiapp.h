@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.11 2001/11/17 03:58:30 robs Exp $
+ * $Id: fcgiapp.h,v 1.12 2001/11/21 21:10:11 robs Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -353,20 +353,6 @@ DLLAPI char *FCGX_GetParam(const char *name, FCGX_ParamArray envp);
  * Readers
  *======================================================================
  */
-
-/*
- *----------------------------------------------------------------------
- *
- * FCGX_Peek --
- *
- *      Return the next byte without removing it from the stream.
- *
- * Results:
- *	The byte, or EOF if the end of input has been reached.
- *
- *----------------------------------------------------------------------
- */
-DLLAPI int FCGX_Peek(FCGX_Stream * stream);
 
 /*
  *----------------------------------------------------------------------
