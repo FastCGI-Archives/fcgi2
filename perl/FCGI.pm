@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.16 2000/11/05 19:11:58 skimo Exp $
+# $Id: FCGI.pm,v 1.17 2000/11/12 13:11:13 skimo Exp $
 
 package FCGI;
 
@@ -30,6 +30,7 @@ sub Request(;***$$$) {
 }
 
 sub accept() {
+    warn "accept called as a method; you probably wanted to call Accept" if @_;
     if (defined %FCGI::ENV) {
 	%ENV = %FCGI::ENV;
     } else {
@@ -48,6 +49,7 @@ sub accept() {
 }
 
 sub finish() {
+    warn "finish called as a method; you probably wanted to call Finish" if @_;
     %ENV = %FCGI::ENV if (defined %FCGI::ENV);
 
     # not SFIO
@@ -60,14 +62,17 @@ sub finish() {
 }
 
 sub flush() {
+    warn "flush called as a method; you probably wanted to call Flush" if @_;
     Flush($global_request);
 }
 
 sub detach() {
+    warn "detach called as a method; you probably wanted to call Detach" if @_;
     Detach($global_request);
 }
 
 sub attach() {
+    warn "attach called as a method; you probably wanted to call Attach" if @_;
     Attach($global_request);
 }
 
@@ -199,6 +204,23 @@ or:
     my $req = FCGI::Request($in, $out, $err, \%env);
 
 =item FCGI::OpenSocket(path, backlog)
+
+Creates a socket suitable to use as an argument to Request.
+
+=over 8
+
+=item path
+
+Pathname of socket or colon followed by local tcp port.
+
+=item backlog
+
+Maximum length of the queue of pending connections.
+If a connection
+request arrives with the queue full the client may receive
+an  error  with  an  indication of ECONNREFUSED.
+
+=back
 
 =item FCGI::CloseSocket(socket)
 
