@@ -1,8 +1,8 @@
-bin_PROGRAMS     = authorizer \
-		      echo \
-		      echo-x \
-		      log-dump \
-		      @threaded@
+noinst_PROGRAMS     = authorizer \
+			  echo \
+			  echo-x \
+			  log-dump \
+			  @threaded@
 
 EXTRA_PROGRAMS = threaded
 
