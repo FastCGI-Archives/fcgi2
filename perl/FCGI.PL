@@ -1,585 +1,518 @@
 use Config;
 
-open OUT, ">FCGI.xs";
+do 'FCGI.cfg' or die "no FCGI.cfg";
 
-print "Generating FCGI.xs for Perl version $]\n";
-#unless (exists $Config{apiversion} && $Config{apiversion} >= 5.005) 
-unless ($] >= 5.005) {
-    for (qw(sv_undef diehook warnhook in_eval)) {
-	print OUT "#define PL_$_ $_\n" 
+open OUT, ">FCGI.pm";
+
+print "Generating FCGI.pm\n";
+print OUT <<'EOP';
+# $Id: FCGI.PL,v 1.21 2000/12/31 21:46:58 skimo Exp $
+
+package FCGI;
+
+require Exporter;
+require DynaLoader;
+
+@ISA = qw(Exporter DynaLoader);
+# Items to export into callers namespace by default. Note: do not export
+# names by default without a very good reason. Use EXPORT_OK instead.
+# Do not simply export all your public functions/methods/constants.
+@EXPORT = qw(
+	
+);
+
+$VERSION = '0.58';
+
+EOP
+
+print OUT "bootstrap FCGI;\n" unless ($pure);
+
+print OUT <<'EOP' if ($pure);
+use Symbol;
+use POSIX 'ENOTCONN';
+
+use constant VERSION_1 => 1;
+
+use constant BEGIN_REQUEST => 1;
+use constant PARAMS => 4;
+use constant FCGI_STDIN => 5;
+use constant FCGI_STDOUT => 6;
+use constant FCGI_STDERR => 7;
+
+use constant RESPONDER => 1;
+use constant AUTHORIZER => 2;
+use constant FILTER => 3;
+
+%FCGI::rolenames = (RESPONDER, "RESPONDER",
+		      AUTHORIZER, "AUTHORIZER",
+		      FILTER, "FILTER",
+		     );
+sub IsFastCGI {
+    my ($req) = @_;
+    $req->{isfastcgi} =
+	(!defined getpeername shift->{listen_sock}) && $! == ENOTCONN
+	unless exists $req->{isfastcgi};
+    return $req->{isfastcgi};
+}
+
+sub read_nv_len {
+    my ($stream) = @_;
+    my $buf;
+    return undef unless read $stream, $buf, 1, 0;
+    my ($len) = unpack("C", $buf);
+    if ($len & 0x80) {
+	return undef unless read $stream, $buf, 3, 1;
+	$len = unpack("N", $buf);
+    }
+    $len;
+}
+
+sub RequestX {
+    my $self = {
+	in => shift,
+	out => shift,
+	err => shift,
+	env => shift,
+	socket => shift,
+	flags => shift,
+    };
+    open $self->{listen_sock}, "<&=0";
+    bless $self, "FCGI";
+}
+
+my $run_once = 0;
+
+sub Accept {
+    my ($req) = @_;
+
+    unless ($req->IsFastCGI()) {
+	return -1 if $run_once;
+
+	$run_once = 1;
+	return 0;
+    }
+    $req->Finish();
+    $req->{socket} = gensym();
+    if (!accept($req->{socket}, $req->{listen_sock})) {
+	$req->{error} = "accept";
+	return -1;
+    }
+    my ($type, $id, $body) = $req->read_record();
+    if ($type != BEGIN_REQUEST) {
+	$req->{error} = "begin request";
+	return -1;
+    }
+    my ($role, $flags) = unpack("nC", $body);
+    $req->{role} = $role;
+    $req->{flags} = $flags;
+    $req->{id} = $id;
+
+    %{$req->{env}} = ();
+    $req->{env}{FCGI_ROLE} = $FCGI::rolenames{$req->{role}};
+    my $param = FCGI::Stream->new($req, PARAMS);
+    my ($nlen, $vlen);
+    while (defined($nlen = read_nv_len($param)) && 
+	   defined($vlen = read_nv_len($param))) {
+	my ($name, $val);
+	read $param, $name, $nlen;
+	read $param, $val, $vlen;
+	$req->{env}{$name} = $val;
+    }
+    $req->Bind;
+    $req->{accepted} = 1;
+
+    return 0;
+}
+
+sub UndoBindings {
+    my ($req) = @_;
+    untie ${$req->{in}};
+    untie ${$req->{out}};
+    untie ${$req->{err}};
+    $req->{bound} = 0;
+}
+
+sub Bind {
+    my ($req) = @_;
+    tie ${$req->{in}}, 'FCGI::Stream', $req, FCGI_STDIN;
+    tie ${$req->{out}}, 'FCGI::Stream', $req, FCGI_STDOUT;
+    tie ${$req->{err}}, 'FCGI::Stream', $req, FCGI_STDERR;
+    $req->{bound} = 1;
+}
+
+sub Attach {
+    my ($req) = @_;
+    $req->Bind() if ($req->{accepted} && !$req->{bound});
+}
+
+sub Detach {
+    my ($req) = @_;
+    $req->UndoBindings() if ($req->{accepted} && $req->{bound});
+}
+
+sub Finish {
+    my ($req) = @_;
+    return unless $req->{accepted};
+    if ($req->{bound}) {
+	$req->UndoBindings();
+	close ${$req->{out}};
+	close ${$req->{err}};
+    }
+    $req->{accepted} = 0;
+}
+
+sub DESTROY {
+    shift->Finish();
+}
+
+sub read_record {
+    my ($self) = @_;
+    my ($header, $body);
+
+    read($self->{socket}, $header, 8);
+    my ($version, $type, $id, $clen, $plen) = unpack("CCnnC", $header);
+    read($self->{socket}, $body, $clen+$plen);
+    $body = undef if $clen == 0;
+    ($type, $id, $body);
+}
+
+sub read {
+    my ($self, $rtype, $len) = @_;
+    while (length $self->{buf} < $len) {
+	my ($type, $id, $buf) = $self->read_record();
+	return undef unless defined $buf;
+	if ($type != $rtype) {
+	    $self->{error} = "unexpected stream type";
+	    return 0;
+	}
+	$self->{buf} .= $buf;
+    }
+    my ($newbuf, $result) = (substr($self->{buf}, $len), 
+			     substr($self->{buf}, 0, $len));
+    $self->{buf} = $newbuf;
+    $result;
+}
+
+sub Flush {
+    my ($req) = @_;
+}
+
+sub write {
+    my ($self, $type, $content, $len) = @_;
+    return unless $len > 0;
+    $self->write_record($type, $content, $len);
+}
+
+sub write_record {
+    my ($self, $type, $content, $len) = @_;
+    my $padlen = (8 - ($len % 8)) % 8;
+    my $templ = "CCnnCxa${len}x$padlen";
+    my $data = pack($templ, 
+		    VERSION_1, $type, $self->{id}, $len, $padlen, $content);
+    syswrite $self->{socket}, $data;
+}
+
+{ package FCGI::Stream;
+
+sub new {
+    my ($class, $src, $type) = @_;
+    my $handle = do { \local *FH };
+    tie($$handle, $class, $src, $type);
+    $handle;
+}
+
+sub TIEHANDLE {
+    my ($class, $src, $type) = @_;
+    bless { src => $src, type => $type }, $class;
+}
+
+sub READ {
+    my ($stream, undef, $len, $offset) = @_;
+    my ($ref) = \$_[1];
+    my $buf = $stream->{src}->read($stream->{type}, $len);
+    return undef unless defined $buf;
+    substr($$ref, $offset, 0, $buf);
+    length $buf;
+}
+
+sub PRINT {
+    my ($stream) = shift;
+    for (@_) {
+	$stream->{src}->write($stream->{type}, $_, length($_));
     }
 }
+
+sub CLOSE {
+    my ($stream) = @_;
+    $stream->{src}->write_record($stream->{type}, undef, 0);
+}
+
+}
+
+EOP
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.20 2000/11/14 23:15:20 skimo Exp $ */
 
-#include "EXTERN.h"
-#include "perl.h"
-#include "XSUB.h"
+# Preloaded methods go here.
 
-#include "fcgi_config.h"
-#include "fcgiapp.h"
-#include "fastcgi.h"
+# Autoload methods go after __END__, and are processed by the autosplit program.
 
-#ifndef FALSE
-#define FALSE (0)
-#endif
+*FAIL_ACCEPT_ON_INTR = sub() { 1 };
 
-#ifndef TRUE
-#define TRUE  (1)
-#endif
-
-#ifndef dTHX
-#define dTHX
-#endif
-
-#ifdef USE_SFIO
-typedef struct
-{
-    Sfdisc_t	disc;
-    FCGX_Stream	*stream;
-} FCGI_Disc;
-
-static ssize_t
-sffcgiread(f, buf, n, disc)
-Sfio_t*		f;      /* stream involved */
-Void_t*		buf;    /* buffer to read into */
-size_t		n;      /* number of bytes to read */
-Sfdisc_t*	disc;   /* discipline */
-{
-    return FCGX_GetStr(buf, n, ((FCGI_Disc *)disc)->stream);
+sub Request(;***$$$) {
+    my @defaults = (\*STDIN, \*STDOUT, \*STDERR, \%ENV, 0, 0);
+    splice @defaults,0,@_,@_;
+    RequestX(@defaults);
 }
 
-static ssize_t
-sffcgiwrite(f, buf, n, disc)
-Sfio_t*		f;      /* stream involved */
-const Void_t*	buf;    /* buffer to read into */
-size_t		n;      /* number of bytes to read */
-Sfdisc_t*	disc;   /* discipline */
-{
-    n = FCGX_PutStr(buf, n, ((FCGI_Disc *)disc)->stream);
-    FCGX_FFlush(((FCGI_Disc *)disc)->stream);
-    return n;
-}
-
-Sfdisc_t *
-sfdcnewfcgi(stream)
-	FCGX_Stream *stream;
-{
-    FCGI_Disc*	disc;
-
-    New(1000,disc,1,FCGI_Disc);
-    if (!disc) return (Sfdisc_t *)disc;
-
-    disc->disc.exceptf = (Sfexcept_f)NULL;
-    disc->disc.seekf = (Sfseek_f)NULL;
-    disc->disc.readf = sffcgiread;
-    disc->disc.writef = sffcgiwrite;
-    disc->stream = stream;
-    return (Sfdisc_t *)disc;
-}
-
-Sfdisc_t *
-sfdcdelfcgi(disc)
-    Sfdisc_t*	disc;
-{
-    Safefree(disc);
-    return 0;
-}
-#endif
-
-#if defined(USE_LOCKING) && defined(USE_THREADS)
-static perl_mutex   accept_mutex;
-#endif
-
-typedef struct FCGP_Request {
-    int		    accepted;
-    int		    bound;
-    SV*		    svin;
-    SV*		    svout;
-    SV*		    sverr;
-    GV*		    gv[3];
-    HV*		    hvEnv;
-    FCGX_Request*   requestPtr;
-#ifdef USE_SFIO
-    int		    sfcreated[3];
-    IO*		    io[3];
-#endif
-} FCGP_Request;
-
-static void FCGI_Finish(FCGP_Request* request);
-
-static int 
-FCGI_Flush(FCGP_Request* request)
-{
-    dTHX;
-
-    if(!request->bound) {
-	return;
-    }
-#ifdef USE_SFIO
-    sfsync(IoOFP(GvIOp(request->gv[1])));
-    sfsync(IoOFP(GvIOp(request->gv[2])));
-#else
-    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->svout)));
-    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->sverr)));
-#endif
-}
-
-static void
-FCGI_UndoBinding(FCGP_Request* request)
-{
-    dTHX;
-
-#ifdef USE_SFIO
-    sfdcdelfcgi(sfdisc(IoIFP(request->io[0]), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(IoOFP(request->io[1]), SF_POPDISC));
-    sfdcdelfcgi(sfdisc(IoOFP(request->io[2]), SF_POPDISC));
-#else
-    sv_unmagic((SV *)request->gv[0], 'q');
-    sv_unmagic((SV *)request->gv[1], 'q');
-    sv_unmagic((SV *)request->gv[2], 'q');
-#endif
-    request->bound = FALSE;
-}
-
-static void
-FCGI_Bind(FCGP_Request* request)
-{
-    dTHX;
-
-#ifdef USE_SFIO
-    sfdisc(IoIFP(request->io[0]), sfdcnewfcgi(request->requestPtr->in));
-    sfdisc(IoOFP(request->io[1]), sfdcnewfcgi(request->requestPtr->out));
-    sfdisc(IoOFP(request->io[2]), sfdcnewfcgi(request->requestPtr->err));
-#else
-    sv_magic((SV *)request->gv[1], request->svout, 'q', Nullch, 0);
-    sv_magic((SV *)request->gv[2], request->sverr, 'q', Nullch, 0);
-    sv_magic((SV *)request->gv[0], request->svin, 'q', Nullch, 0);
-#endif
-    request->bound = TRUE;
-}
-
-static void
-populate_env(envp, hv)
-char **envp;
-HV *hv;
-{
-    int i;
-    char *p, *p1;
-    SV   *sv;
-    dTHX;
-
-    hv_clear(hv);
-    for(i = 0; ; i++) {
-	if((p = envp[i]) == NULL) {
-	    break;
-	}
-	p1 = strchr(p, '=');
-	assert(p1 != NULL);
-	sv = newSVpv(p1 + 1, 0);
-	/* call magic for this value ourselves */
-	hv_store(hv, p, p1 - p, sv, 0);
-	SvSETMAGIC(sv);
-    }
-}
-
-static int
-FCGI_IsFastCGI(FCGP_Request* request)
-{
-    static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: CGI */
-
-    if (request->requestPtr->listen_sock == FCGI_LISTENSOCK_FILENO) {
-	if (isCGI == -1)
-	    isCGI = FCGX_IsCGI();
-	return !isCGI;
-    }
-
-    /* A explicit socket is being used -> assume FastCGI */
-    return 1;
-}
-
-static int 
-FCGI_Accept(FCGP_Request* request)
-{
-    dTHX;
-
-    if (!FCGI_IsFastCGI(request)) {
-	static int been_here = 0;
-
-        /*
-         * Not first call to FCGI_Accept and running as CGI means
-         * application is done.
-         */
-	if (been_here)
-	    return EOF;
-
-	been_here = 1;
+sub accept() {
+    warn "accept called as a method; you probably wanted to call Accept" if @_;
+    if (defined %FCGI::ENV) {
+	%ENV = %FCGI::ENV;
     } else {
-#ifdef USE_SFIO
-	int i;
-#endif
-	FCGX_Request *fcgx_req = request->requestPtr;
-        int acceptResult;
-
-	FCGI_Finish(request);
-#if defined(USE_LOCKING) && defined(USE_THREADS)
-	MUTEX_LOCK(&accept_mutex);
-#endif
-	acceptResult = FCGX_Accept_r(fcgx_req);
-#if defined(USE_LOCKING) && defined(USE_THREADS)
-	MUTEX_UNLOCK(&accept_mutex);
-#endif
-        if(acceptResult < 0) {
-            return acceptResult;
-        }
-
-	populate_env(fcgx_req->envp, request->hvEnv);
-
-#ifdef USE_SFIO
-	for (i = 0; i < 3; ++i) {
-	    request->io[i] = GvIOn(request->gv[i]);
-	    if (!(i == 0 ? IoIFP(request->io[i]) 
-			 : IoOFP(request->io[i]))) {
-		IoIFP(request->io[i]) = sftmp(0);
-		/*IoIFP(request->io[i]) = sfnew(NULL, NULL, SF_UNBOUND, 0, 
-				     SF_STRING | (i ? SF_WRITE : SF_READ));*/
-		if (i != 0) 
-		    IoOFP(request->io[i]) = IoIFP(request->io[i]);
-		request->sfcreated[i] = TRUE;
-	    }
-	}
-#else
-	if (!request->svout) {
-	    newSVrv(request->svout = newSV(0), "FCGI::Stream");
-	    newSVrv(request->sverr = newSV(0), "FCGI::Stream");
-	    newSVrv(request->svin = newSV(0), "FCGI::Stream");
-	}
-	sv_setiv(SvRV(request->svout), (IV) fcgx_req->out);
-	sv_setiv(SvRV(request->sverr), (IV) fcgx_req->err);
-	sv_setiv(SvRV(request->svin), (IV) fcgx_req->in);
-#endif
-	FCGI_Bind(request);
-	request->accepted = TRUE;
+	%FCGI::ENV = %ENV;
     }
-    return 0;
-}
-
-static void 
-FCGI_Finish(FCGP_Request* request)
-{
-#ifdef USE_SFIO
-    int i;
-#endif
-    int was_bound;
-    dTHX;
-
-    if(!request->accepted) {
-	return;
+    my $rc = Accept($global_request);
+    for (keys %FCGI::ENV) {
+	$ENV{$_} = $FCGI::ENV{$_} unless exists $ENV{$_};
     }
 
-    if (was_bound = request->bound) {
-	FCGI_UndoBinding(request);
+    # not SFIO
+    $SIG{__WARN__} = $warn_handler if (tied (*STDIN));
+    $SIG{__DIE__} = $die_handler if (tied (*STDIN));
+
+    return $rc;
+}
+
+sub finish() {
+    warn "finish called as a method; you probably wanted to call Finish" if @_;
+    %ENV = %FCGI::ENV if (defined %FCGI::ENV);
+
+    # not SFIO
+    if (tied (*STDIN)) {
+	delete $SIG{__WARN__} if ($SIG{__WARN__} == $warn_handler);
+	delete $SIG{__DIE__} if ($SIG{__DIE__} == $die_handler);
     }
-#ifdef USE_SFIO
-    for (i = 0; i < 3; ++i) {
-	if (request->sfcreated[i]) {
-	    sfclose(IoIFP(request->io[i]));
-	    IoIFP(request->io[i]) = IoOFP(request->io[i]) = Nullfp;
-	    request->sfcreated[i] = FALSE;
+
+    Finish ($global_request);
+}
+
+sub flush() {
+    warn "flush called as a method; you probably wanted to call Flush" if @_;
+    Flush($global_request);
+}
+
+sub detach() {
+    warn "detach called as a method; you probably wanted to call Detach" if @_;
+    Detach($global_request);
+}
+
+sub attach() {
+    warn "attach called as a method; you probably wanted to call Attach" if @_;
+    Attach($global_request);
+}
+
+# deprecated
+sub set_exit_status {
+}
+
+sub start_filter_data() {
+    StartFilterData($global_request);
+}
+
+$global_request = Request();
+$warn_handler = sub { print STDERR @_ };
+$die_handler = sub { print STDERR @_ unless $^S };
+
+package FCGI::Stream;
+
+sub PRINTF {
+  shift->PRINT(sprintf(shift, @_));
+}
+
+sub READLINE {
+    my $stream = shift;
+    my ($s, $c);
+    my $rs = $/ eq '' ? "\n\n" : $/;
+    my $l = substr $rs, -1;
+    my $len = length $rs;
+
+    $c = $stream->GETC();
+    if ($/ eq '') {
+	while ($c eq "\n") { 
+	    $c = $stream->GETC();
 	}
     }
-#endif
-    if (was_bound)
-	FCGX_Finish_r(request->requestPtr);
-    else
-	FCGX_Free(request->requestPtr);
-    request->accepted = FALSE;
+    while (defined $c) {
+	$s .= $c;
+	last if $c eq $l and substr($s, -$len) eq $rs;
+	$c = $stream->GETC();
+    }
+    $s;
 }
 
-static int 
-FCGI_StartFilterData(FCGP_Request* request)
-{
-    return request->requestPtr->in ? 
-	    FCGX_StartFilterData(request->requestPtr->in) : -1;
+sub OPEN {
+    $_[0]->CLOSE;
+    if (@_ == 2) {
+	return open($_[0], $_[1]);
+    } else {
+	my $rc;
+	eval("$rc = open($_[0], $_[1], $_[2])");
+	die $@ if $@;
+	return $rc;
+    }
 }
 
-static FCGP_Request *
-FCGI_Request(in, out, err, env, socket, flags)
-    GV*	    in;
-    GV*	    out;
-    GV*	    err;
-    HV*	    env;
-    int	    socket;
-    int	    flags;
-{
-    FCGX_Request* fcgx_req;
-    FCGP_Request* req;
-
-    Newz(551, fcgx_req, 1, FCGX_Request);
-    FCGX_InitRequest(fcgx_req, socket, flags);
-    Newz(551, req, 1, FCGP_Request);
-    req->requestPtr = fcgx_req;
-    req->gv[0] = in;
-    req->gv[1] = out;
-    req->gv[2] = err;
-    req->hvEnv = env;
-
-    return req;
-}
-
-static void
-FCGI_Release_Request(FCGP_Request *req)
-{
-    FCGI_Finish(req);
-    Safefree(req->requestPtr);
-    Safefree(req);
-}
-
-static void
-FCGI_Init()
-{
-#if defined(USE_LOCKING) && defined(USE_THREADS)
-    dTHX;
-
-    MUTEX_INIT(&accept_mutex);
-#endif
-
-    FCGX_Init();
-}
-
-typedef FCGX_Stream *	FCGI__Stream;
-typedef FCGP_Request *	FCGI;
-typedef	GV*		GLOBREF;
-typedef	HV*		HASHREF;
+1;
 
-MODULE = FCGI		PACKAGE = FCGI	    PREFIX = FCGI_
-
-BOOT:
-    FCGI_Init();
-
-SV *
-RequestX(in, out, err, env, socket, flags)
-    GLOBREF in;
-    GLOBREF out;
-    GLOBREF err;
-    HASHREF env;
-    int	    socket;
-    int	    flags;
+=pod
 
-    PROTOTYPE: ***$$$
-    CODE:
-    RETVAL = sv_setref_pv(newSV(0), "FCGI", 
-		FCGI_Request(in, out, err, env, socket, flags));
+=head1 NAME
 
-    OUTPUT:
-    RETVAL
+FCGI - Fast CGI module
 
-int
-OpenSocket(path, backlog)
-    char* path;
-    int backlog;
+=head1 SYNOPSIS
 
-    PROTOTYPE: $$
-    CODE:
-    RETVAL = FCGX_OpenSocket(path, backlog);
-    OUTPUT:
-    RETVAL
+    use FCGI;
 
-void
-CloseSocket(socket)
-    int socket;
+    my $count = 0;
+    my $request = FCGI::Request();
 
-    PROTOTYPE: $
-    CODE:
-    close(socket);
+    while($request->Accept() >= 0) {
+	print("Content-type: text/html\r\n\r\n", ++$count);
+    }
 
-int
-FCGI_Accept(request)
+=head1 DESCRIPTION
 
-    FCGI    request;
+Functions:
 
-    PROTOTYPE: $
+=over 4
 
-void
-FCGI_Finish(request)
-    FCGI    request;
+=item FCGI::Request
 
-    PROTOTYPE: $
+Creates a request handle. It has the following optional parameters:
 
-void
-FCGI_Flush(request)
-    FCGI    request;
+=over 8
 
-    PROTOTYPE: $
+=item input perl file handle (default: \*STDIN)
 
-HV *
-GetEnvironment(request)
-    FCGI    request;
+=item output perl file handle (default: \*STDOUT)
 
-    PROTOTYPE: $
+=item error perl file handle (default: \*STDERR)
 
-    CODE:
-    RETVAL = request->hvEnv;
+These filehandles will be setup to act as input/output/error
+on succesful Accept.
 
-    OUTPUT: 
-    RETVAL
+=item environment hash reference (default: \%ENV)
 
-void
-GetHandles(request)
-    FCGI    request;
+The hash will be populated with the environment.
 
-    PROTOTYPE: $
+=item socket (default: 0)
 
-    PREINIT:
-    int	    i;
+Socket to communicate with the server.
+Can be the result of the OpenSocket function.
+For the moment, it's the file descriptor of the socket
+that should be passed. This may change in the future.
 
-    PPCODE:
-    EXTEND(sp,3);
-    for (i = 0; i < 3; ++i)
-	PUSHs(sv_2mortal(newRV((SV *) request->gv[i])));
+=item flags (default: 0)
 
-int
-FCGI_IsFastCGI(request)
-    FCGI    request;
+Possible values:
 
-    PROTOTYPE: $
+=over 12
 
-void
-Detach(request)
+=item FCGI::FAIL_ACCEPT_ON_INTR
 
-    FCGI    request;
+If set, Accept will fail if interrupted.
+It not set, it will just keep on waiting.
 
-    PROTOTYPE: $
+=back
 
-    CODE:
-    if (request->accepted && request->bound)
-	FCGI_UndoBinding(request);
+=back
 
-void
-Attach(request)
+Example usage:
+    my $req = FCGI::Request;
 
-    FCGI    request;
+or:
+    my %env;
+    my $in = new IO::Handle;
+    my $out = new IO::Handle;
+    my $err = new IO::Handle;
+    my $req = FCGI::Request($in, $out, $err, \%env);
 
-    PROTOTYPE: $
+=item FCGI::OpenSocket(path, backlog)
 
-    CODE:
-    if (request->accepted && !request->bound)
-	FCGI_Bind(request);
+Creates a socket suitable to use as an argument to Request.
 
+=over 8
 
-int
-FCGI_StartFilterData(request)
+=item path
 
-    FCGI    request;
+Pathname of socket or colon followed by local tcp port.
 
-    PROTOTYPE: $
+=item backlog
 
-void
-DESTROY(request)
-    FCGI    request;
+Maximum length of the queue of pending connections.
+If a connection
+request arrives with the queue full the client may receive
+an  error  with  an  indication of ECONNREFUSED.
 
-    CODE:
-    FCGI_Release_Request(request);
+=back
 
+=item FCGI::CloseSocket(socket)
 
+Close a socket opened with OpenSocket.
 
-MODULE = FCGI		PACKAGE = FCGI::Stream
+=item $req->Accept()
 
-#ifndef USE_SFIO
+Accepts a connection on $req, attaching the filehandles and
+populating the environment hash.
+Returns 0 on success.
+If a connection has been accepted before, the old
+one will be finished first.
 
-void
-PRINT(stream, ...)
-	FCGI::Stream	stream;
+Note that unlike with the old interface, no die and warn
+handlers are installed by default. This means that if
+you are not running an sfio enabled perl, any warn or
+die message will not end up in the server's log by default.
+It is advised you set up die and warn handlers yourself.
+FCGI.pm contains an example of die and warn handlers.
 
-	PREINIT:
-	int	n;
+=item $req->Finish()
 
-	CODE:
-	for (n = 1; n < items; ++n) {
-            STRLEN len;
-            register char *tmps = (char *)SvPV(ST(n),len);
-            FCGX_PutStr(tmps, len, stream);
-	}
-	if (SvTRUEx(perl_get_sv("|", FALSE))) 
-	    FCGX_FFlush(stream);
+Finishes accepted connection.
+Also detaches filehandles.
 
-int
-WRITE(stream, bufsv, len, ...)
-	FCGI::Stream	stream;
-	SV *	bufsv;
-	int	len;
+=item $req->Flush()
 
-	PREINIT:
-	int	offset;
-	char *	buf;
-	STRLEN	blen;
-	int	n;
+Flushes accepted connection.
 
-	CODE:
-	offset = (items == 4) ? (int)SvIV(ST(3)) : 0;
-	buf = SvPV(bufsv, blen);
-	if (offset < 0) offset += blen;
-	if (len > blen - offset)
-	    len = blen - offset;
-	if (offset < 0 || offset >= blen ||
-		(n = FCGX_PutStr(buf+offset, len, stream)) < 0) 
-	    ST(0) = &PL_sv_undef;
-	else {
-	    ST(0) = sv_newmortal();
-	    sv_setpvf(ST(0), "%c", n);
-	}
+=item $req->Detach()
 
-int
-READ(stream, bufsv, len, ...)
-	FCGI::Stream	stream;
-	SV *	bufsv;
-	int	len;
+Temporarily detaches filehandles on an accepted connection.
 
-	PREINIT:
-	int	offset;
-	char *	buf;
+=item $req->Attach()
 
-	CODE:
-	offset = (items == 4) ? (int)SvIV(ST(3)) : 0;
-	if (! SvOK(bufsv))
-	    sv_setpvn(bufsv, "", 0);
-	buf = SvGROW(bufsv, len+offset+1);
-	len = FCGX_GetStr(buf+offset, len, stream);
-	SvCUR_set(bufsv, len+offset);
-	*SvEND(bufsv) = '\0';
-	(void)SvPOK_only(bufsv);
-	SvSETMAGIC(bufsv);
-	RETVAL = len;
+Re-attaches filehandles on an accepted connection.
 
-	OUTPUT:
-	RETVAL
+=item $env = $req->GetEnvironment()
 
-SV *
-GETC(stream)
-	FCGI::Stream	stream;
+Returns the environment parameter passed to FCGI::Request.
 
-	PREINIT:
-	int	retval;
+=item ($in, $out, $err) = $req->GetHandles()
 
-	CODE:
-	if ((retval = FCGX_GetChar(stream)) != -1) {
-	    ST(0) = sv_newmortal();
-	    sv_setpvf(ST(0), "%c", retval);
-	} else ST(0) = &PL_sv_undef;
+Returns the file handle parameters passed to FCGI::Request.
 
-bool
-CLOSE(stream)
-	FCGI::Stream	stream;
+=item $isfcgi = $req->IsFastCGI()
 
-#	ALIAS:
-#	DESTROY = 1
+Returns whether or not the program was run as a FastCGI.
 
-	CODE:
-	RETVAL = FCGX_FClose(stream) != -1;
+=back
 
-	OUTPUT:
-	RETVAL
+=head1 AUTHOR
 
-#endif
+Sven Verdoolaege <skimo@kotnet.org>
+
+=cut
+
+__END__

@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.7 2000/12/11 22:00:36 skimo Exp $
+# $Id: Makefile.PL,v 1.8 2000/12/31 21:46:59 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -11,6 +11,13 @@ use Cwd 'cwd';
 @dist1 = qw(LICENSE.TERMS acconfig.h);
 @dist2 = qw(fcgiapp.c os_unix.c os_win32.c);
 @dist3 = (@h1, qw(fcgi_config.h.in fcgi_config_x86.h));
+
+$pure = 
+    (prompt("Do you want to use the pure perl implementation", "no") =~ /^y/) 
+    ? "1" : "0";
+open(CFG,">FCGI.cfg");
+print CFG "\$pure = $pure;1;\n";
+close CFG;
 
 $devkit = cwd() . "/..";
 
@@ -55,15 +62,25 @@ push(@extras,
     ABSTRACT => 'Fast CGI module',
     AUTHOR   => 'Sven Verdoolaege (skimo@kotnet.org)')
         if ($ExtUtils::MakeMaker::VERSION >= 5.4301); 
+
+$plfiles = { 'echo.PL' => 'echo.fpl', 
+	     'remote.PL' => 'remote.fpl',
+	     'threaded.PL' => 'threaded.fpl',
+	     'FCGI.PL' => 'FCGI.pm',
+	   };
+$plfiles->{'FCGI.XL'} = 'FCGI.xs' unless $pure;
+unless ($pure) {
+    push @extras,
+	'LIBS'	=> [ @libs ],
+	'OBJECT'	=> "@o",
+	'INC'	=> $inc;
+}
         
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
-WriteMakefile(
+$mm = MM->new({
     'NAME'		=> 'FCGI',
-    'VERSION_FROM'	=> 'FCGI.pm',
-    'LIBS'		=> [ @libs ],
-    'OBJECT'	=> "@o",
-    'INC'		=> $inc,
+    'VERSION_FROM'	=> 'FCGI.PL',
     'dist'		=> { 'COMPRESS' => 'gzip -9f', 
 		             'SUFFIX' => 'gz',
 			     'PREOP' => '$(CP) '.join(' ',
@@ -76,14 +93,15 @@ WriteMakefile(
 			      'POSTOP' => 
 				'$(MV) MANIFEST.old MANIFEST',
 			    },
-    'clean'		=> { FILES => 'config.cache fcgi_config.h' },
-    'PL_FILES'	=> { 'echo.PL' => 'echo.fpl', 
-		     'remote.PL' => 'remote.fpl',
-		     'threaded.PL' => 'threaded.fpl',
-		     'FCGI.PL' => 'FCGI.xs',
-		   },
+    'clean'		=> { FILES => 'config.cache fcgi_config.h FCGI.pm' . 
+				      ' FCGI.xs FCGI.c FCGI.cfg' },
+    'PL_FILES'		=> $plfiles,
+    PM			=> {'FCGI.pm' => '$(INST_ARCHLIBDIR)/FCGI.pm'},
     @extras,
-);
+});
+# don't install oldinterface pod
+delete $mm->{MAN3PODS}{oldinterface.pod};
+$mm->flush;
 
 exit if -f 'fcgi_config.h' or $prefix;
 
