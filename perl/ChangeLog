@@ -1,0 +1,107 @@
+Version 0.43 -- 22 December 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o POST on bigendians (Paul GABORIT <gaborit@enstimac.fr>)
+	o Some win32 changes (Monty <xiphmont@fastserv.com>)
+	o library fixes  ("Rob Saccoccio" <robs@ipass.net>)
+
+Version 0.42 -- 28 August 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o environ fixes ?
+	o print NULLs (Ken Alexander <kalex@eecs.umich.edu>)
+	o PRINTF support
+	o set version in FCGI.pm
+	o library fixes  ("Rob Saccoccio" <robs@ipass.net>)
+
+Version 0.41 -- 29 July 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o Compiles with perl 5.005
+
+Version 0.40 -- 15 July 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o Added default die hook
+	o Minimal documentation
+
+Version 0.39 -- 3 July 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o Fixed read bug
+
+Version 0.38 -- 28 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o Fixed flush bug
+	o Added default warn hook
+
+Version 0.37 -- 27 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o More support for tied handles
+	o Added flush function
+
+Version 0.36 -- 23 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o More support for tied handles (GETC and autoflushing)
+
+Version 0.35 -- 22 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o Added forgotten typemap
+
+Version 0.34 -- 17 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+	
+	o No longer force sfio less compile
+	o Update os_unix.c from fcgi2.0b2.1
+	o Small documentation changes
+
+Version 0.33 -- 16 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o More support for tied handles
+
+Version 0.32 -- 16 June 1998  <skimo@kotnet.org> Sven Verdoolaege
+
+	o Preliminary support for tied handles (doesn't require sfio)
+	o Force sfio less compile
+	o Changed protoype of set_exit_status
+
+Version 0.31 -- 13 July 1997  <skimo@breughel.ufsia.ac.be> Sven Verdoolaege
+
+	o Applied solaris accept patch from
+	  Chip Salzenberg <chip@rio.atlantic.net>
+	o Preliminary support glibc's cookie mechanism
+
+Version 0.30 -- 24 June 1997  <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o Added forgotten library files
+
+Version 0.29 -- 10 June 1997 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o Updated library files from fastcgi 2.02b
+	o Use installed library/include file if found
+
+Version 0.28 -- 24 February 1997 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o Intialization of %ENV did not change environ. Fixed.
+	  Problem reported by Jan Drehmer <Jan.X.Drehmer@telia.se>
+
+Version 0.26 -- 19 February 1997 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o Flush output when $| is set to eliminate a problem reported
+	  by echo@echo.cica.fr
+
+Version 0.25 -- 13 October 1996 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o Eliminate some warnings
+	o Check whether perl is compiled with sfio support
+
+Version 0.25 -- 25 September 1996 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o First public release
+	o Additional bugfixes
+
+Version 0.21 -- 20 September 1996 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o Bugfix
+
+Version 0.2 -- 19 September 1996 <skimo@dns.ufsia.ac.be> Sven Verdoolaege
+
+	o First Version based on sfio
+
+Version 0.1 -- 12 June 1996
+
+	o Original version from Open Market's FastCGI Developer's Kit

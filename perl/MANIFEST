@@ -1,0 +1,11 @@
+ChangeLog
+FCGI.pm
+FCGI.PL
+INSTALL
+MANIFEST
+Makefile.PL
+README
+echo.PL
+configure
+configure.in
+typemap

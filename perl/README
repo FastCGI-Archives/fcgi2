@@ -1,0 +1,52 @@
+$Id: README,v 1.1 1999/02/13 05:26:45 roberts Exp $
+
+    Copyright (c) 1996 Open Market, Inc.
+    See the file "LICENSE.TERMS" for information on usage and redistribution
+    of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+
+    Copyright (c) 1996-1998 Sven Verdoolaege
+    No additional restrictions/warranties.
+
+This is a Fast CGI module for perl. It's based on the FCGI module
+that comes with Open Market's FastCGI Developer's Kit, but does
+not require you to recompile perl.
+
+It even no longer requires perl to be compiled with sfio.
+The sfio version has had more testing though.
+To compile with sfio you'll need at least perl 5.003_02 and you'll have
+to have configured it with eg './Configure -Duseperlio -Dusesfio'.
+(See the INSTALL file that comes with the perl distribution.)
+To compile without sfio you'll need an even more recent perl version.
+(perl 5.004 and up should be fine.)
+
+See http://fastcgi.idle.com/ for more information about fastcgi.
+Lincoln D. Stein's perl CGI module also contains some information
+about fastcgi programming.
+
+See echo.fpl for an example on how to use this module.
+
+To install, do the usual
+
+perl Makefile.PL
+make
+make install
+
+If Makefile.PL finds an already installed (exported) fcgi library
+it will use that instead of the included files. Edit Makefile.PL
+if you don't want that or if it doesn't find them.
+
+To configure the library Makefile.PL will run ./configure .
+You may want to run it yourself beforehand because its findings
+may not always be correct.
+The INSTALL file describes how to run ./configure (and only that).
+
+If you're on a solaris system and your installed fcgi library is 2.02b
+or earlier, you'll probably want to use the included files.
+
+The FCGI module installs die and warn handlers that merely print
+the error/warning to STDERR (the default handlers print directly
+to stderr, which isn't redirected in the non sfio case). I'm not
+very happy with the result. Suggestions welcome.
+
+Sven Verdoolaege
+skimo@kotnet.org
