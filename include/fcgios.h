@@ -20,10 +20,6 @@
 
 #include "fcgi_config.h"
 
-#ifdef _WIN32
-#include <io.h>
-#endif
-
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -34,24 +30,18 @@ extern "C" {
 
 
 #ifdef _WIN32
-
 #define OS_Errno GetLastError()
 #define OS_SetErrno(err) SetLastError(err)
-
 #ifndef DLLAPI
 #define DLLAPI __declspec(dllimport)
 #endif
-
 #ifndef O_NONBLOCK
 #define O_NONBLOCK     0x0004  /* no delay */
 #endif
-
 #else /* !_WIN32 */
-
 #define DLLAPI
 #define OS_Errno errno
 #define OS_SetErrno(err) errno = (err)
-
 #endif /* !_WIN32 */
 
 /* This is the initializer for a "struct timeval" used in a select() call
