@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.4 1998/12/09 03:25:43 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.5 1998/12/09 05:41:38 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -51,6 +51,7 @@ static const char rcsid[] = "$Id: os_unix.c,v 1.4 1998/12/09 03:25:43 roberts Ex
 #include <netinet/in.h>
 #endif
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 
 #include "fcgios.h"
 
@@ -990,11 +991,19 @@ int OS_FcgiIpcAccept(char *clientAddrList)
             * if the address isn't valid, close the connection and
             * try again.
             */
-            if ((sa.in.sin_family == AF_INET)
-                    && (!ClientAddrOK(&sa.in, clientAddrList))) {
-                close(socket);
-                continue;
-            } 
+            if (sa.in.sin_family == AF_INET) {
+#ifdef TCP_NODELAY
+                /* No replies to outgoing data, so disable Nagle algorithm */
+                int set = 1;
+                setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, 
+                           (char *)&set, sizeof(set));
+#endif            
+                if (!ClientAddrOK(&sa.in, clientAddrList)) {
+                    close(socket);
+                    continue;
+                }
+                
+            }
             break;
         }
 
