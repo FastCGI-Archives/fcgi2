@@ -7,7 +7,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: tiny-authorizer.c,v 1.3 1999/08/03 13:34:36 roberts Exp $
+ * $Id: authorizer.c,v 1.1 2001/06/19 15:30:02 robs Exp $
  */
 
 #include "fcgi_stdio.h"
