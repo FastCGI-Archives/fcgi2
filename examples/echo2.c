@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: echo2.c,v 1.3 1999/06/10 21:20:35 roberts Exp $";
+static const char rcsid[] = "$Id: echo2.c,v 1.4 1999/07/26 05:33:00 roberts Exp $";
 #endif /* not lint */
 
 #if defined HAVE_UNISTD_H || __linux__
@@ -37,7 +37,7 @@ static void PrintEnv(FCGX_Stream *out, char *label, char **envp)
     FCGX_FPrintF(out, "</pre><p>\n");
 }
 
-void main ()
+int main ()
 {
     FCGX_Stream *in, *out, *err;
     FCGX_ParamArray envp;
@@ -78,4 +78,6 @@ void main ()
         PrintEnv(out, "Request environment", envp);
         PrintEnv(out, "Initial environment", environ);
     } /* while */
+
+    exit(0);
 }

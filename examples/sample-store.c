@@ -46,7 +46,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: sample-store.c,v 1.2 1999/01/30 22:27:34 roberts Exp $";
+static const char rcsid[] = "$Id: sample-store.c,v 1.3 1999/07/26 05:33:00 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_stdio.h"  /* FCGI_Accept, FCGI_Finish, stdio */
@@ -67,7 +67,7 @@ int fsync(int fd);
  * sample-store is designed to be configured as follows (for the OM server):
  *
  * SI_Department SampleStoreDept -EnableAnonymousTicketing 1
- * Region /SampleStore/* { SI_RequireSI SampleStoreDept 1 }
+ * Region /SampleStore/ *  { SI_RequireSI SampleStoreDept 1 }
  *
  * Filemap /SampleStore $fcgi-devel-kit/examples/SampleStore
  * AppClass  SampleStoreAppClass \
@@ -77,7 +77,7 @@ int fsync(int fd);
  *     -initial-env CART_HOLD_MINUTES=240 \
  *     -processes 2 -affinity
  * Responder SampleStoreAppClass /SampleStore/App
- * AuthorizeRegion /SampleStore/Protected/* SampleStoreAppClass
+ * AuthorizeRegion /SampleStore/Protected/ *  SampleStoreAppClass
  *
  * sample-store looks for three initial environment variables:
  *
@@ -168,15 +168,18 @@ static void ConditionalCheckpoint(void);
  * calling FCGI_Accept and performing the accepted request.
  * Do cleanup operations incrementally between requests.
  */
-void main(void)
+int main(void)
 {
     Initialize();
-    while(FCGI_Accept() >= 0) {
+
+    while (FCGI_Accept() >= 0) {
         PerformRequest();
         FCGI_Finish();
         GarbageCollectStep();
         ConditionalCheckpoint();
     }
+
+    return 0;
 }
 
 /*

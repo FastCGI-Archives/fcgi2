@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: log-dump.c,v 1.2 1999/01/30 22:27:33 roberts Exp $";
+static const char rcsid[] = "$Id: log-dump.c,v 1.3 1999/07/26 05:33:01 roberts Exp $";
 #endif /* not lint */
 
 #if defined HAVE_UNISTD_H || defined __linux__
@@ -30,9 +30,7 @@ int kill(pid_t pid, int sig);
 #include "fcgi_stdio.h"
 #include <stdlib.h>
 #include <signal.h>
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
+#include <string.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -44,7 +42,7 @@ int kill(pid_t pid, int sig);
 static int successCount = 0;
 static int failureCount = 0;
 
-void main(void)
+int main(void)
 {
     char *queryString = NULL;
     char *rolePtr;
@@ -137,4 +135,6 @@ void main(void)
 	    continue;
 	}
     }
+	
+    exit(0);
 }

@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: tiny-fcgi2.c,v 1.2 1999/01/30 22:27:37 roberts Exp $";
+static const char rcsid[] = "$Id: tiny-fcgi2.c,v 1.3 1999/07/26 05:32:58 roberts Exp $";
 #endif /* not lint */
 
 #if defined HAVE_UNISTD_H || defined __linux__
@@ -25,12 +25,13 @@ static const char rcsid[] = "$Id: tiny-fcgi2.c,v 1.2 1999/01/30 22:27:37 roberts
 #include <process.h>
 #endif
 
-void main(void)
+int main(void)
 {
     FCGX_Stream *in, *out, *err;
     FCGX_ParamArray envp;
     int count = 0;
-    while(FCGX_Accept(&in, &out, &err, &envp) >= 0)
+
+    while (FCGX_Accept(&in, &out, &err, &envp) >= 0) {
         FCGX_FPrintF(out,
                "Content-type: text/html\r\n"
                "\r\n"
@@ -39,4 +40,7 @@ void main(void)
                "Request number %d running on host <i>%s</i>  "
                "Process ID: %d\n",
                ++count, FCGX_GetParam("SERVER_NAME", envp), getpid());
+    }
+
+    return 0;
 }

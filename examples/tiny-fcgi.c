@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.2 1999/01/30 22:27:36 roberts Exp $";
+static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.3 1999/07/26 05:32:58 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_stdio.h"
@@ -26,7 +26,7 @@ static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.2 1999/01/30 22:27:36 roberts 
 #include <process.h>
 #endif
 
-void main(void)
+int main(void)
 {
     int count = 0;
     while(FCGI_Accept() >= 0) {
@@ -38,4 +38,6 @@ void main(void)
                "Process ID: %d\n",
                ++count, getenv("SERVER_NAME"), getpid());
     }
+
+    return 0;
 }
