@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.19 2000/08/26 13:58:33 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.20 2000/09/20 15:45:29 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -835,6 +835,20 @@ int OS_DoIo(struct timeval *tmo)
     return 0;
 }
 
+/* 
+ * Not all systems have strdup().  
+ * @@@ autoconf should determine whether or not this is needed, but for now..
+ */
+char * str_dup(const char * str)
+{
+    char * sdup = (char *) malloc(strlen(str) + 1);
+
+    if (sdup)
+        strcpy(sdup, str);
+
+    return sdup;
+}
+
 
 /*
  *----------------------------------------------------------------------
@@ -853,29 +867,24 @@ static int ClientAddrOK(struct sockaddr_in *saPtr, const char *clientList)
 {
     int result = FALSE;
     char *clientListCopy, *cur, *next;
-    char *newString = NULL;
-    int strLen;
 
-    if(clientList == NULL || *clientList == '\0') {
+    if (clientList == NULL || *clientList == '\0') {
         return TRUE;
     }
 
-    strLen = strlen(clientList);
-    clientListCopy = (char *)malloc(strLen + 1);
-    ASSERT(newString != NULL);
-    memcpy(newString, clientList, strLen);
-    newString[strLen] = '\000';
+    clientListCopy = str_dup(clientList);
 
-    for(cur = clientListCopy; cur != NULL; cur = next) {
+    for (cur = clientListCopy; cur != NULL; cur = next) {
         next = strchr(cur, ',');
-        if(next != NULL) {
+        if (next != NULL) {
             *next++ = '\0';
-	}
-        if(inet_addr(cur) == saPtr->sin_addr.s_addr) {
+        }
+        if (inet_addr(cur) == saPtr->sin_addr.s_addr) {
             result = TRUE;
             break;
         }
     }
+
     free(clientListCopy);
     return result;
 }
