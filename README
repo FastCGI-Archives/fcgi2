@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.15 2002/02/19 00:45:54 robs Exp $
+    $Id: README,v 1.16 2002/02/23 21:22:01 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,6 +31,9 @@ on http://fastcgi.com/.
 
 2.2.3
 -----
+
+ *) [WIN32] Eliminate the (partial and broken) use of OverlappedIO - this 
+    was causing a loose spin in acceptNamedPipe().
 
  *) Fix a bug that caused an assert to pop when an async file descriptor was
     numbered greater than 16. Kevin Eye [eye@buffalo.edu]

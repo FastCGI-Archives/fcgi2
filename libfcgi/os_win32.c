@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.27 2002/02/16 14:45:30 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.28 2002/02/23 21:22:02 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -126,7 +126,6 @@ static FILE_TYPE listenType = FD_UNUSED;
 // XXX This should be a DESCRIPTOR
 static HANDLE hListen = INVALID_HANDLE_VALUE;
 
-static OVERLAPPED listenOverlapped;
 static BOOLEAN libInitialized = FALSE;
 
 /*
@@ -417,7 +416,6 @@ int OS_LibInit(int stdioFds[3])
         if (SetNamedPipeHandleState(hListen, &pipeMode, NULL, NULL)) 
         {
             listenType = FD_PIPE_SYNC;
-            listenOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
         } 
         else 
         {
@@ -756,7 +754,7 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
         strcat(pipePath, bindPath);
 
         hListenPipe = CreateNamedPipe(pipePath,
-		        PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+		        PIPE_ACCESS_DUPLEX,
 		        PIPE_TYPE_BYTE | PIPE_WAIT | PIPE_READMODE_BYTE,
 		        PIPE_UNLIMITED_INSTANCES,
 		        4096, 4096, 0, NULL);
@@ -1559,7 +1557,7 @@ static int acceptNamedPipe()
 {
     int ipcFd = -1;
 
-    if (! ConnectNamedPipe(hListen, &listenOverlapped))
+    if (! ConnectNamedPipe(hListen, NULL))
     {
         switch (GetLastError())
         {
@@ -1572,19 +1570,9 @@ static int acceptNamedPipe()
         
             case ERROR_IO_PENDING:
 
-                // Wait for a connection to complete.
-
-                while (WaitForSingleObject(listenOverlapped.hEvent, 
-                                           ACCEPT_TIMEOUT) == WAIT_TIMEOUT) 
-                {
-                    if (shutdownPending) 
-                    {
-                        OS_LibShutdown();
-                        return -1;
-                    }            
-                }
-
-                break;
+                // The NamedPipe was opened with an Overlapped structure
+                // and there is a pending io operation.  mod_fastcgi 
+                // did this in 2.2.12 (fcgi_pm.c v1.52).
 
             case ERROR_PIPE_LISTENING:
 
