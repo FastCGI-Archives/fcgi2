@@ -1,7 +1,7 @@
 #
 #  Makefile for FastCGI development kit
 #
-#  $Id: Makefile.am,v 1.7 2001/12/22 13:05:39 robs Exp $
+#  $Id: Makefile.am,v 1.8 2003/11/02 21:42:47 robs Exp $
 #
 
 SUBDIRS = libfcgi cgi-fcgi examples include
@@ -52,6 +52,7 @@ EXTRA_DIST = LICENSE.TERMS              \
              Win32/FastCGI.dsw          \
              Win32/authorizer.dsp       \
              Win32/cgifcgi.dsp          \
+             Win32/config_h.dsp         \
              Win32/echo-cpp.dsp         \
              Win32/echo.dsp             \
              Win32/echox.dsp            \
