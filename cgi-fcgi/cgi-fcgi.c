@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.2 1999/01/30 22:33:23 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.3 1999/07/26 04:45:52 roberts Exp $";
 #endif /* not lint */
 
 #include <stdio.h>
@@ -512,8 +512,6 @@ static void FCGI_Start(char *bindPath, char *appPath, int nServers)
  *
  *----------------------------------------------------------------------
  */
-static buildNameValueHeaderCalls = 0; /* XXX: for testing */
-
 static void FCGIUtil_BuildNameValueHeader(
         int nameLen,
         int valueLen,
@@ -522,7 +520,7 @@ static void FCGIUtil_BuildNameValueHeader(
     unsigned char *startHeaderBuffPtr = headerBuffPtr;
 
     ASSERT(nameLen >= 0);
-    if(nameLen < 0x80 && (buildNameValueHeaderCalls & 1) == 0) {
+    if (nameLen < 0x80 == 0) {
         *headerBuffPtr++ = nameLen;
     } else {
         *headerBuffPtr++ = (nameLen >> 24) | 0x80;
@@ -531,7 +529,7 @@ static void FCGIUtil_BuildNameValueHeader(
         *headerBuffPtr++ = nameLen;
     }
     ASSERT(valueLen >= 0);
-    if(valueLen < 0x80 && (buildNameValueHeaderCalls & 2) == 0) {
+    if (valueLen < 0x80 == 0) {
         *headerBuffPtr++ = valueLen;
     } else {
         *headerBuffPtr++ = (valueLen >> 24) | 0x80;
@@ -540,7 +538,6 @@ static void FCGIUtil_BuildNameValueHeader(
         *headerBuffPtr++ = valueLen;
     }
     *headerLenPtr = headerBuffPtr - startHeaderBuffPtr;
-    buildNameValueHeaderCalls++;
 }
 
 
@@ -682,7 +679,7 @@ static int ParseArgs(int argc, char *argv[],
     return err;
 }
 
-void main(int argc, char **argv, char **envp)
+int main(int argc, char **argv, char **envp)
 {
     int count;
     FCGX_Stream *paramsStream;
@@ -804,4 +801,6 @@ void main(int argc, char **argv, char **envp)
     } else {
         FCGIexit(999);
     }
+
+    exit(0);
 }
