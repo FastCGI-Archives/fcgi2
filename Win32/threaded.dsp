@@ -93,6 +93,7 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=..\examples\threaded.c
+# PROP Exclude_From_Build 1
 # End Source File
 # End Group
 # Begin Group "Header Files"
