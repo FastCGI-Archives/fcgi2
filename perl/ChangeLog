@@ -1,3 +1,6 @@
+	o copy win32 configuration file instead of moving it
+	o convert echo.fpl to new interface
+
 Version 0.58 --	15 November 2000   <skimo@kotnet.org> Sven Verdoolaege
 
 	o fix bug introduced in 0.57

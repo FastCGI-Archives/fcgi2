@@ -16,39 +16,39 @@ __END__
 # See the file "LICENSE.TERMS" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
-#  $Id: echo.PL,v 1.1 1999/02/13 05:26:47 roberts Exp $
+#  $Id: echo.PL,v 1.2 2000/12/14 13:46:23 skimo Exp $
 #
 # Changed by skimo to demostrate autoflushing 1997/02/19
 #
 
 use FCGI;
+use strict;
 
 sub print_env {
     my($label, $envp) = @_;
     print("$label:<br>\n<pre>\n");
     my @keys = sort keys(%$envp);
-    foreach $key (@keys) {
+    foreach my $key (@keys) {
         print("$key=$$envp{$key}\n");
     }
     print("</pre><p>\n");
 }
 
-while (($key, $val) = each %ENV) {
-    $initialEnv{$key} = $val;
-}
-$count = 0;
-while(FCGI::accept() >= 0) {
+my %env;
+my $req = FCGI::Request(\*STDIN, \*STDOUT, \*STDERR, \%env);
+my $count = 0;
+while($req->Accept() >= 0) {
     print("Content-type: text/html\r\n\r\n",
           "<title>FastCGI echo (Perl)</title>\n",
           "<h1>FastCGI echo (Perl)</h1>\n",
           "Request number ", ++$count, "<p>\n");
-    $len = 0 + $ENV{'CONTENT_LENGTH'};
+    my $len = 0 + $env{'CONTENT_LENGTH'};
     if($len == 0) {
         print("No data from standard input.<p>\n");
     } else {
         print("Standard input:<br>\n<pre>\n");
-        for($i = 0; $i < $len; $i++) {
-            $ch = getc(STDIN);
+        for(my $i = 0; $i < $len; $i++) {
+            my $ch = getc(STDIN);
             if($ch eq "") {
                 print("Error: Not enough bytes received ",
                       "on standard input<p>\n");
@@ -58,9 +58,10 @@ while(FCGI::accept() >= 0) {
         }
         print("\n</pre><p>\n");
     }
-    print_env("Request environment", \%ENV);
+    print_env("Request environment", \%env);
     print "More on its way ... wait a few seconds\n<BR>\n<BR>";
-    FCGI::flush();
+    $req->Flush();
     sleep(3);
-    print_env("Initial environment", \%initialEnv);
+    print_env("Initial environment", \%ENV);
+    $req->Finish();
 }
