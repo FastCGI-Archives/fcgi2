@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.33 2001/09/24 14:32:29 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.34 2001/09/25 14:21:44 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -392,7 +392,7 @@ int OS_FcgiConnect(char *bindPath)
     int connectStatus;
     char    *tp;
     char    host[MAXPATHLEN];
-    short   port;
+    short   port = 0;
     int	    tcp = FALSE;
 
     strcpy(host, bindPath);
