@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.22 2001/03/27 13:18:08 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.23 2001/03/27 13:21:26 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1176,6 +1176,7 @@ int OS_IsFcgi(int sock)
 #endif
 
     errno = 0;
+
     if (getpeername(sock, (struct sockaddr *)&sa, &len) != 0 && errno == ENOTCONN) {
         return TRUE;
     }
