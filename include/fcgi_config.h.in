@@ -31,6 +31,9 @@
 /* Define if sockaddr_un in <sys/un.h> contains the sun_len component */
 #undef HAVE_SOCKADDR_UN_SUN_LEN
 
+/* Define if <sys/socket.h> defines socklen_t */
+#undef HAVE_SOCKLEN
+
 /* Define if we have f{set,get}pos functions */
 #undef HAVE_FPOS
 

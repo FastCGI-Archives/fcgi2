@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.1 1999/02/13 05:26:46 roberts Exp $
+dnl     $Id: configure.in,v 1.2 1999/08/02 15:51:08 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -65,13 +65,22 @@ AC_EGREP_HEADER(fpos_t,
    AC_MSG_RESULT(no))
 
 AC_HAVE_HEADERS(windows.h)
-AC_HAVE_HEADERS(sys/socket.h)
+AC_HAVE_HEADERS(sys/socket.h, [have_sys_socket=yes])
 AC_HAVE_HEADERS(winsock.h)
 AC_HAVE_HEADERS(netdb.h)
 AC_HAVE_HEADERS(netinet/in.h)
 AC_HAVE_HEADERS(arpa/inet.h)
 AC_HAVE_HEADERS(strings.h)
 AC_HAVE_HEADERS(sys/time.h)
+
+if test "x$have_sys_socket" = "xyes"; then
+    AC_MSG_CHECKING(for socklen_t in sys/socket.h)
+    AC_EGREP_HEADER(socklen_t,
+       sys/socket.h,
+       AC_MSG_RESULT(yes)
+       AC_DEFINE(HAVE_SOCKLEN),
+       AC_MSG_RESULT(no))
+fi
 
 #--------------------------------------------------------------------
 #  Do we need cross-process locking on this platform?
