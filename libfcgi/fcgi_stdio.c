@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.2 1998/03/09 15:47:09 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.3 1998/03/09 16:38:15 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -725,6 +725,21 @@ void FCGI_clearerr(FCGI_FILE *fp)
     }
     return;
 }
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGI_tmpfile --
+ *
+ *       Wrappers for function defined in H&S Section 15.16
+ *
+ *----------------------------------------------------------------------
+ */
+FCGI_FILE *FCGI_tmpfile(void)
+{
+	return FCGI_OpenFromFile(tmpfile());
+}
+
 
 /*
  *----------------------------------------------------------------------

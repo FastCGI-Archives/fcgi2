@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgi_stdio.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: fcgi_stdio.h,v 1.2 1998/03/09 16:38:13 roberts Exp $
  */
 
 #ifndef _FCGI_STDIO
@@ -118,6 +118,8 @@ DLLAPI int        FCGI_feof(FCGI_FILE *fp);
 DLLAPI int        FCGI_ferror(FCGI_FILE *fp);
 DLLAPI void       FCGI_clearerr(FCGI_FILE *fp);
 
+DLLAPI FCGI_FILE *FCGI_tmpfile(void);
+
 DLLAPI int        FCGI_fileno(FCGI_FILE *fp);
 DLLAPI FCGI_FILE *FCGI_fdopen(int fd, const char *mode);
 DLLAPI FCGI_FILE *FCGI_popen(const char *cmd, const char *type);
@@ -220,6 +222,9 @@ DLLAPI int        FCGI_pclose(FCGI_FILE *);
 #define ferror   FCGI_ferror
 #undef  clearerr
 #define	clearerr FCGI_clearerr
+
+#undef  tmpfile
+#define tmpfile  FCGI_tmpfile
 
 #undef  fileno
 #define fileno   FCGI_fileno
