@@ -1,4 +1,4 @@
-$Id: README,v 1.6 2001/09/20 12:26:38 skimo Exp $
+$Id: README,v 1.7 2001/10/04 08:08:34 skimo Exp $
 
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
@@ -35,9 +35,16 @@ doesn't require a compiler and currently only works on Unix,
 you have to pass the --pure-perl option as in
 "perl Makefile.PL --pure-perl".
 
-If Makefile.PL finds an already installed (exported) fcgi library
-it will use that instead of the included files. Edit Makefile.PL
-if you don't want that or if it doesn't find them.
+Note that the pure version does not support Window's Named Pipes.
+Support for Named Pipes is not a requirement of the FastCGI specification.
+Named Pipes are used by mod_fastcgi and the FastCGI application library as a
+replacement for Unix sockets.  mod_fastcgi uses Named Pipes on Windows (Unix
+sockets on Unix) by default (see the mod_fastcgi docs for more information).
+
+If you want the module to use a previously installed fcgi library
+instead of the included files, use the --use-installed option,
+optionally followed by the name of the directory in which it can 
+be found.
 
 To configure the library Makefile.PL will run ./configure .
 You may want to run it yourself beforehand because its findings
