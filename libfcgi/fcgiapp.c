@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.27 2001/06/22 14:38:59 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.28 2001/08/30 22:27:51 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -2066,9 +2066,6 @@ int FCGX_Init(void)
     if (libInitialized) {
         return 0;
     }
-
-    /* If our compiler doesn't play by the ISO rules for struct layout, halt. */
-    ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
 
     FCGX_InitRequest(&the_request, FCGI_LISTENSOCK_FILENO, 0);
 
