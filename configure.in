@@ -1,11 +1,11 @@
-dnl     $Id: configure.in,v 1.20 2001/11/27 16:27:13 robs Exp $
+dnl     $Id: configure.in,v 1.21 2001/11/30 17:50:08 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
 
 AC_INIT
-AM_INIT_AUTOMAKE(fcgi, 2.2.2)
+AM_INIT_AUTOMAKE(fcgi, 2.2.3)
 
 AM_CONFIG_HEADER(fcgi_config.h)
 
