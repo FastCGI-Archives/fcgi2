@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.30 2001/09/14 19:43:26 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.31 2001/11/17 03:58:31 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -92,6 +92,22 @@ static char *StringCopy(char *str)
     return newString;
 }
 
+int FCGX_Peek(FCGX_Stream * stream)
+{
+    if (stream->rdNext != stream->stop)
+        return *stream->rdNext;
+
+    if (stream->isClosed || ! stream->isReader) return EOF;
+
+    stream->fillBuffProc(stream);
+    stream->stopUnget = stream->rdNext;
+
+    if (stream->rdNext != stream->stop)
+        return *stream->rdNext;
+
+    ASSERT(stream->isClosed); /* bug in fillBufProc if not */
+    return EOF;
+}
 
 /*
  *----------------------------------------------------------------------
@@ -107,16 +123,9 @@ static char *StringCopy(char *str)
  */
 int FCGX_GetChar(FCGX_Stream *stream)
 {
-    if(stream->rdNext != stream->stop)
-        return *stream->rdNext++;
-    if(stream->isClosed || !stream->isReader)
-        return EOF;
-    stream->fillBuffProc(stream);
-    stream->stopUnget = stream->rdNext;
-    if(stream->rdNext != stream->stop)
-        return *stream->rdNext++;
-    ASSERT(stream->isClosed); /* bug in fillBufProc if not */
-    return EOF;
+    int rv = FCGX_Peek(stream);
+	if (rv != EOF) ++stream->rdNext;
+	return rv;
 }
 
 /*
