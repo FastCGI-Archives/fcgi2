@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.6 2000/11/01 22:37:58 skimo Exp $
+# $Id: Makefile.PL,v 1.7 2000/12/11 22:00:36 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -92,9 +92,10 @@ if ($sys eq "win32") {
     # configure will almost certainly not run on a normal NT install,
     # use the pregenerated configuration file
 
+    use File::Copy qw(copy);
     print "Using prebuilt fcgi_config.h file for Windows\n";
     unlink("fcgi_config.h");
-    die $! unless rename("fcgi_config_x86.h","fcgi_config.h");
+    die $! unless copy("fcgi_config_x86.h","fcgi_config.h");
 
     # Win build system also can't deal with existence of FCGI.xs or absence of
     # FCGI.c
