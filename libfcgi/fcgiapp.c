@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.18 2000/11/05 19:04:36 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.19 2001/06/03 21:46:43 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1083,9 +1083,12 @@ char *FCGX_GetParam(const char *name, FCGX_ParamArray envp)
 {
     int len;
     char **p;
+
+	if (name == NULL || envp == NULL) return NULL;
+
     len = strlen(name);
-    if(len == 0) return NULL;
-    for (p = envp; *p != NULL; p++) {
+
+    for (p = envp; *p; ++p) {
         if((strncmp(name, *p, len) == 0) && ((*p)[len] == '=')) {
             return *p+len+1;
         }
