@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.29 2002/02/24 15:07:03 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.30 2002/02/25 13:17:27 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -223,8 +223,8 @@ static int Win32NewDescriptor(FILE_TYPE type, int fd, int desiredFd)
  *
  *--------------------------------------------------------------
  */
-static void StdinThread(LPDWORD startup){
-
+static void StdinThread(void * startup) 
+{
     int doIo = TRUE;
     unsigned long fd;
     unsigned long bytesRead;
@@ -1533,7 +1533,7 @@ static int CALLBACK isAddrOKCallback(LPWSABUF  lpCallerId,
 }
 #endif
 
-static printLastError(const char * text)
+static void printLastError(const char * text)
 {
     LPVOID buf;
 
@@ -1769,8 +1769,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
  */
 int OS_IpcClose(int ipcFd)
 {
-    if (ipcFd == -1)
-        return 0;
+    if (ipcFd == -1) return 0;
 
     /*
      * Catch it if fd is a bogus value
@@ -1778,33 +1777,32 @@ int OS_IpcClose(int ipcFd)
     ASSERT((ipcFd >= 0) && (ipcFd < WIN32_OPEN_MAX));
     ASSERT(fdTable[ipcFd].type != FD_UNUSED);
 
-    switch(listenType) {
-
+    switch (listenType) 
+    {
     case FD_PIPE_SYNC:
-	/*
-	 * Make sure that the client (ie. a Web Server in this case) has
-	 * read all data from the pipe before we disconnect.
-	 */
-	if(!FlushFileBuffers(fdTable[ipcFd].fid.fileHandle))
-	    return -1;
-	if(DisconnectNamedPipe(fdTable[ipcFd].fid.fileHandle)) {
-	    OS_Close(ipcFd);
-	    return 0;
-	} else {
-	    return -1;
-	}
-	break;
+	    /*
+	     * Make sure that the client (ie. a Web Server in this case) has
+	     * read all data from the pipe before we disconnect.
+	     */
+	    if (! FlushFileBuffers(fdTable[ipcFd].fid.fileHandle)) return -1;
+
+	    if (! DisconnectNamedPipe(fdTable[ipcFd].fid.fileHandle)) return -1;
+
+        /* fall through */
 
     case FD_SOCKET_SYNC:
-	OS_Close(ipcFd);
-        return 0;
-	break;
+
+	    OS_Close(ipcFd);
+	    break;
 
     case FD_UNUSED:
     default:
-	exit(106);
-	break;
+
+	    exit(106);
+	    break;
     }
+
+    return 0; 
 }
 
 /*
