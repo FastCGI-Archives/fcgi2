@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.24 2001/09/21 15:51:30 skimo Exp $
+# $Id: Makefile.PL,v 1.25 2001/09/21 16:14:11 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -9,7 +9,8 @@ use Getopt::Long;
 @h1 = qw(fastcgi.h fcgiapp.h fcgimisc.h fcgios.h);
 @h = (@h1, 'fcgi_config.h');
 @o = qw(FCGI.o);
-@dist1 = qw(LICENSE.TERMS configure configure.in install.sh missing);
+@dist1 = qw(LICENSE.TERMS configure configure.in install.sh missing
+            config.sub config.guess ltmain.sh);
 @dist2 = qw(fcgiapp.c os_unix.c os_win32.c);
 @dist3 = (@h1, qw(fcgi_config.h.in fcgi_config_x86.h));
 
