@@ -1,7 +1,7 @@
 /*
  *  A simple FastCGI application example in C++.
  *  
- *  $Id: echo-cpp.cpp,v 1.1 2001/11/20 02:32:49 robs Exp $
+ *  $Id: echo-cpp.cpp,v 1.2 2001/11/21 15:31:49 robs Exp $
  *  
  *  Copyright (c) 2001  Rob Saccoccio and Chelsea Networks
  *  All rights reserved.
@@ -33,6 +33,9 @@
 #include <stdlib.h>
 #ifdef _WIN32
 #include <process.h>
+#else
+#include <unistd.h>
+extern const char * const * environ;
 #endif
 #include "fcgio.h"
 
