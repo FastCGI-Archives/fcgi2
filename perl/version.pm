@@ -1,2 +1,2 @@
-$VERSION = '0.62';
+$FCGI::VERSION = '0.63';
 
