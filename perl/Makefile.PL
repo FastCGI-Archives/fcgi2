@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.32 2001/09/27 12:11:40 skimo Exp $
+# $Id: Makefile.PL,v 1.33 2002/12/15 19:40:19 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -139,7 +139,7 @@ if ($sys eq "win32") {
     print "Using prebuilt fcgi_config.h file for Windows\n";
     unlink("fcgi_config.h");
     my $confdir = $prefix ? "$prefix/include/" : '';
-    die $! unless copy("$confdir/fcgi_config_x86.h","fcgi_config.h");
+    die $! unless copy("${confdir}fcgi_config_x86.h","fcgi_config.h");
 
     # Win can't deal with existence of FCGI.xs or absence of FCGI.c
     unlink("FCGI.xs");
