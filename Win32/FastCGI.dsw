@@ -11,6 +11,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -23,6 +26,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -35,6 +41,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -47,6 +56,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -71,6 +83,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -83,6 +98,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -95,6 +113,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -107,6 +128,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name libfcgi
+    End Project Dependency
 }}}
 
 ###############################################################################
