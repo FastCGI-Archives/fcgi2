@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.3 2001/08/28 19:06:50 robs Exp $ */
+/* $Id: FCGI.XL,v 1.4 2001/09/06 20:15:49 robs Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -122,8 +122,8 @@ FCGI_Flush(FCGP_Request* request)
     sfsync(IoOFP(GvIOp(request->gv[1])));
     sfsync(IoOFP(GvIOp(request->gv[2])));
 #else
-    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->svout)));
-    FCGX_FFlush((FCGX_Stream *) SvIV((SV*) SvRV(request->sverr)));
+    FCGX_FFlush(INT2PTR(FCGX_Stream *, SvIV((SV*) SvRV(request->svout))));
+    FCGX_FFlush(INT2PTR(FCGX_Stream *, SvIV((SV*) SvRV(request->sverr))));
 #endif
 }
 
@@ -256,9 +256,9 @@ FCGI_Accept(FCGP_Request* request)
 	    newSVrv(request->sverr = newSV(0), "FCGI::Stream");
 	    newSVrv(request->svin = newSV(0), "FCGI::Stream");
 	}
-	sv_setiv(SvRV(request->svout), (IV) fcgx_req->out);
-	sv_setiv(SvRV(request->sverr), (IV) fcgx_req->err);
-	sv_setiv(SvRV(request->svin), (IV) fcgx_req->in);
+	sv_setiv(SvRV(request->svout), INT2PTR(IV, fcgx_req->out));
+	sv_setiv(SvRV(request->sverr), INT2PTR(IV, fcgx_req->err));
+	sv_setiv(SvRV(request->svin), INT2PTR(IV, fcgx_req->in));
 #endif
 	FCGI_Bind(request);
 	request->accepted = TRUE;
