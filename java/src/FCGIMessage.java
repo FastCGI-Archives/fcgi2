@@ -42,13 +42,11 @@ private int  h_type;
 private int  h_requestID;	// 2 bytes
 private int  h_contentLength;	// 2 bytes
 private int  h_paddingLength;
-private int  h_reserved;
 /* 
  * FCGI BeginRequest body.
 */
 private int  br_role;		// 2 bytes
 private int  br_flags;
-private byte br_reserved[];	// 5 bytes
 
 private FCGIInputStream in;
 
@@ -97,29 +95,17 @@ private FCGIInputStream in;
 		return(FCGIGlobalDefs.def_FCGIStreamRecord);
 	}
 
-/* Put the unsigned bytes in the incoming FCGI header into 
-	 * integer form for Java, concatinating bytes when needed, 
-	 * and preserving the original byte value when appropriate.
-	 * Dont let low byte sign extend if high byte is empty.
+    /* Put the unsigned bytes in the incoming FCGI header into 
+	 * integer form for Java, concatinating bytes when needed. 
+	 * Because Java has no unsigned byte type, we have to be careful
+	 * about signed numeric promotion to int.
 	 */
 	private void processHeaderBytes(byte[] hdrBuf){
-
-	     h_version 			= (int)hdrBuf[0] & 0x000000ff;
-	     h_type			= (int)hdrBuf[1] & 0x000000ff;
-	     h_requestID 		=  (hdrBuf[2] << 8) + hdrBuf[3]; 
-     	     if ((hdrBuf[3] & 0x80) != 0  && (hdrBuf[2] & 0xff) == 0){
-			h_requestID = h_requestID & 0x000000ff;
-	     } else {
-			h_requestID = h_requestID & 0x0000ffff;
-			}
-	     h_contentLength 		=  (hdrBuf[4] << 8) + hdrBuf[5];
-     	     if ((hdrBuf[5] & 0x80) != 0  && (hdrBuf[4] & 0xff) == 0){
-			h_contentLength = h_contentLength & 0x000000ff;
-	     } else {
-			h_contentLength = h_contentLength & 0x0000ffff;
-			}	
-	     h_paddingLength		= (int)hdrBuf[6] & 0x000000ff;
-	     h_reserved			= (int)hdrBuf[7] & 0x000000ff;
+        h_version = hdrBuf[0] & 0xFF;
+        h_type = hdrBuf[1] & 0xFF;
+        h_requestID = ((hdrBuf[2] & 0xFF) << 8) | (hdrBuf[3] & 0xFF);
+        h_contentLength = ((hdrBuf[4] & 0xFF) << 8) | (hdrBuf[5] & 0xFF);
+        h_paddingLength = hdrBuf[6] & 0xFF;
 	}
 
 	/*
@@ -175,11 +161,10 @@ private FCGIInputStream in;
 				  FCGIGlobalDefs.def_FCGIBeginReqBodyLen) {
 			return FCGIGlobalDefs.def_FCGIProtocolError;
 			}
-		br_flags = ((int)beginReqBody[2]) & 0x000000ff;	
+		br_flags = beginReqBody[2] & 0xFF;	
 		in.request.keepConnection 
 			= (br_flags & FCGIGlobalDefs.def_FCGIKeepConn) != 0; 
-		br_role =  ((int)((beginReqBody[0] << 8) + beginReqBody[1])) 
-						& 0x0000ffff;	
+        br_role = ((beginReqBody[0] & 0xFF) << 8) | (beginReqBody[1] & 0xFF);	
 		in.request.role = br_role;
 		in.request.isBeginProcessed = true;
 		return FCGIGlobalDefs.def_FCGIBeginRecord;
@@ -313,11 +298,12 @@ private FCGIInputStream in;
 				   in.setFCGIError(
 					FCGIGlobalDefs.def_FCGIParamsError);
 				   return -1;
-				   }
-				nameLen = ((nameLen & 0x7f) << 24) 
-					+ (lenBuff[0] << 16)
-					+ (lenBuff[1] << 8) + lenBuff[2];
-				}
+                }
+                nameLen = ((nameLen & 0x7f) << 24) 
+                    | ((lenBuff[0] & 0xFF) << 16)
+                    | ((lenBuff[1] & 0xFF) << 8)
+                    | (lenBuff[2] & 0xFF);
+            }
 
 			if ((valueLen = in.read()) == -1) {
 			 	in.setFCGIError(
@@ -329,21 +315,12 @@ private FCGIInputStream in;
 				   in.setFCGIError(
 					FCGIGlobalDefs.def_FCGIParamsError);
 				   return -1;
-				   }
-				valueLen = ((valueLen & 0x7f) << 24) 
-					+ (lenBuff[0] << 16)
-					+ (lenBuff[1] << 8) + lenBuff[2];
-			/* handle sign extention for only two bytes, since
-			 * max msg len is ffff.
-			 */
-			if ((lenBuff[2] & 0x80) != 0  && 
-			   			(lenBuff[1] & 0xff) == 0){
-				valueLen = (valueLen & 0x000000ff);
-				}
-			if ((lenBuff[1] & 0x80) != 0) { 
-				valueLen = (valueLen & 0x0000ffff);	
-				}
-		}
+                }
+                valueLen = ((valueLen & 0x7f) << 24) 
+                    | ((lenBuff[0] & 0xFF) << 16)
+                    | ((lenBuff[1] & 0xFF) << 8)
+                    | (lenBuff[2] & 0xFF);
+            }
 
 		/* 
 	 	 * nameLen and valueLen are now valid; read the name 
