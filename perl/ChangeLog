@@ -1,3 +1,7 @@
+Version 0.68 --	21 June 2003   <skimo@kotnet.org> Sven Verdoolaege
+
+	o Call the fcgi lib's attach/detach <robs@fastcgi.com>
+
 Version 0.67 --	22 December 2002   <skimo@kotnet.org> Sven Verdoolaege
 
 	o Fixes for pure perl version based on report and patch

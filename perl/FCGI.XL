@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.9 2002/11/11 13:51:20 skimo Exp $ */
+/* $Id: FCGI.XL,v 1.10 2003/06/22 00:24:11 robs Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -487,8 +487,10 @@ Detach(request)
     PROTOTYPE: $
 
     CODE:
-    if (request->accepted && request->bound)
-	FCGI_UndoBinding(request);
+    if (request->accepted && request->bound) {
+        FCGI_UndoBinding(request);
+        FCGX_Detach(request->requestPtr);
+    }
 
 void
 Attach(request)
@@ -497,8 +499,10 @@ Attach(request)
     PROTOTYPE: $
 
     CODE:
-    if (request->accepted && !request->bound)
-	FCGI_Bind(request);
+    if (request->accepted && !request->bound) {
+        FCGI_Bind(request);
+        FCGX_Attach(request->requestPtr);
+    }
 
 void
 LastCall(request)
