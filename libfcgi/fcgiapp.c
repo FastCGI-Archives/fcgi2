@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.23 2001/06/20 16:50:02 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.24 2001/06/22 09:12:03 skimo Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -2233,6 +2233,7 @@ int FCGX_Accept_r(FCGX_Request *reqDataPtr)
          * Close the connection and try again.
          */
 TryAgain:
+	reqDataPtr->keepConnection = 0;
         FCGX_Free(reqDataPtr);
 
     } /* for (;;) */
