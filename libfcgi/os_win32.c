@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.8 2000/11/05 17:09:35 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.9 2001/03/26 20:04:56 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -27,15 +27,16 @@ static const char rcsid[] = "$Id: os_win32.c,v 1.8 2000/11/05 17:09:35 robs Exp 
 #include <assert.h>
 #include <stdio.h>
 #include <sys/timeb.h>
-#include <windows.h>
+#include <Winsock2.h>
+#include <Windows.h>
 
 #include "fcgios.h"
 
 #define ASSERT assert
 
-#define WIN32_OPEN_MAX 32 /* XXX: Small hack */
+#define WIN32_OPEN_MAX 128 /* XXX: Small hack */
 #define MUTEX_VARNAME "_FCGI_MUTEX_"
-
+#define SHUTDOWN_EVENT_NAME "_FCGI_SHUTDOWN_EVENT_"
 
 static HANDLE hIoCompPort = INVALID_HANDLE_VALUE;
 static HANDLE hStdinCompPort = INVALID_HANDLE_VALUE;
@@ -44,8 +45,9 @@ static HANDLE hStdinThread = INVALID_HANDLE_VALUE;
 static HANDLE stdioHandles[3] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 				 INVALID_HANDLE_VALUE};
 
-static HANDLE hPipeMutex = INVALID_HANDLE_VALUE;;
-static char pipeMutexEnv[80] = "";
+static HANDLE acceptMutex = INVALID_HANDLE_VALUE;
+
+static BOOLEAN shutdownPending = FALSE;
 
 /*
  * An enumeration of the file types
@@ -110,8 +112,12 @@ typedef struct OVERLAPPED_REQUEST *POVERLAPPED_REQUEST;
 static const char *bindPathPrefix = "\\\\.\\pipe\\FastCGI\\";
 
 static int listenType = FD_UNUSED;
+
+// XXX This should be a DESCRIPTOR
 static HANDLE hListen = INVALID_HANDLE_VALUE;
-static int libInitialized = 0;
+
+static OVERLAPPED listenOverlapped;
+static BOOLEAN libInitialized = FALSE;
 
 
 /*
@@ -142,43 +148,48 @@ static int Win32NewDescriptor(FILE_TYPE type, int fd, int desiredFd)
      * as the caller wanted to get this mapping.  This is typically
      * only used for mapping stdio handles.
      */
-    if ((desiredFd >= 0) &&
-	(desiredFd < WIN32_OPEN_MAX)) {
-
-        if(fdTable[desiredFd].type == FD_UNUSED) {
+    if (desiredFd >= 0 && desiredFd < WIN32_OPEN_MAX)
+    {
+        if (fdTable[desiredFd].type != FD_UNUSED) 
+        {
+            return -1;
+        }
 	    index = desiredFd;
-	    goto found_entry;
-        } else {
-	    return -1;
 	}
+    else
+    {
+        // See if the entry that matches "fd" is available.
 
+        if (fd <= 0 || fd >= WIN32_OPEN_MAX)
+        {
+            return -1;
+        }
+
+        if (fdTable[fd].type == FD_UNUSED)
+        {
+	        index = fd;
+        }
+        else 
+        {
+            // Find an entry we can use. 
+            // Start at 1 (0 fake id fails in some cases).
+
+            for (index = 1; index < WIN32_OPEN_MAX; index++)
+            {
+	            if (fdTable[index].type == FD_UNUSED)
+                {
+                    break;
+                }
+            }
+
+            if (index == WIN32_OPEN_MAX) 
+            {
+	            SetLastError(WSAEMFILE);
+	            return -1;
+            }
+        }
     }
 
-    /*
-     * Next see if the entry that matches "fd" is available.
-     */
-    if ((fd > 0) &&
-	(fd < WIN32_OPEN_MAX) && (fdTable[fd].type == FD_UNUSED)) {
-	index = fd;
-	goto found_entry;
-    }
-
-    /*
-     * Scan entries for one we can use. Start at 1 (0 fake id fails
-     * in some cases). -K*
-     */
-    for (index = 1; index < WIN32_OPEN_MAX; index++)
-	if (fdTable[index].type == FD_UNUSED)
-	    break;
-
-    /* If no table entries are available, return error. */
-    if (index == WIN32_OPEN_MAX) {
-	SetLastError(WSAEMFILE);
-	DebugBreak();
-	return -1;
-    }
-
-found_entry:
     fdTable[index].fid.value = fd;
     fdTable[index].type = type;
     fdTable[index].path = NULL;
@@ -251,7 +262,29 @@ static void StdinThread(LPDWORD startup){
     ExitThread(0);
 }
 
-
+static DWORD WINAPI ShutdownRequestThread(LPVOID arg)
+{
+    HANDLE shutdownEvent = (HANDLE) arg;
+    
+    if (WaitForSingleObject(shutdownEvent, INFINITE) == WAIT_FAILED)
+    {
+        // Assuming it will happen again, all we can do is exit the thread
+        return -1;
+    }
+    else
+    {
+        // "Simple reads and writes to properly-aligned 32-bit variables are atomic"
+        shutdownPending = TRUE;
+        
+        // Before an accept() is entered the shutdownPending flag is checked.
+        // If set, OS_Accept() will return -1.  If not, it waits
+        // on a connection request for one second, checks the flag, & repeats.
+        // Only one process/thread is allowed to do this at time by
+        // wrapping the accept() with mutex.
+        return 0;
+    }
+}
+
 /*
  *--------------------------------------------------------------
  *
@@ -273,18 +306,17 @@ int OS_LibInit(int stdioFds[3])
     WSADATA wsaData;
     int err;
     int fakeFd;
-    DWORD pipeMode;
     DWORD threadId;
     char *cLenPtr = NULL;
-    char *mutexPtr = NULL;
-
+    char *val = NULL;
+        
     if(libInitialized)
         return 0;
 
     /*
      * Initialize windows sockets library.
      */
-    wVersion = MAKEWORD(1,1);
+    wVersion = MAKEWORD(2,0);
     err = WSAStartup( wVersion, &wsaData );
     if (err) {
         fprintf(stderr, "Error starting Windows Sockets.  Error: %d",
@@ -306,6 +338,35 @@ int OS_LibInit(int stdioFds[3])
     }
 
     /*
+     * If a shutdown event is in the env, save it (I don't see any to 
+     * remove it from the environment out from under the application).
+     * Spawn a thread to wait on the shutdown request.
+     */
+    val = getenv(SHUTDOWN_EVENT_NAME);
+    if (val != NULL) 
+    {
+        HANDLE shutdownEvent = (HANDLE) atoi(val);
+
+        putenv(SHUTDOWN_EVENT_NAME"=");
+
+        if (! CreateThread(NULL, 0, ShutdownRequestThread, 
+                           shutdownEvent, 0, NULL))
+        {
+            return -1;
+        }
+    }
+
+    /*
+     * If an accept mutex is in the env, save it and remove it.
+     */
+    val = getenv(MUTEX_VARNAME);
+    if (val != NULL) 
+    {
+        acceptMutex = (HANDLE) atoi(val);
+    }
+
+
+    /*
      * Determine if this library is being used to listen for FastCGI
      * connections.  This is communicated by STDIN containing a
      * valid handle to a listener object.  In this case, both the
@@ -319,9 +380,25 @@ int OS_LibInit(int stdioFds[3])
      */
     if((GetStdHandle(STD_OUTPUT_HANDLE) == INVALID_HANDLE_VALUE) &&
        (GetStdHandle(STD_ERROR_HANDLE)  == INVALID_HANDLE_VALUE) &&
-       (GetStdHandle(STD_INPUT_HANDLE)  != INVALID_HANDLE_VALUE) ) {
+       (GetStdHandle(STD_INPUT_HANDLE)  != INVALID_HANDLE_VALUE) ) 
+    {
+        DWORD pipeMode = PIPE_READMODE_BYTE | PIPE_WAIT;
+        HANDLE oldStdIn = GetStdHandle(STD_INPUT_HANDLE);
 
-        hListen = GetStdHandle(STD_INPUT_HANDLE);
+        // Move the handle to a "low" number
+        if (! DuplicateHandle(GetCurrentProcess(), oldStdIn,
+                              GetCurrentProcess(), &hListen,
+                              0, TRUE, DUPLICATE_SAME_ACCESS))
+        {
+            return -1;
+        }
+
+        if (! SetStdHandle(STD_INPUT_HANDLE, hListen))
+        {
+            return -1;
+        }
+
+        CloseHandle(oldStdIn);
 
 	/*
 	 * Set the pipe handle state so that it operates in wait mode.
@@ -332,20 +409,13 @@ int OS_LibInit(int stdioFds[3])
 	 * XXX: Initial assumption is that SetNamedPipeHandleState will
 	 *      fail if this is an IP socket...
 	 */
-        pipeMode = PIPE_READMODE_BYTE | PIPE_WAIT;
-        if(SetNamedPipeHandleState(hListen, &pipeMode, NULL, NULL)) {
+        if (SetNamedPipeHandleState(hListen, &pipeMode, NULL, NULL)) 
+        {
             listenType = FD_PIPE_SYNC;
-            /*
-             * Lookup the mutex.  If one is found, save it and
-             * remove it from the env table if it's not already
-             * been done.
-             */
-            mutexPtr = getenv(MUTEX_VARNAME);
-            if(mutexPtr != NULL) {
-                hPipeMutex = (HANDLE)atoi(mutexPtr);
-                putenv(MUTEX_VARNAME"=");
-            }
-        } else {
+            listenOverlapped.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+        } 
+        else 
+        {
             listenType = FD_SOCKET_SYNC;
         }
     }
@@ -584,14 +654,35 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     int bpLen;
     int servLen;
     struct  sockaddr_in	sockAddr;
-    char    host[1024];
+    char    buf[1024];
     short   port;
     int	    tcp = FALSE;
     int flag = 1;
     char    *tp;
+    HANDLE mutex = CreateMutex(NULL, FALSE, NULL);
 
-    strcpy(host, bindPath);
-    if((tp = strchr(host, ':')) != 0) {
+    if (mutex == NULL)
+    {
+        return -1;
+    }
+
+    if (! SetHandleInformation(mutex, HANDLE_FLAG_INHERIT, TRUE))
+    {
+        return -1;
+    }
+
+    // This is a nail for listening to more than one port..
+    // This should really be handled by the caller.
+    _snprintf(buf, 1024, MUTEX_VARNAME "=%d", (int) mutex);
+    buf[1023] = '\0';
+    putenv(strdup(buf));
+
+    // There's nothing to be gained (at the moment) by a shutdown Event    
+
+    strncpy(buf, bindPath, 1024);
+    buf[1023] = '\0';
+
+    if((tp = strchr(buf, ':')) != 0) {
 	*tp++ = 0;
 	if((port = atoi(tp)) == 0) {
 	    *--tp = ':';
@@ -599,7 +690,8 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 	    tcp = TRUE;
 	 }
     }
-    if(tcp && (*host && strcmp(host, "localhost") != 0)) {
+    
+    if(tcp && (*buf && strcmp(buf, "localhost") != 0)) {
 	fprintf(stderr, "To start a service on a TCP port can not "
 			"specify a host name.\n"
 			"You should either use \"localhost:<port>\" or "
@@ -640,24 +732,6 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     sa.bInheritHandle = TRUE;       /* This will be inherited by the
                                      * FastCGI process
                                      */
-
-    /*
-     * Create a mutex to be used to synchronize access to accepting a
-     * connection on a named pipe.  We don't want to own this at creation
-     * time but would rather let the first process that goes for it
-     * be able to acquire it.
-     */
-    hPipeMutex = CreateMutex(NULL, FALSE, NULL);
-    if(hPipeMutex == NULL) {
-        return -1;
-    }
-    if(!SetHandleInformation(hPipeMutex, HANDLE_FLAG_INHERIT,
-                                 TRUE)) {
-        return -1;
-    }
-    sprintf(pipeMutexEnv, "%s=%d", MUTEX_VARNAME, (int)hPipeMutex);
-    putenv(pipeMutexEnv);
-
     /*
      * Create a unique name to be used for the socket bind path.
      * Make sure that this name is unique and that there's no process
@@ -728,8 +802,10 @@ int OS_FcgiConnect(char *bindPath)
     short   port;
     int	    tcp = FALSE;
 
-    strcpy(host, bindPath);
-    if((tp = strchr(host, ':')) != 0) {
+    strncpy(host, bindPath, 1024);
+    host[1023] = '\0';
+
+    if ((tp = strchr(host, ':')) != 0) {
 	*tp++ = 0;
 	if((port = atoi(tp)) == 0) {
 	    *--tp = ':';
@@ -737,6 +813,7 @@ int OS_FcgiConnect(char *bindPath)
 	    tcp = TRUE;
 	 }
     }
+    
     if(tcp == TRUE) {
 	struct	hostent	*hp;
 	if((hp = gethostbyname((*host ? host : "localhost"))) == NULL) {
@@ -1264,13 +1341,9 @@ int OS_Close(int fd)
 	case FD_PIPE_ASYNC:
 	case FD_FILE_SYNC:
 	case FD_FILE_ASYNC:
-	    /*
-	     * CloseHandle returns: TRUE success, 0 failure
-	     */
-	    if (CloseHandle(fdTable[fd].fid.fileHandle) == FALSE)
-		ret = -1;
 	    break;
-	case FD_SOCKET_SYNC:
+
+        case FD_SOCKET_SYNC:
 	case FD_SOCKET_ASYNC:
 	    /*
 	     * Closing a socket that has an async read outstanding causes a
@@ -1384,6 +1457,51 @@ int OS_DoIo(struct timeval *tmo)
     return 0;
 }
 
+
+static int CALLBACK isAddrOK(LPWSABUF  lpCallerId,
+                             LPWSABUF  dc0,
+                             LPQOS     dc1,
+                             LPQOS     dc2,
+                             LPWSABUF  dc3,
+                             LPWSABUF  dc4,
+                             GROUP     *dc5,
+                             DWORD     dwCallbackData)
+{
+    const char *okAddrs = (char *) dwCallbackData;
+    struct sockaddr *sockaddr = (struct sockaddr *) lpCallerId->buf;
+
+    if (okAddrs == NULL || sockaddr->sa_family != AF_INET)
+    {
+        return TRUE;
+    }
+    else
+    {
+        static const char *token = " ,;:\t";
+        struct sockaddr_in * inet_sockaddr = (struct sockaddr_in *) sockaddr;
+        char *ipaddr = inet_ntoa(inet_sockaddr->sin_addr);
+        char *p = strstr(okAddrs, ipaddr);
+
+        if (p == NULL)
+        {
+            return FALSE;
+        }
+        else if (p == okAddrs)
+        {
+            p += strlen(ipaddr);
+            return (strchr(token, *p) != NULL);
+        }
+        else if (strchr(token, *--p))
+        {
+            p += strlen(ipaddr) + 1;
+            return (strchr(token, *p) != NULL);
+        }
+        else
+        {
+            return FALSE;
+        }
+    }
+}
+    
 
 /*
  *----------------------------------------------------------------------
@@ -1404,108 +1522,120 @@ int OS_DoIo(struct timeval *tmo)
 int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 {
     /* XXX This is broken for listen_sock & fail_on_intr */
-    struct sockaddr_in sa;
-    int isNewConnection;
     int ipcFd = -1;
     BOOL pConnected;
-    HANDLE hDup;
     SOCKET hSock;
-    int clilen = sizeof(sa);
-    DWORD waitForStatus;
 
-    switch(listenType) {
+    if (shutdownPending) 
+    {
+        return -1;
+    }
 
-    case FD_PIPE_SYNC:
-        waitForStatus = WaitForSingleObject(hPipeMutex,INFINITE);
-        switch(waitForStatus) {
-        case WAIT_OBJECT_0:
-        case WAIT_ABANDONED:
-            break;
-
-        case WAIT_FAILED:
-        default:
+    // The mutex is to keep other processes (and threads, when supported)
+    // from going into the accept cycle.  The accept cycle needs to
+    // periodically break out to check the state of the shutdown flag
+    // and there's no point to having more than one thread do that.
+    
+    if (acceptMutex != INVALID_HANDLE_VALUE) 
+    {
+        if (WaitForSingleObject(acceptMutex, INFINITE) == WAIT_FAILED) 
+        {
             return -1;
         }
+    }
+    
+    if (shutdownPending) 
+    {
+        if (acceptMutex != INVALID_HANDLE_VALUE) 
+        {
+            ReleaseMutex(acceptMutex);
+        }
+        return -1;
+    }
+    
+    if (listenType == FD_PIPE_SYNC) 
+    {
+        pConnected = ConnectNamedPipe(hListen, &listenOverlapped) 
+            ? TRUE 
+            : (GetLastError() == ERROR_PIPE_CONNECTED);
 
-        /*
-         * We have the mutex, go for the connection.
-         */
-    	pConnected = ConnectNamedPipe(hListen, NULL) ?
-	                      TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-
-        ReleaseMutex(hPipeMutex);
-	    if(pConnected) {
-	        /*
-	         * Success...
-	         */
-	        if (!DuplicateHandle(GetCurrentProcess(), hListen,
-				 GetCurrentProcess(), &hDup, 0,
-				 TRUE,		/* allow inheritance */
-				 DUPLICATE_SAME_ACCESS)) {
-	            return -1;
-	        }
-	        ipcFd = Win32NewDescriptor(FD_PIPE_SYNC, (int)hDup, -1);
-	        if(ipcFd == -1) {
-                DisconnectNamedPipe(hListen);
-                CloseHandle(hDup);
+        if (! pConnected) 
+        {
+            while (WaitForSingleObject(listenOverlapped.hEvent, 1000) == WAIT_TIMEOUT) 
+            {
+                if (shutdownPending) 
+                {
+                    if (acceptMutex != INVALID_HANDLE_VALUE) 
+                    {
+                        ReleaseMutex(acceptMutex);
+                    }
+                    CancelIo(hListen);
+                    return -1;
+                }            
             }
-            return ipcFd;
-        } else {
+        }
+        
+        if (acceptMutex != INVALID_HANDLE_VALUE) 
+        {
+            ReleaseMutex(acceptMutex);
+        }
+
+        ipcFd = Win32NewDescriptor(FD_PIPE_SYNC, (int) hListen, -1);
+	    if (ipcFd == -1) 
+        {
+            DisconnectNamedPipe(hListen);
+        }
+    }
+    else if (listenType == FD_SOCKET_SYNC)
+    {
+        struct sockaddr sockaddr;
+        int sockaddrLen = sizeof(sockaddr);
+        fd_set readfds;
+        const struct timeval timeout = {1, 0};
+     
+        FD_ZERO(&readfds);
+        FD_SET((unsigned int) hListen, &readfds);
+        
+        while (select(0, &readfds, NULL, NULL, &timeout) == 0)
+        {
+            if (shutdownPending) 
+            {
+                return -1;
+            }
+        }
+        
+        hSock = (webServerAddrs == NULL)
+            ? accept((SOCKET) hListen, 
+                              &sockaddr, 
+                              &sockaddrLen)
+            : WSAAccept((unsigned int) hListen,                    
+                                       &sockaddr,  
+                                       &sockaddrLen,               
+                                       isAddrOK,  
+                               (DWORD) webServerAddrs);
+        
+        if (acceptMutex != INVALID_HANDLE_VALUE) 
+        {
+            ReleaseMutex(acceptMutex);
+        }
+
+        if (hSock == -1) 
+        {
             return -1;
-    }
-	break;
-
-    case FD_SOCKET_SYNC:
-	hSock = accept((int)hListen, (struct sockaddr *) &sa, &clilen);
-	if(hSock == -1) {
-	    return -1;
-	} else if (sa.sin_family != AF_INET) { /* What are we? */
-	    closesocket(hSock);
-	    hSock = (SOCKET)-1;
-	    return -1;
-	} else {
-	    char	*tp1, *tp2;
-	    int	match = 0;
-	    if (webServerAddrs == NULL)
-	        isNewConnection = TRUE;
-	    else {
-	        tp1 = (char *) malloc(strlen(webServerAddrs)+1);
-            ASSERT(tp1 != NULL);
-		strcpy(tp1, webServerAddrs);
-		while(tp1) {
-		    if ((tp2 = strchr(tp1, ',')) != NULL)
-		        *tp2++ = 0;
-
-		    if (inet_addr(tp1) == sa.sin_addr.s_addr) {
-		        match = 1;
-			break;
-		    }
-		    tp1 = tp2;
-		}
-		free(tp1);
-		if (match)
-		    isNewConnection = TRUE;
-		else {
-		    closesocket(hSock);
-		    hSock = (SOCKET)-1;
-		    return -1;
-		}
+        }
+        
+        ipcFd = Win32NewDescriptor(FD_SOCKET_SYNC, hSock, -1);
+	    if (ipcFd == -1) 
+        {
+	        closesocket(hSock);
 	    }
-	}
-
-	ipcFd = Win32NewDescriptor(FD_SOCKET_SYNC, hSock, -1);
-	if(ipcFd == -1) {
-	    closesocket(hSock);
-	}
-	return ipcFd;
-	break;
-
-    case FD_UNUSED:
-      default:
-        exit(101);
-	break;
-
     }
+    else
+    {
+        ASSERT(0);
+    }
+	    
+    return ipcFd;
 }
 
 /*
