@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.8 2002/09/05 16:14:04 skimo Exp $ */
+/* $Id: FCGI.XL,v 1.9 2002/11/11 13:51:20 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -141,9 +141,15 @@ FCGI_UndoBinding(FCGP_Request* request)
     sfdcdelfcgi(sfdisc(IoOFP(request->io[1]), SF_POPDISC));
     sfdcdelfcgi(sfdisc(IoOFP(request->io[2]), SF_POPDISC));
 #else
+#  ifdef USE_PERLIO
+    sv_unmagic((SV *)GvIOp(request->gv[0]), 'q');
+    sv_unmagic((SV *)GvIOp(request->gv[1]), 'q');
+    sv_unmagic((SV *)GvIOp(request->gv[2]), 'q');
+#  else
     sv_unmagic((SV *)request->gv[0], 'q');
     sv_unmagic((SV *)request->gv[1], 'q');
     sv_unmagic((SV *)request->gv[2], 'q');
+#  endif
 #endif
     request->bound = FALSE;
 }
