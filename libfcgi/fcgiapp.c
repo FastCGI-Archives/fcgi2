@@ -11,14 +11,8 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.19 2001/06/03 21:46:43 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.20 2001/06/18 14:15:51 robs Exp $";
 #endif /* not lint */
-
-#include "fcgi_config.h"
-
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#endif
 
 #include <assert.h>
 #include <errno.h>
@@ -30,6 +24,8 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.19 2001/06/03 21:46:43 robs Exp 
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+
+#include "fcgi_config.h"
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h> /* for getpeername */
@@ -43,11 +39,15 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.19 2001/06/03 21:46:43 robs Exp 
 #include <unistd.h>
 #endif
 
+#ifdef _WIN32
+#define DLLAPI  __declspec(dllexport)
+#endif
+
+#include "fcgiapp.h"
+
 #include "fcgimisc.h"
-#include "fcgiappmisc.h"
 #include "fastcgi.h"
 #include "fcgios.h"
-#include "fcgiapp.h"
 
 /*
  * This is a workaround for one version of the HP C compiler
