@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.10 2001/03/27 04:13:12 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.11 2001/03/27 14:03:21 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -121,7 +121,6 @@ static HANDLE hListen = INVALID_HANDLE_VALUE;
 static OVERLAPPED listenOverlapped;
 static BOOLEAN libInitialized = FALSE;
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -204,7 +203,7 @@ static int Win32NewDescriptor(FILE_TYPE type, int fd, int desiredFd)
 
     return index;
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -542,7 +541,6 @@ int OS_LibInit(int stdioFds[3])
     return 0;
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -578,7 +576,6 @@ void OS_LibShutdown()
     return;
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -645,7 +642,6 @@ static short getPort(const char * bindPath)
     return port;
 }
 
-
 /*
  * OS_CreateLocalIpcFd --
  *
@@ -779,7 +775,6 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     return pseudoFd;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -907,7 +902,6 @@ int OS_FcgiConnect(char *bindPath)
     return pseudoFd;    
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -967,7 +961,7 @@ int OS_Read(int fd, char * buf, size_t len)
 		return -1;
     }
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1029,7 +1023,6 @@ int OS_Write(int fd, char * buf, size_t len)
     }
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1109,7 +1102,6 @@ int OS_SpawnChild(char *execPath, int listenFd)
     }
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -1149,7 +1141,6 @@ int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr,
     return 0;
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -1226,7 +1217,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
     }
     return 0;
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1328,7 +1319,6 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
     return 0;
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -1384,7 +1374,7 @@ int OS_Close(int fd)
     Win32FreeDescriptor(fd);
     return ret;
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1414,7 +1404,7 @@ int OS_CloseRead(int fd)
 	ret = -1;
     return ret;
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -1522,7 +1512,6 @@ static int CALLBACK isAddrOK(LPWSABUF  lpCallerId,
     }
 }
     
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1657,7 +1646,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 	    
     return ipcFd;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1713,7 +1702,6 @@ int OS_IpcClose(int ipcFd)
     }
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1739,7 +1727,6 @@ int OS_IsFcgi(int sock)
     }
 }
 
-
 /*
  *----------------------------------------------------------------------
  *

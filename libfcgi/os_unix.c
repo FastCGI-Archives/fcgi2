@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.23 2001/03/27 13:21:26 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.24 2001/03/27 14:03:20 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -105,7 +105,6 @@ static fd_set writeFdSetPost;
 static int numWrPosted = 0;
 static int volatile maxFd = -1;
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -146,7 +145,6 @@ int OS_LibInit(int stdioFds[3])
     return 0;
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -173,7 +171,6 @@ void OS_LibShutdown()
     return;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -220,13 +217,11 @@ static int OS_BuildSockAddrUn(const char *bindPath,
 #endif
     return 0;
 }
-
 union SockAddrUnion {
     struct  sockaddr_un	unixVariant;
     struct  sockaddr_in	inetVariant;
 };
 
-
 /*
  * OS_CreateLocalIpcFd --
  *
@@ -312,7 +307,6 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     return listenSock;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -386,7 +380,6 @@ int OS_FcgiConnect(char *bindPath)
     }
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -407,7 +400,7 @@ int OS_Read(int fd, char * buf, size_t len)
 {
     return(read(fd, buf, len));
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -429,7 +422,6 @@ int OS_Write(int fd, char * buf, size_t len)
     return(write(fd, buf, len));
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -495,7 +487,6 @@ int OS_SpawnChild(char *appPath, int listenFd)
     return 0;
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -552,7 +543,6 @@ static void GrowAsyncTable(void)
 
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -603,7 +593,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
     FD_SET(fd, &readFdSet);
     return 0;
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -652,7 +642,7 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
     FD_SET(fd, &writeFdSet);
     return 0;
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -696,7 +686,7 @@ int OS_Close(int fd)
     }
     return close(fd);
 }
-
+
 /*
  *--------------------------------------------------------------
  *
@@ -721,7 +711,6 @@ int OS_CloseRead(int fd)
     return shutdown(fd, 0);
 }
 
-
 /*
  *--------------------------------------------------------------
  *
@@ -852,7 +841,6 @@ char * str_dup(const char * str)
     return sdup;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -892,7 +880,6 @@ static int ClientAddrOK(struct sockaddr_in *saPtr, const char *clientList)
     return result;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -931,7 +918,7 @@ static int AcquireLock(int sock, int fail_on_intr)
     return 0;
 #endif
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -970,7 +957,6 @@ static int ReleaseLock(int sock)
 #endif
 }
 
-
 /**********************************************************************
  * Determine if the errno resulting from a failed accept() warrants a
  * retry or exit().  Based on Apache's http_main.c accept() handling
@@ -1126,7 +1112,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 
     return (socket);
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1147,7 +1133,6 @@ int OS_IpcClose(int ipcFd)
     return OS_Close(ipcFd);
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -1184,7 +1169,7 @@ int OS_IsFcgi(int sock)
         return FALSE;
     }
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
