@@ -1,4 +1,4 @@
-# Based on a Microsoft Developer Studio Generated NMAKE File
+# Microsoft Developer Studio Generated NMAKE File, Based on libfcgi.dsp
 
 !IF "$(CFG)" == ""
 CFG=release
@@ -9,7 +9,7 @@ CFG=release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "Makefile.nt" CFG="debug"
+!MESSAGE NMAKE /f "libfcgi.mak" CFG="debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -134,7 +134,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MDd /W3 /Gm /Gi /ZI /Od /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libfcgi.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MDd /W4 /Gm /Gi /ZI /Od /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libfcgi.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -198,9 +198,7 @@ LINK32_OBJS= \
 !ENDIF 
 
 
-!IF "$(NO_EXTERNAL_DEPS)" != "1"
 ..\libfcgi\fcgi_stdio.c : \
-	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgi_stdio.h"\
 	"..\include\fcgiapp.h"\
@@ -209,7 +207,6 @@ LINK32_OBJS= \
 	
 
 ..\libfcgi\fcgiapp.c : \
-	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\include\fastcgi.h"\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgiapp.h"\
@@ -223,11 +220,9 @@ LINK32_OBJS= \
 	
 
 ..\libfcgi\os_win32.c : \
-	"..\..\..\..\..\..\..\program files\microsoft visual studio\vc98\include\basetsd.h"\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgimisc.h"\
 	"..\include\fcgios.h"\
-!ENDIF 
 
 
 !IF "$(CFG)" == "release" || "$(CFG)" == "debug"
@@ -281,7 +276,7 @@ CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /Ob2 /I "..\include" /D "WIN32" /D "NDEBUG"
 
 !ELSEIF  "$(CFG)" == "debug"
 
-CPP_SWITCHES=/nologo /MDd /W3 /Gm /Gi /GX /ZI /Od /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libfcgi.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_SWITCHES=/nologo /MDd /W4 /Gm /Gi /GX /ZI /Od /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libfcgi.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\fcgio.obj"	"$(INTDIR)\fcgio.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<

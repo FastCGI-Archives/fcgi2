@@ -1,25 +1,20 @@
-# Microsoft Developer Studio Generated NMAKE File, Format Version 4.20
-# ** DO NOT EDIT **
-
-# TARGTYPE "Win32 (x86) Console Application" 0x0103
+# Microsoft Developer Studio Generated NMAKE File, Based on cgifcgi.dsp
 
 !IF "$(CFG)" == ""
-CFG=cgifcgi - Win32 Debug
-!MESSAGE No configuration specified.  Defaulting to cgifcgi - Win32 Debug.
+CFG=release
 !ENDIF 
 
-!IF "$(CFG)" != "cgifcgi - Win32 Release" && "$(CFG)" !=\
- "cgifcgi - Win32 Debug"
+!IF "$(CFG)" != "release" && "$(CFG)" != "debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
-!MESSAGE You can specify a configuration when running NMAKE on this makefile
-!MESSAGE by defining the macro CFG on the command line.  For example:
+!MESSAGE You can specify a configuration when running NMAKE
+!MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "cgi-fcgi.mak" CFG="cgifcgi - Win32 Debug"
+!MESSAGE NMAKE /f "cgifcgi.mak" CFG="debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "cgifcgi - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "cgifcgi - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "release" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "debug" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
 !ENDIF 
@@ -29,118 +24,172 @@ NULL=
 !ELSE 
 NULL=nul
 !ENDIF 
-################################################################################
-# Begin Project
-# PROP Target_Last_Scanned "cgifcgi - Win32 Debug"
-RSC=rc.exe
+
+!IF  "$(CFG)" == "release"
+
+OUTDIR=.\..\cgi-fcgi\Release
+INTDIR=.\..\cgi-fcgi\Release
+# Begin Custom Macros
+OutDir=.\..\cgi-fcgi\Release
+# End Custom Macros
+
+!IF "$(RECURSE)" == "0" 
+
+ALL : "$(OUTDIR)\cgi-fcgi.exe"
+
+!ELSE 
+
+ALL : "libfcgi-release" "$(OUTDIR)\cgi-fcgi.exe"
+
+!ENDIF 
+
+!IF "$(RECURSE)" == "1" 
+CLEAN :"libfcgi-releaseCLEAN" 
+!ELSE 
+CLEAN :
+!ENDIF 
+	-@erase "$(INTDIR)\cgi-fcgi.obj"
+	-@erase "$(INTDIR)\vc60.idb"
+	-@erase "$(OUTDIR)\cgi-fcgi.exe"
+
+"$(OUTDIR)" :
+    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+
 CPP=cl.exe
+CPP_PROJ=/nologo /MD /W3 /Gi /O2 /Ob2 /I "..\include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\cgifcgi.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
-!IF  "$(CFG)" == "cgifcgi - Win32 Release"
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 0
-# PROP BASE Output_Dir "Release"
-# PROP BASE Intermediate_Dir "Release"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
-# PROP Target_Dir ""
-OUTDIR=.\Release
-INTDIR=.\Release
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-ALL : "$(OUTDIR)\cgi-fcgi.exe"
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-CLEAN : 
-	-@erase "$(INTDIR)\cgi-fcgi.obj"
-	-@erase "$(OUTDIR)\cgi-fcgi.exe"
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
 
-# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /YX /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "..\include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /YX /c
-CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "..\include" /D "WIN32" /D "NDEBUG" /D\
- "_CONSOLE" /Fp"$(INTDIR)/cgi-fcgi.pch" /YX /Fo"$(INTDIR)/" /c 
-CPP_OBJS=.\Release/
-CPP_SBRS=.\.
-# ADD BASE RSC /l 0x409 /d "NDEBUG"
-# ADD RSC /l 0x409 /d "NDEBUG"
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+MTL=midl.exe
+MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
+RSC=rc.exe
 BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/cgi-fcgi.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\cgifcgi.bsc" 
 BSC32_SBRS= \
 	
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\libfcgi\ /nologo /subsystem:console /machine:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib ..\libfcgi\ /nologo /subsystem:console /incremental:no\
- /pdb:"$(OUTDIR)/cgi-fcgi.pdb" /machine:I386 /out:"$(OUTDIR)/cgi-fcgi.exe" 
+LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /machine:IX86 /out:"$(OUTDIR)\cgi-fcgi.exe" /libpath:"..\libfcgi\Release" 
 LINK32_OBJS= \
-	"$(INTDIR)\cgi-fcgi.obj"
+	"$(INTDIR)\cgi-fcgi.obj" \
+	"..\libfcgi\Release\libfcgi.lib"
 
 "$(OUTDIR)\cgi-fcgi.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
   $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
 
-!ELSEIF  "$(CFG)" == "cgifcgi - Win32 Debug"
+!ELSEIF  "$(CFG)" == "debug"
 
-# PROP BASE Use_MFC 0
-# PROP BASE Use_Debug_Libraries 1
-# PROP BASE Output_Dir "Debug"
-# PROP BASE Intermediate_Dir "Debug"
-# PROP BASE Target_Dir ""
-# PROP Use_MFC 0
-# PROP Use_Debug_Libraries 1
-# PROP Output_Dir "Debug"
-# PROP Intermediate_Dir "Debug"
-# PROP Target_Dir ""
-OUTDIR=.\Debug
-INTDIR=.\Debug
+OUTDIR=.\../cgi-fcgi/Debug
+INTDIR=.\../cgi-fcgi/Debug
+# Begin Custom Macros
+OutDir=.\../cgi-fcgi/Debug
+# End Custom Macros
 
-ALL : "$(OUTDIR)\cgi-fcgi.exe"
+!IF "$(RECURSE)" == "0" 
 
-CLEAN : 
+ALL : "$(OUTDIR)\cgi-fcgi.exe" "$(OUTDIR)\cgifcgi.bsc"
+
+!ELSE 
+
+ALL : "libfcgi-debug" "$(OUTDIR)\cgi-fcgi.exe" "$(OUTDIR)\cgifcgi.bsc"
+
+!ENDIF 
+
+!IF "$(RECURSE)" == "1" 
+CLEAN :"libfcgi-debugCLEAN" 
+!ELSE 
+CLEAN :
+!ENDIF 
 	-@erase "$(INTDIR)\cgi-fcgi.obj"
-	-@erase "$(INTDIR)\vc40.idb"
-	-@erase "$(INTDIR)\vc40.pdb"
+	-@erase "$(INTDIR)\cgi-fcgi.sbr"
+	-@erase "$(INTDIR)\vc60.idb"
+	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(OUTDIR)\cgi-fcgi.exe"
-	-@erase "$(OUTDIR)\cgi-fcgi.ilk"
-	-@erase "$(OUTDIR)\cgi-fcgi.pdb"
+	-@erase "$(OUTDIR)\cgifcgi.bsc"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-# ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /YX /c
-# ADD CPP /nologo /MD /W3 /Gm /GX /Zi /Od /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /YX /c
-CPP_PROJ=/nologo /MD /W3 /Gm /GX /Zi /Od /I "..\include" /D "WIN32" /D "_DEBUG"\
- /D "_CONSOLE" /Fp"$(INTDIR)/cgi-fcgi.pch" /YX /Fo"$(INTDIR)/" /Fd"$(INTDIR)/"\
- /c 
-CPP_OBJS=.\Debug/
-CPP_SBRS=.\.
-# ADD BASE RSC /l 0x409 /d "_DEBUG"
-# ADD RSC /l 0x409 /d "_DEBUG"
+CPP=cl.exe
+CPP_PROJ=/nologo /MDd /W4 /Gm /Gi /ZI /Od /I "..\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\cgifcgi.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+MTL=midl.exe
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+RSC=rc.exe
 BSC32=bscmake.exe
-# ADD BASE BSC32 /nologo
-# ADD BSC32 /nologo
-BSC32_FLAGS=/nologo /o"$(OUTDIR)/cgi-fcgi.bsc" 
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\cgifcgi.bsc" 
 BSC32_SBRS= \
-	
+	"$(INTDIR)\cgi-fcgi.sbr"
+
+"$(OUTDIR)\cgifcgi.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
 LINK32=link.exe
-# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ..\libfcgi\Debug\libfcgi.lib /nologo /subsystem:console /debug /machine:I386
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib\
- advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib\
- odbccp32.lib ..\libfcgi\Debug\libfcgi.lib /nologo /subsystem:console\
- /incremental:yes /pdb:"$(OUTDIR)/cgi-fcgi.pdb" /debug /machine:I386\
- /out:"$(OUTDIR)/cgi-fcgi.exe" 
+LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /machine:IX86 /out:"$(OUTDIR)\cgi-fcgi.exe" /libpath:"..\libfcgi\Debug" 
 LINK32_OBJS= \
-	"$(INTDIR)\cgi-fcgi.obj"
+	"$(INTDIR)\cgi-fcgi.obj" \
+	"..\libfcgi\Debug\libfcgi.lib"
 
 "$(OUTDIR)\cgi-fcgi.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -149,72 +198,60 @@ LINK32_OBJS= \
 
 !ENDIF 
 
-.c{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
 
-.cpp{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
-
-.cxx{$(CPP_OBJS)}.obj:
-   $(CPP) $(CPP_PROJ) $<  
-
-.c{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
-
-.cpp{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
-
-.cxx{$(CPP_SBRS)}.sbr:
-   $(CPP) $(CPP_PROJ) $<  
-
-################################################################################
-# Begin Target
-
-# Name "cgifcgi - Win32 Release"
-# Name "cgifcgi - Win32 Debug"
-
-!IF  "$(CFG)" == "cgifcgi - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "cgifcgi - Win32 Debug"
-
-!ENDIF 
-
-################################################################################
-# Begin Source File
-
-SOURCE=".\cgi-fcgi.c"
-
-!IF  "$(CFG)" == "cgifcgi - Win32 Release"
-
-DEP_CPP_CGI_F=\
+"..\cgi-fcgi\cgi-fcgi.c" : \
 	"..\include\fastcgi.h"\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgiapp.h"\
 	"..\include\fcgimisc.h"\
 	"..\include\fcgios.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
-
-"$(INTDIR)\cgi-fcgi.obj" : $(SOURCE) $(DEP_CPP_CGI_F) "$(INTDIR)"
 
 
-!ELSEIF  "$(CFG)" == "cgifcgi - Win32 Debug"
+!IF "$(CFG)" == "release" || "$(CFG)" == "debug"
+SOURCE="..\cgi-fcgi\cgi-fcgi.c"
 
-DEP_CPP_CGI_F=\
-	"..\include\fastcgi.h"\
-	"..\include\fcgi_config.h"\
-	"..\include\fcgiapp.h"\
-	"..\include\fcgimisc.h"\
-	"..\include\fcgios.h"\
-	{$(INCLUDE)}"\sys\TYPES.H"\
-	
+!IF  "$(CFG)" == "release"
 
-"$(INTDIR)\cgi-fcgi.obj" : $(SOURCE) $(DEP_CPP_CGI_F) "$(INTDIR)"
+
+"$(INTDIR)\cgi-fcgi.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "debug"
+
+
+"$(INTDIR)\cgi-fcgi.obj"	"$(INTDIR)\cgi-fcgi.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 
 
-# End Source File
-# End Target
-# End Project
-################################################################################
+!IF  "$(CFG)" == "release"
+
+"libfcgi-release" : 
+   cd ".\..\libfcgi"
+   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="release" 
+   cd ".\..\cgi-fcgi"
+
+"libfcgi-releaseCLEAN" : 
+   cd ".\..\libfcgi"
+   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="release" RECURSE=1 CLEAN 
+   cd ".\..\cgi-fcgi"
+
+!ELSEIF  "$(CFG)" == "debug"
+
+"libfcgi-debug" : 
+   cd ".\..\libfcgi"
+   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="debug" 
+   cd ".\..\cgi-fcgi"
+
+"libfcgi-debugCLEAN" : 
+   cd ".\..\libfcgi"
+   $(MAKE) /$(MAKEFLAGS) /NOLOGO /F ".\libfcgi.mak" CFG="debug" RECURSE=1 CLEAN 
+   cd ".\..\cgi-fcgi"
+
+!ENDIF 
+
+
+!ENDIF 
+
