@@ -1,4 +1,4 @@
-/* File used by autoheader to generate include/fcgi_config.h */
+/* acconfig.h -  Used by autoheader to generate include/fcgi_config.h. */
 
 /* Define if socklen_t exists. */
 #undef HAVE_SOCKLEN
