@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.7 2001/06/22 13:21:15 robs Exp $
+ * $Id: fcgiapp.h,v 1.8 2001/06/22 14:19:23 robs Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -578,6 +578,34 @@ DLLAPI int FCGX_GetError(FCGX_Stream *stream);
  *----------------------------------------------------------------------
  */
 DLLAPI void FCGX_ClearError(FCGX_Stream *stream);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_CreateWriter --
+ *
+ *      Create a FCGX_Stream (used by cgi-fcgi).  This shouldn't 
+ *      be needed by a FastCGI applictaion.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI FCGX_Stream *FCGX_CreateWriter(
+        int socket,
+        int requestId,
+        int bufflen,
+        int streamType);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_FreeStream --
+ *
+ *      Free a FCGX_Stream (used by cgi-fcgi).  This shouldn't 
+ *      be needed by a FastCGI applictaion.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI void FCGX_FreeStream(FCGX_Stream **stream);
 
 
 #if defined (__cplusplus) || defined (c_plusplus)
