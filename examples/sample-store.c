@@ -1,4 +1,4 @@
-/* 
+/*
  * sample-store.c --
  *
  *	FastCGI example program using fcgi_stdio library
@@ -30,7 +30,7 @@
  * length, sample-store writes a new snapshot and empties the log.
  * This prevents the time needed for restart from growing without
  * bound.
- * 
+ *
  * Since users "visit" Web sites, but never "leave", sample-store
  * deletes a shopping cart after the cart has been inactive
  * for a certain period of time.  This policy prevents sample-store's
@@ -46,22 +46,28 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: sample-store.c,v 1.3 1999/07/26 05:33:00 roberts Exp $";
+static const char rcsid[] = "$Id: sample-store.c,v 1.4 1999/07/28 00:31:56 roberts Exp $";
 #endif /* not lint */
 
-#include "fcgi_stdio.h"  /* FCGI_Accept, FCGI_Finish, stdio */
+#include "fcgi_config.h"
+
+#include <assert.h>      /* assert */
+#include <dirent.h>      /* readdir, closedir, DIR, dirent */
+#include <errno.h>       /* errno, ENOENT */
 #include <stdlib.h>      /* malloc/free, getenv, strtol */
 #include <string.h>      /* strcmp, strncmp, strlen, strstr, strchr */
 #include <tcl.h>         /* Tcl_*Hash* functions */
 #include <time.h>        /* time, time_t */
-#include <assert.h>      /* assert */
-#include <errno.h>       /* errno, ENOENT */
-#include <dirent.h>      /* readdir, closedir, DIR, dirent */
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>      /* fsync */
+#endif
 
 #if defined __linux__
 int fsync(int fd);
 #endif
+
+#include "fcgi_stdio.h"  /* FCGI_Accept, FCGI_Finish, stdio */
 
 /*
  * sample-store is designed to be configured as follows (for the OM server):
@@ -129,10 +135,6 @@ int fsync(int fd);
 #endif
 
 #define Strlen(str) (((str) == NULL) ? 0 : strlen(str))
-
-void panic(char *format,
-        char *arg1, char *arg2, char *arg3, char *arg4,
-        char *arg5, char *arg6, char *arg7, char *arg8);
 
 static void *Malloc(size_t size);
 static void Free(void *ptr);
@@ -504,7 +506,7 @@ static int RemoveOneInactiveCart(void)
     cartEntry = Tcl_FirstHashEntry(cartTablePtr, &search);
     for(cartEntry = Tcl_FirstHashEntry(cartTablePtr, &search);
             cartEntry != NULL; cartEntry = Tcl_NextHashEntry(&search)) {
-        cart = Tcl_GetHashValue(cartEntry);
+        cart = (CartObj *)Tcl_GetHashValue(cartEntry);
         if(cart->inactive) {
             userId = Tcl_GetHashKey(cartTablePtr, cartEntry);
             DoEmptyCart(userId, TRUE);
@@ -524,7 +526,7 @@ static void MarkAllCartsInactive(void)
     cartEntry = Tcl_FirstHashEntry(cartTablePtr, &search);
     for(cartEntry = Tcl_FirstHashEntry(cartTablePtr, &search);
             cartEntry != NULL; cartEntry = Tcl_NextHashEntry(&search)) {
-        cart = Tcl_GetHashValue(cartEntry);
+        cart = (CartObj *)Tcl_GetHashValue(cartEntry);
         cart->inactive = TRUE;
     }
 }
@@ -532,7 +534,7 @@ static void MarkAllCartsInactive(void)
 static void MarkThisCartActive(char *userId)
 {
     Tcl_HashEntry *cartEntry = GetCartEntry(userId);
-    CartObj *cart = Tcl_GetHashValue(cartEntry);
+    CartObj *cart = (CartObj *)Tcl_GetHashValue(cartEntry);
     cart->inactive = FALSE;
 }
 
@@ -709,13 +711,13 @@ static void DisplayStore(
 static Tcl_HashEntry *GetCartEntry(char *userId)
 {
     Tcl_HashEntry *cartEntry = Tcl_FindHashEntry(cartTablePtr, userId);
-    int new;
+    int newCartEntry;
     if(cartEntry == NULL) {
-        CartObj *cart = Malloc(sizeof(CartObj));
+        CartObj *cart = (CartObj *)Malloc(sizeof(CartObj));
         cart->inactive = FALSE;
         cart->items = NULL;
-        cartEntry = Tcl_CreateHashEntry(cartTablePtr, userId, &new);
-        assert(new);
+        cartEntry = Tcl_CreateHashEntry(cartTablePtr, userId, &newCartEntry);
+        assert(newCartEntry);
         Tcl_SetHashValue(cartEntry, cart);
     }
     return cartEntry;
@@ -736,7 +738,7 @@ static void AddItemToCart(
         printf("Location: %s?op=%s\r\n"
                "\r\n", scriptName, OP_DISPLAY_STORE);
     }
-}  
+}
 
 static int DoAddItemToCart(char *userId, char *item, int writeLog)
 {
@@ -744,7 +746,7 @@ static int DoAddItemToCart(char *userId, char *item, int writeLog)
         return -1;
     } else {
         Tcl_HashEntry *cartEntry = GetCartEntry(userId);
-        CartObj *cart = Tcl_GetHashValue(cartEntry);
+        CartObj *cart = (CartObj *)Tcl_GetHashValue(cartEntry);
         cart->items = ListOfString_AppendElement(
                               cart->items, StringCopy(item));
         if(writeLog) {
@@ -758,7 +760,7 @@ static void DisplayCart(
         char *scriptName, char *parent, char *userId, char *processId)
 {
     Tcl_HashEntry *cartEntry = GetCartEntry(userId);
-    CartObj *cart = Tcl_GetHashValue(cartEntry);
+    CartObj *cart = (CartObj *)Tcl_GetHashValue(cartEntry);
     ListOfString *items = cart->items;
     int numberOfItems = ListOfString_Length(items);
 
@@ -803,7 +805,7 @@ static int DoRemoveItemFromCart(char *userId, char *item, int writeLog)
         return -1;
     } else {
         Tcl_HashEntry *cartEntry = GetCartEntry(userId);
-        CartObj *cart = Tcl_GetHashValue(cartEntry);
+        CartObj *cart = (CartObj *)Tcl_GetHashValue(cartEntry);
         if(ListOfString_IsElement(cart->items, item)) {
             cart->items = ListOfString_RemoveElement(cart->items, item);
             if (writeLog) {
@@ -825,7 +827,7 @@ static void Purchase(
 static int DoEmptyCart(char *userId, int writeLog)
 {
     Tcl_HashEntry *cartEntry = GetCartEntry(userId);
-    CartObj *cart = Tcl_GetHashValue(cartEntry);
+    CartObj *cart = (CartObj *)Tcl_GetHashValue(cartEntry);
     ListOfString *items = cart->items;
     /*
      * Write log *before* tearing down cart structure because userId
@@ -922,7 +924,7 @@ static void Free(void *ptr)
  */
 static char *StringNCopy(char *str, int strLen)
 {
-    char *newString = Malloc(strLen + 1);
+    char *newString = (char *)Malloc(strLen + 1);
     memcpy(newString, str, strLen);
     newString[strLen] = '\000';
     return newString;
@@ -951,7 +953,7 @@ static char *StringCat4(char *str1, char *str2, char *str3, char *str4)
     int str2Len = Strlen(str2);
     int str3Len = Strlen(str3);
     int str4Len = Strlen(str4);
-    char *newString = Malloc(str1Len + str2Len + str3Len + str4Len + 1);
+    char *newString = (char *)Malloc(str1Len + str2Len + str3Len + str4Len + 1);
     memcpy(newString, str1, str1Len);
     memcpy(newString + str1Len, str2, str2Len);
     memcpy(newString + str1Len + str2Len, str3, str3Len);
@@ -1026,17 +1028,6 @@ static int IntGetEnv(char *varName, int defaultValue)
 }
 
 /*
- * Should the Tcl hash package detect an unrecoverable error(!), halt.
- */
-void panic(char *format,
-        char *arg1, char *arg2, char *arg3, char *arg4,
-        char *arg5, char *arg6, char *arg7, char *arg8)
-{
-    assert(FALSE);
-}
-   
-
-/*
  * ListOfString abstraction
  */
 
@@ -1073,7 +1064,7 @@ static ListOfString *ListOfString_AppendElement(
         ListOfString *list, char *element)
 {
     ListOfString *cur;
-    ListOfString *newCell = Malloc(sizeof(ListOfString));
+    ListOfString *newCell = (ListOfString *)Malloc(sizeof(ListOfString));
     newCell->head = element;
     newCell->tail = NULL;
     if(list == NULL) {
