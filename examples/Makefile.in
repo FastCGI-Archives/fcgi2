@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.7 2001/06/22 16:19:14 robs Exp $
+#  $Id: Makefile.in,v 1.8 2001/06/22 19:09:59 robs Exp $
 #
 
 SHELL = @SHELL@
@@ -47,7 +47,8 @@ echo-x: echo-x.c $(INCLUDES) $(LIBFCGI)
 
 SampleStore/sample-store: SampleStore/sample-store.${O} SampleStore/tclHash.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) -ISampleStore SampleStore/sample-store.${O} SampleStore/tclHash.${O} -o SampleStore/sample-store $(LIBFCGI) $(LIBS)
-	mkdir SampleStore/SampleStore.state.0 SampleStore/SampleStore.state.1
+	[ -d SampleStore/SampleStore.state.0 ] || mkdir SampleStore/SampleStore.state.0
+	[ -d SampleStore/SampleStore.state.1 ] || mkdir SampleStore/SampleStore.state.1
 
 log-dump: log-dump.c $(INCLUDES) $(LIBFCGI)
 	$(CC) $(CFLAGS) log-dump.c -o log-dump $(LIBFCGI) $(LIBS)
