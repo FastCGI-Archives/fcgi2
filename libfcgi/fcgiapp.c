@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.22 2001/06/19 16:18:14 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.23 2001/06/20 16:50:02 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -189,6 +189,7 @@ char *FCGX_GetLine(char *str, int n, FCGX_Stream *stream)
 {
     int c;
     char *p = str;
+
     n--;
     while (n > 0) {
         c = FCGX_GetChar(stream);
@@ -198,7 +199,7 @@ char *FCGX_GetLine(char *str, int n, FCGX_Stream *stream)
             else
                 break;
         }
-        *p++ = c;
+        *p++ = (char) c;
         n--;
         if(c == '\n')
             break;
@@ -228,7 +229,7 @@ int FCGX_UnGetChar(int c, FCGX_Stream *stream) {
             || stream->rdNext == stream->stopUnget)
         return EOF;
     --(stream->rdNext);
-    *stream->rdNext = c;
+    *stream->rdNext = (unsigned char) c;
     return c;
 }
 
@@ -269,12 +270,12 @@ int FCGX_HasSeenEOF(FCGX_Stream *stream) {
 int FCGX_PutChar(int c, FCGX_Stream *stream)
 {
     if(stream->wrNext != stream->stop)
-        return (*stream->wrNext++ = c);
+        return (*stream->wrNext++ = (unsigned char) c);
     if(stream->isClosed || stream->isReader)
         return EOF;
     stream->emptyBuffProc(stream, FALSE);
     if(stream->wrNext != stream->stop)
-        return (*stream->wrNext++ = c);
+        return (*stream->wrNext++ = (unsigned char) c);
     ASSERT(stream->isClosed); /* bug in emptyBuffProc if not */
     return EOF;
 }
@@ -398,8 +399,8 @@ static void CopyAndAdvance(char **destPtr, char **srcPtr, int n);
 int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
 {
     char *f, *fStop, *percentPtr, *p, *fmtBuffPtr, *buffPtr;
-    int op, performedOp, sizeModifier, buffCount, buffLen, specifierLength;
-    int fastPath, n, auxBuffLen, buffReqd, minWidth, precision, exp;
+    int op, performedOp, sizeModifier, buffCount = 0, buffLen, specifierLength;
+    int fastPath, n, auxBuffLen = 0, buffReqd, minWidth, precision, exp;
     char *auxBuffPtr = NULL;
     int streamCount = 0;
     char fmtBuff[FMT_BUFFLEN];
@@ -411,13 +412,13 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
     unsigned unsignedArg;
     unsigned long uLongArg;
     unsigned short uShortArg;
-    char *charPtrArg;
+    char *charPtrArg = NULL;
     void *voidPtrArg;
     int *intPtrArg;
     long *longPtrArg;
     short *shortPtrArg;
-    double doubleArg;
-    LONG_DOUBLE lDoubleArg;
+    double doubleArg = 0.0;
+    LONG_DOUBLE lDoubleArg = 0.0L;
 
     fmtBuff[0] = '%';
     f = (char *) format;
@@ -456,14 +457,14 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                     case 'h':
                         sizeModifier = op;
                         op = *(percentPtr + 2);
-                        fmtBuff[1] = sizeModifier;
-                        fmtBuff[2] = op;
+                        fmtBuff[1] = (char) sizeModifier;
+                        fmtBuff[2] = (char) op;
                         fmtBuff[3] = '\0';
                         specifierLength = 3;
                         break;
 	            default:
                         sizeModifier = ' ';
-                        fmtBuff[1] = op;
+                        fmtBuff[1] = (char) op;
                         fmtBuff[2] = '\0';
                         specifierLength = 2;
                         break;
@@ -593,11 +594,13 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                         switch(sizeModifier) {
                             case ' ':
                                 doubleArg = va_arg(arg, double);
-				frexp(doubleArg, &exp);
+				                frexp(doubleArg, &exp);
                                 break;
                             case 'L':
                                 lDoubleArg = va_arg(arg, LONG_DOUBLE);
-				frexp(lDoubleArg, &exp);
+                                /* XXX Need to check for the presence of 
+                                 * frexpl() and use it if available */
+				                frexp((double) lDoubleArg, &exp);
                                 break;
                             default:
                                 goto ErrorReturn;
@@ -756,8 +759,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             *longPtrArg = streamCount;
                             break;
                         case 'h':
-                            shortPtrArg = va_arg(arg, short *);
-                            *shortPtrArg = streamCount;
+                            shortPtrArg = (short *) va_arg(arg, short *);
+                            *shortPtrArg = (short) streamCount;
                             break;
 	                default:
                             goto ErrorReturn;
@@ -1192,12 +1195,12 @@ static FCGI_Header MakeHeader(
     ASSERT(contentLength >= 0 && contentLength <= FCGI_MAX_LENGTH);
     ASSERT(paddingLength >= 0 && paddingLength <= 0xff);
     header.version = FCGI_VERSION_1;
-    header.type             =  type;
-    header.requestIdB1      = (requestId      >> 8) & 0xff;
-    header.requestIdB0      = (requestId          ) & 0xff;
-    header.contentLengthB1  = (contentLength  >> 8) & 0xff;
-    header.contentLengthB0  = (contentLength      ) & 0xff;
-    header.paddingLength    =  paddingLength;
+    header.type             = (unsigned char) type;
+    header.requestIdB1      = (unsigned char) ((requestId     >> 8) & 0xff);
+    header.requestIdB0      = (unsigned char) ((requestId         ) & 0xff);
+    header.contentLengthB1  = (unsigned char) ((contentLength >> 8) & 0xff);
+    header.contentLengthB0  = (unsigned char) ((contentLength     ) & 0xff);
+    header.paddingLength    = (unsigned char) paddingLength;
     header.reserved         =  0;
     return header;
 }
@@ -1216,11 +1219,11 @@ static FCGI_EndRequestBody MakeEndRequestBody(
         int protocolStatus)
 {
     FCGI_EndRequestBody body;
-    body.appStatusB3 = (appStatus >> 24) & 0xff;
-    body.appStatusB2 = (appStatus >> 16) & 0xff;
-    body.appStatusB1 = (appStatus >>  8) & 0xff;
-    body.appStatusB0 = (appStatus      ) & 0xff;
-    body.protocolStatus = protocolStatus;
+    body.appStatusB3    = (unsigned char) ((appStatus >> 24) & 0xff);
+    body.appStatusB2    = (unsigned char) ((appStatus >> 16) & 0xff);
+    body.appStatusB1    = (unsigned char) ((appStatus >>  8) & 0xff);
+    body.appStatusB0    = (unsigned char) ((appStatus      ) & 0xff);
+    body.protocolStatus = (unsigned char) protocolStatus;
     memset(body.reserved, 0, sizeof(body.reserved));
     return body;
 }
@@ -1238,7 +1241,7 @@ static FCGI_UnknownTypeBody MakeUnknownTypeBody(
         int type)
 {
     FCGI_UnknownTypeBody body;
-    body.type = type;
+    body.type = (unsigned char) type;
     memset(body.reserved, 0, sizeof(body.reserved));
     return body;
 }
@@ -1442,7 +1445,7 @@ static int ProcessManagementRecord(int type, FCGX_Stream *stream)
     char **pPtr;
     char response[64]; /* 64 = 8 + 3*(1+1+14+1)* + padding */
     char *responseP = &response[FCGI_HEADER_LEN];
-    char *name, value;
+    char *name, value = '\0';
     int len, paddedLen;
     if(type == FCGI_GET_VALUES) {
         ReadParams(paramsPtr, stream);
@@ -2121,9 +2124,10 @@ int FCGX_Accept(
 {
     int rc;
 
-    if (!libInitialized) {
-        if ((rc = FCGX_Init())) {
-            return (rc < 0) ? rc : -rc;
+    if (! libInitialized) {
+        rc = FCGX_Init();
+        if (rc) {
+            return rc;
         }
     }
 
