@@ -23,8 +23,8 @@ CFG=config_h - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""
-# PROP Scc_LocalPath ""
+# PROP Scc_ProjName "config_h"
+# PROP Scc_LocalPath ".."
 CPP=cl.exe
 RSC=rc.exe
 
@@ -98,7 +98,7 @@ SOURCE=..\include\fcgi_config_x86.h
 InputPath=..\include\fcgi_config_x86.h
 
 "..\include\fcgi_config.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cp $(InputPath) ..\include\fcgi_config.h
+	copy $(InputPath) ..\include\fcgi_config.h
 
 # End Custom Build
 
@@ -108,7 +108,7 @@ InputPath=..\include\fcgi_config_x86.h
 InputPath=..\include\fcgi_config_x86.h
 
 "..\include\fcgi_config.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	cp $(InputPath) ..\include\fcgi_config.h
+	copy $(InputPath) ..\include\fcgi_config.h
 
 # End Custom Build
 
