@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.13 2001/12/12 14:12:27 robs Exp $
+    $Id: README,v 1.14 2002/02/01 19:43:28 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,10 +25,15 @@ Win32:
 CHANGES
 -------
 
-Unfortunately documentation of many of the changes have been lost.
+For more detail regarding changes, please consult the cvs log available 
+on http://fastcgi.com/.
+
 
 2.2.3
 -----
+
+ *) Update the echo-cpp example to show the restoral of the original
+    streambufs.  Trub, Vladimir [vtrub@purolator.com]
 
  *) Fix a bug a that caused the lib to crash under certain circumstances
     when an error occured on a read
