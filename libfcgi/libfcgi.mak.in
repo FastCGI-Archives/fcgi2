@@ -338,7 +338,6 @@ DEF_CPP_FCGIA=\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgimisc.h"\
 	"..\include\fcgiapp.h"\
-	"..\include\fcgiappmisc.h"\
 	"..\include\fastcgi.h"\
 	"..\include\fcgios.h"
 

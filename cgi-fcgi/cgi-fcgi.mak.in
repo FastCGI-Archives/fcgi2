@@ -276,7 +276,6 @@ SOURCE=cgi-fcgi.c
 DEF_CPP_CGI_F=\
 	"..\include\fcgimisc.h"\
 	"..\include\fcgiapp.h"\
-	"..\include\fcgiappmisc.h"\
 	"..\include\fastcgi.h"\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgios.h"

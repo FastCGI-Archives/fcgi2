@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.11 2001/06/08 15:09:47 skimo Exp $
+# $Id: Makefile.PL,v 1.12 2001/08/27 19:53:58 robs Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -6,7 +6,7 @@ use Config;
 use Cwd 'cwd';
 use Getopt::Long;
 
-@h1 = qw(fastcgi.h fcgiapp.h fcgiappmisc.h fcgimisc.h fcgios.h);
+@h1 = qw(fastcgi.h fcgiapp.h fcgimisc.h fcgios.h);
 @h = (@h1, 'fcgi_config.h');
 @o = qw(FCGI.o);
 @dist1 = qw(LICENSE.TERMS acconfig.h);

@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.1 1997/09/16 15:36:24 stanleyg Exp $
+#  $Id: Makefile.in,v 1.2 2001/08/27 19:52:49 robs Exp $
 #
 SHELL = @SHELL@
 O =     @O@
@@ -53,7 +53,6 @@ export:
 	$(INSTALL_DATA)    include/fastcgi.h $(INC_DIR)
 	$(INSTALL_DATA)    include/fcgi_stdio.h $(INC_DIR)
 	$(INSTALL_DATA)    include/fcgiapp.h $(INC_DIR)
-	$(INSTALL_DATA)    include/fcgiappmisc.h $(INC_DIR)
 	$(INSTALL_DATA)    include/fcgimisc.h $(INC_DIR)
 	$(INSTALL_DATA)    include/fcgi_config.h $(LINC_DIR)
 	$(INSTALL_DATA)    libfcgi/libfcgi.${L} $(LIB_DIR)

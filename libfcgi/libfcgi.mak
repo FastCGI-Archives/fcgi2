@@ -224,7 +224,6 @@ DEP_CPP_FCGIA=\
 	"..\include\fastcgi.h"\
 	"..\include\fcgi_config.h"\
 	"..\include\fcgiapp.h"\
-	"..\include\fcgiappmisc.h"\
 	"..\include\fcgimisc.h"\
 	"..\include\fcgios.h"\
 	{$(INCLUDE)}"\sys\types.h"\
