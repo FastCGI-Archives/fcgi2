@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.6 2001/09/20 12:00:24 skimo Exp $ */
+/* $Id: FCGI.XL,v 1.7 2001/10/11 19:36:04 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -32,6 +32,10 @@ __END__
 
 #ifndef dTHX
 #define dTHX
+#endif
+
+#ifndef INT2PTR
+#define INT2PTR(a,b) ((a) (b))
 #endif
 
 #ifdef USE_SFIO
