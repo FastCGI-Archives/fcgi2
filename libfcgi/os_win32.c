@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.12 2001/03/30 16:49:22 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.13 2001/03/31 01:46:32 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -928,45 +928,46 @@ int OS_FcgiConnect(char *bindPath)
 int OS_Read(int fd, char * buf, size_t len)
 {
     DWORD bytesRead;
-    int ret;
+    int ret = -1;
 
-    /*
-     * Catch any bogus fd values
-     */
     ASSERT((fd >= 0) && (fd < WIN32_OPEN_MAX));
 
-    switch (fdTable[fd].type) {
+    switch (fdTable[fd].type) 
+    {
 	case FD_FILE_SYNC:
 	case FD_FILE_ASYNC:
 	case FD_PIPE_SYNC:
 	case FD_PIPE_ASYNC:
-	    bytesRead = fd;
-	    /*
-	     * ReadFile returns: TRUE success, FALSE failure
-	     */
-	    if (!ReadFile(fdTable[fd].fid.fileHandle, buf, len, &bytesRead,
-		NULL)) {
-		fdTable[fd].Errno = GetLastError();
-		return -1;
+
+	    if (ReadFile(fdTable[fd].fid.fileHandle, buf, len, &bytesRead, NULL)) 
+        {
+            ret = bytesRead;
+        }
+        else
+        {
+		    fdTable[fd].Errno = GetLastError();
 	    }
-	    return bytesRead;
+
+        break;
 
 	case FD_SOCKET_SYNC:
 	case FD_SOCKET_ASYNC:
-	    /* winsock recv returns n bytes recv'ed, SOCKET_ERROR failure */
-	    /*
-	     * XXX: Test this with ReadFile.  If it works, remove this code
-	     *      to simplify the routine.
-	     */
-	    if ((ret = recv(fdTable[fd].fid.sock, buf, len, 0)) ==
-		SOCKET_ERROR) {
-		fdTable[fd].Errno = WSAGetLastError();
-		return -1;
+
+        ret = recv(fdTable[fd].fid.sock, buf, len, 0);
+	    if (ret == SOCKET_ERROR) 
+        {
+		    fdTable[fd].Errno = WSAGetLastError();
+		    ret = -1;
 	    }
-	    return ret;
-	default:
-		return -1;
+
+        break;
+        
+    default:
+
+        ASSERT(0);
     }
+
+    return ret;
 }
 
 /*
@@ -988,46 +989,46 @@ int OS_Read(int fd, char * buf, size_t len)
 int OS_Write(int fd, char * buf, size_t len)
 {
     DWORD bytesWritten;
-    int ret;
+    int ret = -1;
 
-    /*
-     * Catch any bogus fd values
-     */
-    ASSERT((fd >= 0) && (fd < WIN32_OPEN_MAX));
-    ASSERT((fdTable[fd].type > FD_UNUSED) &&
-	   (fdTable[fd].type <= FD_PIPE_ASYNC));
+    ASSERT(fd >= 0 && fd < WIN32_OPEN_MAX);
 
-    switch (fdTable[fd].type) {
+    switch (fdTable[fd].type) 
+    {
 	case FD_FILE_SYNC:
 	case FD_FILE_ASYNC:
 	case FD_PIPE_SYNC:
 	case FD_PIPE_ASYNC:
-	    bytesWritten = fd;
-	    /*
-	     * WriteFile returns: TRUE success, FALSE failure
-	     */
-	    if (!WriteFile(fdTable[fd].fid.fileHandle, buf, len,
-		&bytesWritten, NULL)) {
-		fdTable[fd].Errno = GetLastError();
-		return -1;
+
+        if (WriteFile(fdTable[fd].fid.fileHandle, buf, len, &bytesWritten, NULL)) 
+        {
+            ret = bytesWritten;
+        }
+        else
+        {
+		    fdTable[fd].Errno = GetLastError();
 	    }
-	    return bytesWritten;
+
+        break;
+
 	case FD_SOCKET_SYNC:
 	case FD_SOCKET_ASYNC:
-	    /* winsock send returns n bytes written, SOCKET_ERROR failure */
-	    /*
-	     * XXX: Test this with WriteFile.  If it works, remove this code
-	     *      to simplify the routine.
-	     */
-	    if ((ret = send(fdTable[fd].fid.sock, buf, len, 0)) ==
-		SOCKET_ERROR) {
-		fdTable[fd].Errno = WSAGetLastError();
-		return -1;
+
+        ret = send(fdTable[fd].fid.sock, buf, len, 0);
+        if (ret == SOCKET_ERROR) 
+        {
+		    fdTable[fd].Errno = WSAGetLastError();
+		    ret = -1;
 	    }
-	    return ret;
-	default:
-	    return -1;
+
+        break;
+
+    default:
+
+        ASSERT(0);
     }
+
+    return ret;
 }
 
 /*
@@ -1726,12 +1727,10 @@ int OS_IpcClose(int ipcFd)
  */
 int OS_IsFcgi(int sock)
 {
-    /* XXX This is broken for sock */
-    if(listenType == FD_UNUSED) {
-        return FALSE;
-    } else {
-        return TRUE;
-    }
+    // This is still broken.  There is not currently a way to differentiate
+    // a CGI from a FCGI pipe (try the Unix method).
+    
+    return (fdTable[sock].type != FD_UNUSED);
 }
 
 /*
