@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.29 2001/09/24 18:03:08 skimo Exp $
+# $Id: Makefile.PL,v 1.30 2001/09/25 08:21:27 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -29,17 +29,14 @@ if (! $pure) {
 
     if (defined $useinstalled) {
 	require ExtUtils::Liblist;
-	my $mm = MM->new({NAME => 'FCGI'});
 	my $libspec = $useinstalled ? "-L$useinstalled/lib " : "";
 	$libspec .= "-lfcgi";
-	my @l = $mm->ext($libspec);
+	my @l = MM->ext($libspec);
 	if ($l[0] || $l[1] || $l[2]) {
 	    $prefix = "$useinstalled/include" if $useinstalled;
 	    $libfound = 1;
 	    push @libs, $libspec;
 	}
-	# avoid duplicate check for complete kit
-	ExtUtils::MakeMaker::WriteEmptyMakefile() if ! -f "Makefile";
     }
     if (!$libfound && -d "$devkit/libfcgi" && -d "$devkit/include") {
 	# devkit

@@ -1,4 +1,5 @@
 use Config;
+use ExtUtils::MakeMaker;
 
 do 'FCGI.cfg' or die "no FCGI.cfg";
 
@@ -6,7 +7,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.32 2001/09/21 15:54:34 skimo Exp $
+# $Id: FCGI.PL,v 1.33 2001/09/25 08:21:27 skimo Exp $
 
 package FCGI;
 
@@ -23,12 +24,7 @@ require DynaLoader;
 
 EOP
 
-{
-    open VERSION, "version.pm";
-    local $/ = undef;
-    print OUT <VERSION>;
-    close VERSION;
-}
+print OUT '$VERSION = '.MM->parse_version('version.pm').";\n\n";
 
 print OUT "bootstrap FCGI;\n" unless ($pure);
 
