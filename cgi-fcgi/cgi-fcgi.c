@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.5 1999/07/26 22:03:07 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.6 1999/07/27 13:56:59 roberts Exp $";
 #endif /* not lint */
 
 #include <stdio.h>
@@ -41,7 +41,11 @@ static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.5 1999/07/26 22:03:07 roberts E
 #include "fcgi_config.h"
 #include "fcgios.h"
 
+#ifdef _WIN32
 #include <stdlib.h>
+#else
+extern char **environ;
+#endif
 
 static int wsReadPending = 0;
 static int fcgiReadPending = 0;
