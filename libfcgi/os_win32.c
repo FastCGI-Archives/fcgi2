@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.13 2001/03/31 01:46:32 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.14 2001/06/06 16:03:41 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -157,30 +157,26 @@ static int Win32NewDescriptor(FILE_TYPE type, int fd, int desiredFd)
             index = desiredFd;
         }
 	}
-    else
+    else if (fd > 0)
     {
-        if (fd > 0 && fd < WIN32_OPEN_MAX)
+        if (fd < WIN32_OPEN_MAX && fdTable[fd].type == FD_UNUSED)
         {
-            if (fdTable[fd].type == FD_UNUSED)
-            {
-	            index = fd;
-            }
-            else 
-            {
-                int i;
+	        index = fd;
+        }
+        else 
+        {
+            int i;
 
-                for (i = 1; i < WIN32_OPEN_MAX; ++i)
+            for (i = 1; i < WIN32_OPEN_MAX; ++i)
+            {
+	            if (fdTable[i].type == FD_UNUSED)
                 {
-	                if (fdTable[i].type == FD_UNUSED)
-                    {
-                        index = i;
-                        break;
-                    }
+                    index = i;
+                    break;
                 }
             }
         }
     }
-
     
     if (index != -1) 
     {
