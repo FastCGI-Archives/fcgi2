@@ -12,25 +12,21 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.11 2001/06/20 00:56:51 robs Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.12 2001/06/20 16:04:17 robs Exp $";
 #endif /* not lint */
-
-#include "fcgi_config.h"
-
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#define WIN32_LEAN_AND_MEAN 
-#include <windows.h>
-#endif
 
 #include <errno.h>  /* for errno */
 #include <stdarg.h> /* for va_arg */
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strerror */
 
+#include "fcgi_config.h"
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
+#define DLLAPI  __declspec(dllexport)
 
 #define NO_FCGI_DEFINES
 #include "fcgi_stdio.h"
@@ -38,6 +34,7 @@ static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.11 2001/06/20 00:56:51 robs E
 
 #include "fcgiapp.h"
 #include "fcgios.h"
+#include "fcgimisc.h"
 
 #ifndef _WIN32
 
@@ -59,14 +56,6 @@ extern int pclose(FILE *stream);
 #define pclose _pclose
 
 #endif /* _WIN32 */
-
-#ifndef FALSE
-#define FALSE (0)
-#endif
-
-#ifndef TRUE
-#define TRUE  (1)
-#endif
 
 FCGI_FILE _fcgi_sF[3];
 
@@ -498,14 +487,16 @@ char *FCGI_fgets(char *str, int size, FCGI_FILE *fp)
 }
 
 /*
- * There is no standard equivalent of gets that takes an explicit
- * FILE * argument, so the following "wrapper" implements
- * gets for both FILE * and FCGX_Stream * in terms of FCGI_getchar.
+ * The gets() function reads characters from the standard input stream
+ * into the array pointed to by str until a newline character is read
+ * or an end-of-file condition is encountered.  The newline character
+ * is discarded and the string is terminated with a null character. 
  */
 char *FCGI_gets(char *str)
 {
     char *s;
     int c;
+
     for (s = str; ((c = FCGI_getchar()) != '\n');) {
         if(c == EOF) {
             if(s == str)
@@ -513,7 +504,7 @@ char *FCGI_gets(char *str)
             else
                 break;
         } else
-            *s++ = c;
+            *s++ = (char) c;
     }
     *s = 0;
     return str;
