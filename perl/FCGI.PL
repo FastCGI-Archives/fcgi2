@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.23 2001/03/27 11:49:11 skimo Exp $
+# $Id: FCGI.PL,v 1.24 2001/04/30 15:35:18 skimo Exp $
 
 package FCGI;
 
@@ -417,6 +417,14 @@ Socket to communicate with the server.
 Can be the result of the OpenSocket function.
 For the moment, it's the file descriptor of the socket
 that should be passed. This may change in the future.
+
+You should only use your own socket if your program
+is not started by a process manager such as mod_fastcgi
+(except for the FastCgiExternalServer case) or cgi-fcgi. 
+If you use the option, you have to let your FastCGI
+server know which port (and possibly server) your program
+is listening on.
+See remote.pl for an example.
 
 =item flags (default: 0)
 
