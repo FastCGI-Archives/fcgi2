@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.22 2003/06/22 00:16:45 robs Exp $
+    $Id: README,v 1.23 2003/06/22 00:51:26 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,9 @@ on http://fastcgi.com/.
 
 2.4.1
 
+ *) Fix fcgi_streambuf::underflow() such that when there is no buffer
+    the character isn't removed.  AIDA Shinra <shinra@j10n.org>
+ 
  *) Add attach() and detach() support.
 
 
