@@ -1,3 +1,7 @@
+Version 0.62 --	21 September 2001   <skimo@kotnet.org> Sven Verdoolaege
+
+	o Move version number to separate file
+
 Version 0.61 --	20 September 2001   <skimo@kotnet.org> Sven Verdoolaege
 
 	o Fix refcounting bug
