@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.2 1998/09/09 00:57:15 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.3 1999/02/12 00:46:41 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -1334,6 +1334,22 @@ static void WriteCloseRecords(struct FCGX_Stream *stream)
     data->reqDataPtr->nWriters--;
 }
 
+
+
+static int write_it_all(int fd, char *buf, int len)
+{
+    int wrote;
+    
+    while (len) {
+        wrote = OS_Write(fd, buf, len);
+        if (wrote < 0)
+            return wrote;
+        len -= wrote;
+        buf += wrote;
+    }
+    return len;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -1374,10 +1390,9 @@ static void EmptyBuffProc(struct FCGX_Stream *stream, int doClose)
     if(doClose) {
         WriteCloseRecords(stream);
     };
-    if(stream->wrNext != data->buff) {
+    if (stream->wrNext != data->buff) {
         data->isAnythingWritten = TRUE;
-        if(OS_Write(data->reqDataPtr->ipcFd, (char *)data->buff,
-                stream->wrNext - data->buff) < 0) {
+        if (write_it_all(data->reqDataPtr->ipcFd, (char *)data->buff, stream->wrNext - data->buff) < 0) {
             SetError(stream, OS_Errno);
             return;
         }
@@ -1460,11 +1475,11 @@ static int ProcessManagementRecord(int type, FCGX_Stream *stream)
         ((FCGI_UnknownTypeRecord *) response)->body
             = MakeUnknownTypeBody(type);
     }
-    if(OS_Write(data->reqDataPtr->ipcFd,
-            response, FCGI_HEADER_LEN + paddedLen) < 0) {
+    if (write_it_all(data->reqDataPtr->ipcFd, response, FCGI_HEADER_LEN + paddedLen) < 0) {
         SetError(stream, OS_Errno);
         return -1;
     }
+
     return MGMT_RECORD;
 }
 
@@ -1504,11 +1519,11 @@ static int ProcessBeginRecord(int requestId, FCGX_Stream *stream)
                 requestId, sizeof(endRequestRecord.body), 0);
         endRequestRecord.body
                 = MakeEndRequestBody(0, FCGI_CANT_MPX_CONN);
-        if(OS_Write(data->reqDataPtr->ipcFd, (char *) &endRequestRecord,
-                sizeof(endRequestRecord)) < 0) {
+        if (write_it_all(data->reqDataPtr->ipcFd, (char *)&endRequestRecord, sizeof(endRequestRecord)) < 0) {
             SetError(stream, OS_Errno);
             return -1;
         }
+
         return SKIP;
     }
     /*
