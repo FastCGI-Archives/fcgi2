@@ -1,7 +1,7 @@
 /*
  *  A simple FastCGI application example in C++.
  *  
- *  $Id: echo-cpp.cpp,v 1.3 2001/11/21 16:54:13 robs Exp $
+ *  $Id: echo-cpp.cpp,v 1.4 2001/11/21 20:18:46 robs Exp $
  *  
  *  Copyright (c) 2001  Rob Saccoccio and Chelsea Networks
  *  All rights reserved.
@@ -81,7 +81,7 @@ static long gstdin(FCGX_Request * request, char ** content)
     clen = cin.gcount();
 
     // chew up any remaining stdin - this shouldn't be necessary
-    // but it is because mod_fastcgi doesn't handle it correctly
+    // but is because mod_fastcgi doesn't handle it correctly
     do cin.ignore(1024); while (! cin.eof());
 
     return clen;
@@ -93,16 +93,19 @@ int main (void)
     long pid = getpid();
 
     FCGX_Request request;
-
+       
     FCGX_Init();
     FCGX_InitRequest(&request, 0, 0);
 
     while (FCGX_Accept_r(&request) == 0) 
     {
+        // Note that the default bufsize (0) will cause the use of iostream
+        // methods that require positioning (such as peek(), seek(), 
+        // unget() and putback()) to fail (in favour of more efficient IO).
         fcgi_streambuf fin(request.in);
         fcgi_streambuf fout(request.out);
         fcgi_streambuf ferr(request.err);
-        
+
 #ifdef _WIN32
         cin = &fin;
         cout = &fout;
@@ -138,6 +141,11 @@ int main (void)
         if (clen) cout.write(content, clen);
 
         if (content) delete []content;
+
+        // If the output streambufs had non-zero bufsizes and
+        // were constructed outside of the accept loop (i.e.
+        // their destructor won't be called here), they would
+        // have to be flushed here.
     }
 
     return 0;
