@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.12 2001/12/07 02:28:14 robs Exp $
+    $Id: README,v 1.13 2001/12/12 14:12:27 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,9 @@ Unfortunately documentation of many of the changes have been lost.
 
 2.2.3
 -----
+
+ *) Fix a bug a that caused the lib to crash under certain circumstances
+    when an error occured on a read
 
  *) Test for iostreams that support a streambuf assigment operator
 

@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.32 2001/11/21 21:03:35 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.33 2001/12/12 14:12:26 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -112,6 +112,8 @@ int FCGX_GetChar(FCGX_Stream *stream)
     if(stream->isClosed || !stream->isReader)
         return EOF;
     stream->fillBuffProc(stream);
+    if (stream->isClosed)
+        return EOF;
     stream->stopUnget = stream->rdNext;
     if(stream->rdNext != stream->stop)
         return *stream->rdNext++;
@@ -163,10 +165,13 @@ int FCGX_GetStr(char *str, int n, FCGX_Stream *stream)
             if(bytesMoved == n)
                 return bytesMoved;
             str += m;
-	}
+        }
         if(stream->isClosed || !stream->isReader)
             return bytesMoved;
         stream->fillBuffProc(stream);
+        if (stream->isClosed)
+            return bytesMoved;
+
         stream->stopUnget = stream->rdNext;
     }
 }
