@@ -3,7 +3,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.7 1999/08/10 14:40:32 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.8 1999/08/15 19:32:20 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -13,10 +13,6 @@ static const char rcsid[] = "$Id: threaded.c,v 1.7 1999/08/10 14:40:32 roberts E
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#ifdef _WIN32
-#include <process.h>
 #endif
 
 #include "fcgiapp.h"
