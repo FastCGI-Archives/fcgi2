@@ -1,3 +1,11 @@
+Version 0.61 --	20 September 2001   <skimo@kotnet.org> Sven Verdoolaege
+
+	o Fix refcounting bug
+	o Add GetEnvironment for pure version
+	o Add LastCall method
+	o Allow filehandle for Request's socket parameter
+	o library fixes  ("Rob Saccoccio" <robs@chelsea.net>)
+
 Version 0.60 --	8 July 2001   <skimo@kotnet.org> Sven Verdoolaege
 
 	o Allow specification of purity on command line
