@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.12 2001/06/22 02:19:55 robs Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.13 2001/06/22 14:21:34 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -49,7 +49,6 @@ extern char **environ;
 
 #include "fcgimisc.h"
 #include "fcgiapp.h"
-#include "fcgiappmisc.h"
 #include "fastcgi.h"
 #include "fcgios.h"
 
@@ -797,7 +796,7 @@ int main(int argc, char **argv)
     /*
      * Send environment to the FCGI application server
      */
-    paramsStream = CreateWriter(appServerSock, requestId, 8192, FCGI_PARAMS);
+    paramsStream = FCGX_CreateWriter(appServerSock, requestId, 8192, FCGI_PARAMS);
     for( ; *envp != NULL; envp++) {
         equalPtr = strchr(*envp, '=');
         if(equalPtr  == NULL) {
@@ -816,7 +815,7 @@ int main(int argc, char **argv)
         }
     }
     FCGX_FClose(paramsStream);
-    FreeStream(&paramsStream);
+    FCGX_FreeStream(&paramsStream);
     /*
      * Perform the event loop until AppServerReadHander sees FCGI_END_REQUEST
      */
