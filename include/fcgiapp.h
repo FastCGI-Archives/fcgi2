@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.12 2001/11/21 21:10:11 robs Exp $
+ * $Id: fcgiapp.h,v 1.13 2003/02/04 01:31:38 robs Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -94,9 +94,9 @@ typedef struct FCGX_Request {
     FCGX_Stream *in;
     FCGX_Stream *out;
     FCGX_Stream *err;
-	char **envp;
+    char **envp;
 
-	/* Don't use anything below here */
+    /* Don't use anything below here */
 
     struct Params *paramsPtr;
     int ipcFd;               /* < 0 means no connection */
@@ -104,8 +104,8 @@ typedef struct FCGX_Request {
     int keepConnection;       /* don't close ipcFd at end of request */
     int appStatus;
     int nWriters;             /* number of open writers (0..2) */
-	int flags;
-	int listen_sock;
+    int flags;
+    int listen_sock;
 } FCGX_Request;
 
 
