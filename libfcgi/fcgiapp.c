@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.11 1999/08/10 22:27:12 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.12 1999/08/14 21:20:56 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -66,8 +66,7 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.11 1999/08/10 22:27:12 roberts E
 static int libInitialized = 0;
 static int isFastCGI = -1;
 static char *webServerAddressList = NULL;
-static FCGX_Request reqData;
-static FCGX_Request *reqDataPtr = &reqData;
+static FCGX_Request the_request;
 
 static void *Malloc(size_t size)
 {
@@ -1947,7 +1946,7 @@ int FCGX_IsCGI(void)
 
 void FCGX_Finish(void)
 {
-    FCGX_Finish_r(reqDataPtr);
+    FCGX_Finish_r(&the_request);
 }
 
 /*
@@ -2047,14 +2046,14 @@ int FCGX_Init(void)
     /* If our compiler doesn't play by the ISO rules for struct layout, halt. */
     ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
 
-    FCGX_InitRequest(&reqData, FCGI_LISTENSOCK_FILENO, 0);
+    FCGX_InitRequest(&the_request, FCGI_LISTENSOCK_FILENO, 0);
 
     if (OS_LibInit(NULL) == -1) {
         return OS_Errno ? OS_Errno : -9997;
     }
 
     p = getenv("FCGI_WEB_SERVER_ADDRS");
-    webServerAddressList = p ? StringCopy(p) : "";
+    webServerAddressList = p ? StringCopy(p) : NULL;
 
     libInitialized = 1;
     return 0;
@@ -2102,12 +2101,12 @@ int FCGX_Accept(
         }
     }
 
-    rc = FCGX_Accept_r(&reqData);
+    rc = FCGX_Accept_r(&the_request);
 
-    *in = reqData.in;
-    *out = reqData.out;
-    *err = reqData.err;
-    *envp = reqData.envp;
+    *in = the_request.in;
+    *out = the_request.out;
+    *err = the_request.err;
+    *envp = the_request.envp;
 
     return rc;
 }
@@ -2248,7 +2247,7 @@ int FCGX_StartFilterData(FCGX_Stream *stream)
         SetError(stream, FCGX_CALL_SEQ_ERROR);
         return -1;
     }
-    SetReaderType(reqDataPtr->in, FCGI_DATA);
+    SetReaderType(stream, FCGI_DATA);
     return 0;
 }
 
