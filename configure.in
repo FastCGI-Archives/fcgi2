@@ -1,24 +1,30 @@
-dnl     $Id: configure.in,v 1.2 1999/08/02 15:51:05 skimo Exp $
+dnl     $Id: configure.in,v 1.3 2001/08/30 02:16:51 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
 dnl
 
-AC_INIT(libfcgi/fcgiapp.c)
-#--------------------------------------------------------------------
-#  Perform common OMI configuration. This will include:
-#	1) Choosing compiler and associated build options.
-#	2) Checking for various common build associated programs.
-#	3) Determining the best build options for this platform.
-#	4) Checking for certain common header files.
-#	5) Checking for exports/global switch.
-#	6) Importing OMI dependencies (header files, libraries, and binaries).
-#       7) Checking for existence of various system libraries and routines.
-#--------------------------------------------------------------------
-OMI_CONFIG
-
+AC_INIT
 AC_CONFIG_HEADER(include/fcgi_config.h)
+AC_CONFIG_SRCDIR(LICENSE.TERMS)
+
+AC_PROG_CC
+AC_PROG_CPP 
+AC_PROG_INSTALL 
+AC_PROG_RANLIB
+AC_CHECK_TOOL(AR, ar, ar)
+
+AC_CHECK_LIB([nsl],[main],[],[],[])ac_cv_lib_nsl=ac_cv_lib_nsl_main
+
+AC_CHECK_LIB([resolv],[main],[],[],[])ac_cv_lib_resolv=ac_cv_lib_resolv_main
+
+AC_CHECK_LIB([socket],[main],[],[],[])ac_cv_lib_socket=ac_cv_lib_socket_main
+
+AC_CHECK_LIB([dnet_stub],[main],[],[],[])ac_cv_lib_dnet_stub=ac_cv_lib_dnet_stub_main
+	
+AC_CHECK_LIB([ieee],[main],[],[],[])ac_cv_lib_ieee=ac_cv_lib_ieee_main
+	
 AC_MSG_CHECKING(for sun_len in sys/un.h)
 AC_EGREP_HEADER(sun_len,
    sys/un.h,
@@ -26,36 +32,8 @@ AC_EGREP_HEADER(sun_len,
    AC_DEFINE(HAVE_SOCKADDR_UN_SUN_LEN),
    AC_MSG_RESULT(no))
 
-#--------------------------------------------------------------------
-#  What extra libraries do we need for this platform?
-#--------------------------------------------------------------------
-
-AC_CHECK_FUNCS(strerror strtol)
-
-AC_REPLACE_FUNCS(strerror strtol)
-
-#--------------------------------------------------------------------
-#       Include sys/select.h if it exists and if it supplies things
-#       that appear to be useful and aren't already in sys/types.h.
-#       This appears to be true only on the RS/6000 under AIX.  Some
-#       systems like OSF/1 have a sys/select.h that's of no use, and
-#       other systems like SCO UNIX have a sys/select.h that's
-#       pernicious.  If "fd_set" isn't defined anywhere then set a
-#       special flag.
-#--------------------------------------------------------------------
-
-AC_MSG_CHECKING(for fd_set in in sys/types.h)
-AC_TRY_LINK([#include <sys/types.h>],
-   [fd_set readMask, writeMask;],
-   AC_MSG_RESULT(yes),
-   AC_MSG_RESULT(no)
-   AC_MSG_CHECKING(for fd_mask in in sys/select.h)
-   AC_HEADER_EGREP(fd_mask,
-      sys/select.h,
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(HAVE_SYS_SELECT_H),
-      AC_MSG_RESULT(no)
-      AC_DEFINE(NO_FD_SET)))
+AC_CHECK_FUNCS(strerror)
+AC_REPLACE_FUNCS(strerror)
 
 AC_MSG_CHECKING(for fpos in stdio.h)
 AC_EGREP_HEADER(fpos_t,
@@ -64,14 +42,12 @@ AC_EGREP_HEADER(fpos_t,
    AC_DEFINE(HAVE_FPOS),
    AC_MSG_RESULT(no))
 
-AC_HAVE_HEADERS(windows.h)
-AC_HAVE_HEADERS(sys/socket.h, [have_sys_socket=yes])
-AC_HAVE_HEADERS(winsock.h)
-AC_HAVE_HEADERS(netdb.h)
-AC_HAVE_HEADERS(netinet/in.h)
-AC_HAVE_HEADERS(arpa/inet.h)
-AC_HAVE_HEADERS(strings.h)
-AC_HAVE_HEADERS(sys/time.h)
+AC_CHECK_HEADERS([sys/socket.h],[have_sys_socket=yes])
+AC_CHECK_HEADERS([netdb.h])
+AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([arpa/inet.h])
+AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([limits.h])
 
 if test "x$have_sys_socket" = "xyes"; then
     AC_MSG_CHECKING(for socklen_t in sys/socket.h)
@@ -128,8 +104,9 @@ case "$PLATFORM_CLASS" in
 esac
 
 AC_SUBST(SYSTEM)
-AC_OUTPUT(Makefile FastCGI.mak
+AC_CONFIG_FILES([Makefile FastCGI.mak
 	  libfcgi/Makefile libfcgi/libfcgi.mak
 	  cgi-fcgi/Makefile cgi-fcgi/cgi-fcgi.mak
- 	  examples/Makefile )
+ 	  examples/Makefile ])
+AC_OUTPUT
 
