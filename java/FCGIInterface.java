@@ -10,7 +10,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIInterface.java,v 1.3 2000/03/21 12:12:26 robs Exp $
+ * $Id: FCGIInterface.java,v 1.4 2000/03/27 15:37:25 robs Exp $
  */
 package com.fastcgi;
 
@@ -25,7 +25,7 @@ import java.util.Properties;
  */
 public class FCGIInterface 
 {
-    private static final String RCSID = "$Id: FCGIInterface.java,v 1.3 2000/03/21 12:12:26 robs Exp $";
+    private static final String RCSID = "$Id: FCGIInterface.java,v 1.4 2000/03/27 15:37:25 robs Exp $";
 
     /*
     * Class variables
@@ -79,8 +79,6 @@ public class FCGIInterface
                  * save original system properties (nonrequest)
                  * and get a server socket
                  */
-                System.out.close();
-                System.err.close();
                 startupProps = new Properties(System.getProperties());
                 String str =
                     new String(System.getProperty("FCGI_PORT"));
@@ -92,7 +90,10 @@ public class FCGIInterface
                 try {
                     srvSocket = new ServerSocket(portNum);
                 } catch (IOException e) {
-                    request.socket = null;
+                    if (request != null)
+                    {
+                        request.socket = null;
+                    }
                     srvSocket = null;
                     request = null;
                     return -1;
