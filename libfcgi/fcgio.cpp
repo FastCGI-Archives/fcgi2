@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.6 2001/11/20 02:29:39 robs Exp $
+// $Id: fcgio.cpp,v 1.7 2001/11/20 03:24:19 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -18,7 +18,10 @@
 // implied; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.
 
+#ifdef _WIN32
 #define DLLAPI  __declspec(dllexport)
+#endif
+
 #include "fcgio.h"
 
 fcgi_streambuf::fcgi_streambuf(FCGX_Stream * strm) 

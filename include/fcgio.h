@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.6 2001/11/20 02:29:38 robs Exp $
+// $Id: fcgio.h,v 1.7 2001/11/20 03:24:18 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -33,6 +33,14 @@
 #include <iostream.h>
 
 #include "fcgiapp.h"
+
+#ifndef DLLAPI
+#ifdef _WIN32
+#define DLLAPI __declspec(dllimport)
+#else
+#define DLLAPI
+#endif
+#endif
 
 /*
  *  fcgi_streambuf
