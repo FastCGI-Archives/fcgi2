@@ -3,7 +3,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.3 1999/07/30 19:09:46 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.4 1999/08/02 18:11:50 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -28,6 +28,7 @@ static int counts[THREAD_COUNT];
 static void *doit(void *a)
 {
     int rc, i, thread_id = (int)a;
+    pid_t pid = getpid();
     FCGX_Request request;
     FCGX_Stream *in, *out, *err;
     FCGX_ParamArray envp;
@@ -40,6 +41,7 @@ static void *doit(void *a)
         static pthread_mutex_t accept_mutex = PTHREAD_MUTEX_INITIALIZER;
         static pthread_mutex_t counts_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+        /* Some platforms require accept() serialization, some don't.. */
         pthread_mutex_lock(&accept_mutex);
         rc = FCGX_Accept_r(&in, &out, &err, &envp, &request);
         pthread_mutex_unlock(&accept_mutex);
@@ -54,9 +56,11 @@ static void *doit(void *a)
             "\r\n"
             "<title>FastCGI Hello! (multi-threaded C, fcgiapp library)</title>"
             "<h1>FastCGI Hello! (multi-threaded C, fcgiapp library)</h1>"
-            "Thread %d<p>"
+            "Thread %d, Process %ld<p>"
             "Request counts for %d threads running on host <i>%s</i><p><code>",
-            thread_id, THREAD_COUNT, server_name ? server_name : "?");
+            thread_id, pid, THREAD_COUNT, server_name ? server_name : "?");
+
+        sleep(2);
 
         pthread_mutex_lock(&counts_mutex);
         ++counts[thread_id];
