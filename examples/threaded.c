@@ -3,12 +3,13 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.4 1999/08/02 18:11:50 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.5 1999/08/05 14:18:35 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
 
 #include <pthread.h>
+#include <sys/types.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
