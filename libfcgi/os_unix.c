@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.30 2001/09/06 15:48:22 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.31 2001/09/06 20:07:53 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -103,10 +103,10 @@ static int volatile maxFd = -1;
 static int shutdownPending = FALSE;
 static int shutdownNow = FALSE;
 
-void OS_ShutdownNow()
+void OS_Shutdown()
 {
     shutdownNow = TRUE;
-    shutdownPending = TRUE;
+    OS_ShutdownPending();
 }
 
 void OS_ShutdownPending()
@@ -114,17 +114,12 @@ void OS_ShutdownPending()
     shutdownPending = TRUE;
 }
 
-void OS_SigtermHandler(int signo)
-{
-    OS_ShutdownNow();
-}
-
-void OS_Sigusr1Handler(int signo)
+static void OS_Sigusr1Handler(int signo)
 {
     OS_ShutdownPending();
 }
 
-void OS_SigpipeHandler(int signo)
+static void OS_SigpipeHandler(int signo)
 {
     ;
 }
@@ -141,7 +136,7 @@ static void installSignalHandler(int signo, const struct sigaction * act, int fo
     }
 }
 
-void OS_InstallSignalHandlers(int force)
+static void OS_InstallSignalHandlers(int force)
 {
     struct sigaction sa;
 
@@ -153,9 +148,6 @@ void OS_InstallSignalHandlers(int force)
 
     sa.sa_handler = OS_Sigusr1Handler;
     installSignalHandler(SIGUSR1, &sa, force);
-
-    sa.sa_handler = OS_SigtermHandler;
-    installSignalHandler(SIGTERM, &sa, force);
 }
 
 /*
@@ -219,7 +211,7 @@ int OS_LibInit(int stdioFds[3])
  */
 void OS_LibShutdown()
 {
-    OS_ShutdownNow();
+    OS_Shutdown();
 
     if(!libInitialized)
         return;
@@ -1158,17 +1150,12 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
                      && ! shutdownPending);
 
             if (socket < 0) {
-                if (!is_reasonable_accept_errno(errno)) {
+                if (shutdownPending || ! is_reasonable_accept_errno(errno)) {
                     int errnoSave = errno;
 
                     ReleaseLock(listen_sock);
                     
-                    if (shutdownPending) 
-                    {
-                        OS_LibShutdown();
-                    }
-                    else 
-                    {
+                    if (! shutdownPending) {
                         errno = errnoSave;
                     }
 
