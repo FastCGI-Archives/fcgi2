@@ -1,3 +1,4 @@
+# $Id: Makefile.am,v 1.3 2001/09/24 11:29:00 skimo Exp $
 noinst_PROGRAMS     = authorizer \
 			  echo \
 			  echo-x \
@@ -7,7 +8,7 @@ noinst_PROGRAMS     = authorizer \
 EXTRA_PROGRAMS = threaded
 
 INCLUDEDIR  = $(srcdir)/../include
-CFLAGS      = @CCDEFS@ -I$(INCLUDEDIR)
+CFLAGS      = @CFLAGS@ -I$(INCLUDEDIR)
 
 INCLUDE_FILES   = $(INCLUDEDIR)/fastcgi.h    \
 		  $(INCLUDEDIR)/fcgiapp.h    \

@@ -1,7 +1,8 @@
+# $Id: Makefile.am,v 1.2 2001/09/24 11:28:59 skimo Exp $
 bin_PROGRAMS     = cgi-fcgi
 
 INCLUDEDIR  = $(srcdir)/../include
-CFLAGS      = @CCDEFS@ -I$(INCLUDEDIR)
+CFLAGS      = @CFLAGS@ -I$(INCLUDEDIR)
 
 INCLUDE_FILES   = $(INCLUDEDIR)/fastcgi.h  \
 		  $(INCLUDEDIR)/fcgiapp.h  \
