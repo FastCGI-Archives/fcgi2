@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: FCGIInputStream.java,v 1.1 1999/01/31 02:45:49 roberts Exp $
+ * $Id: FCGIInputStream.java,v 1.2 1999/07/29 13:35:50 roberts Exp $
  */
 
 import java.io.*;
@@ -76,14 +76,14 @@ public class FCGIInputStream extends InputStream {
     */
     public int read() throws IOException {
         if (rdNext != stop) {
-            return buff[rdNext++];
+            return buff[rdNext++] & 0xff;
         }
         if (isClosed){
             return -1;
         }
         fill();
         if (rdNext != stop){
-            return buff[rdNext++];
+            return buff[rdNext++] & 0xff;
         }
         return -1;
     }
