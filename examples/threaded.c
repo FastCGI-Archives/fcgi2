@@ -3,7 +3,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.8 1999/08/15 19:32:20 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.9 2001/11/20 03:23:21 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -81,6 +81,6 @@ int main(void)
 
     doit(0);
 
-    exit(0);
+    return 0;
 }
 
