@@ -3,7 +3,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.6 1999/08/05 21:25:51 roberts Exp $";
+static const char rcsid[] = "$Id: threaded.c,v 1.7 1999/08/10 14:40:32 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -31,8 +31,6 @@ static void *doit(void *a)
     int rc, i, thread_id = (int)a;
     pid_t pid = getpid();
     FCGX_Request request;
-    FCGX_Stream *in, *out, *err;
-    FCGX_ParamArray envp;
     char *server_name;
 
     FCGX_InitRequest(&request, 0, 0);
@@ -50,9 +48,9 @@ static void *doit(void *a)
         if (rc < 0)
             break;
 
-        server_name = FCGX_GetParam("SERVER_NAME", envp);
+        server_name = FCGX_GetParam("SERVER_NAME", request.envp);
 
-        FCGX_FPrintF(out,
+        FCGX_FPrintF(request.out,
             "Content-type: text/html\r\n"
             "\r\n"
             "<title>FastCGI Hello! (multi-threaded C, fcgiapp library)</title>"
@@ -66,7 +64,7 @@ static void *doit(void *a)
         pthread_mutex_lock(&counts_mutex);
         ++counts[thread_id];
         for (i = 0; i < THREAD_COUNT; i++)
-            FCGX_FPrintF(out, "%5d " , counts[i]);
+            FCGX_FPrintF(request.out, "%5d " , counts[i]);
         pthread_mutex_unlock(&counts_mutex);
 
         FCGX_Finish_r(&request);
