@@ -1,0 +1,19 @@
+
+# buildon platform {c-compiler c-flags} config-flags
+#
+BuildOn bsdi_20 gcc --with-omireleases
+BuildOn bsdi_11 gcc --with-omireleases
+BuildOn aix_414 c89 --with-omireleases
+BuildOn hpux_905 {c89 -D_HPUX_SOURCE} --with-omireleases
+BuildOn hpux_10 {c89 -D_HPUX_SOURCE} --with-omireleases
+BuildOn hpux_1010 {c89 -D_HPUX_SOURCE} --with-omireleases
+BuildOn sun_54 cc --with-omireleases
+BuildOn sun_55 cc --with-omireleases
+BuildOn sun_414 gcc --with-omireleases
+BuildOn osf_30 {cc -std1}  --with-omireleases
+BuildOn osf_32 {cc -std1} --with-omireleases
+BuildOn osf_40 {cc -std1} --with-omireleases
+BuildOn sgi_53 gcc --with-omireleases
+BuildOn sgi_62 cc --with-omireleases
+BuildOn wnt_40 cc --with-omireleases
+

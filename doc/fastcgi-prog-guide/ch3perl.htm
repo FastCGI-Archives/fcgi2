@@ -1,0 +1,86 @@
+<html><head><title></title></head>
+<body bgcolor=#ffffff>
+ 
+<a href="cover.htm">[Top]</a> <a href="ch2c.htm">[Prev]</a> <a href="ch4tcl.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+<a name="3659">
+<center><h1>3 Developing FastCGI <br>Applications in Perl</h1></center>
+</a><a name="917">
+This chapter explains how to code FastCGI applications in Perl. Before you can build FastCGI applications in Perl, you must have a FastCGI-savvy version of the Perl interpreter. Open Market develops such Perl binaries for popular platforms and makes them available with our developer's kit. <p>
+</a><a name="5008">
+The FastCGI-savvy binaries are extensions of standard Perl, and are intended to replace your existing Perl installation. There is no need to maintain two versions of Perl: the version that we supply will work fine when invoked from a shell or a CGI program. There are also directions in the developer's kit for how to make your own FastCGI-savvy Perl, if you need a version for some platform that we don't supply.<p>
+</a><a name="4369">
+FastCGI is ideal for applications written in Perl, because it provides a huge performance gain. When you run a Perl script, the Perl interpreter analyzes the entire script before executing any of it. With FastCGI, you can factor out this initialization cost and pay it only once, making execution of the actual script much faster in response to client calls.<p>
+</a><a name="4183">
+<h1> Getting Started</h1>
+</a><a name="4234">
+The first line of any Perl script typically specifies the pathname of the Perl interpreter itself. You must specify the pathname of a FastCGI-savvy Perl. <p>
+</a><a name="4235">
+Next, you must tell Perl to load the FastCGI extension. To do so, place the following line near the beginning of every FastCGI script: <p>
+</a><pre><a name="4210">
+use FCGI;
+</a>
+</pre><a name="4212">
+Then, you have to divide FastCGI scripts into the following two sections:<p>
+</a><ul><a name="4242">
+<li>Initialization section, which is executed only once.
+</a><a name="4243">
+<li>Response loop section, which gets executed every time the FastCGI script gets called.
+</a></ul><a name="4248">
+A response loop typically has the following format:<p>
+</a><pre><a name="4255">
+while (FCGI::accept &gt;= 0) {
+</a>
+<a name="4256">
+# body of response loop
+</a>
+<a name="4257">
+}
+</a>
+</pre><a name="4258">
+The <code>accept</code> call returns 0 whenever a client requests the FastCGI script. Otherwise, the <code>accept</code> call returns -1. <p>
+</a><a name="5002">
+<h1> Example: TinyFastCGI</h1>
+</a><a name="4588">
+Here is a simple example of a FastCGI application written in Perl:<p>
+</a><pre><a name="4589">
+#!fcgi-savvy-perl
+
+use FCGI; # Imports the library; required line
+
+# Initialization code
+
+$cnt = 0;
+
+# Response loop
+
+while (FCGI::accept &gt;= 0) {
+  print "Content-type: text/html\r\n\r\n";
+  print "&lt;head&gt;\n&lt;title&gt;FastCGI Demo Page (perl)&lt;/title&gt;\n&lt;/head&gt;\n";
+  print  "&lt;h1&gt;FastCGI Demo Page (perl)&lt;/h1&gt;\n";
+  print "This is coming from a FastCGI server.\n&lt;BR&gt;\n";
+  print "Running on &lt;EM&gt;$ENV{SERVER_NAME}&lt;/EM&gt; to &lt;EM&gt;$ENV{REMOTE_HOST}&lt;/EM&gt;\n&lt;BR&gt;\n";
+  	$cnt++;
+  print "This is connection number $cnt\n";
+}
+</pre>
+<p>
+</a>
+<hr><br>
+ 
+<a href="cover.htm">[Top]</a> <a href="ch2c.htm">[Prev]</a> <a href="ch4tcl.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+
+
+
+<!-- This file was created with Quadralay WebWorks Publisher 3.0.3 -->
+<!-- -->
+<!-- For more information on how this document, and how the rest of -->
+<!-- this server was created, email yourEmail@xyzcorp.com -->
+<!-- -->
+<!-- Last updated: 04/15/96 08:00:18 -->
+
+</body>
+</html>

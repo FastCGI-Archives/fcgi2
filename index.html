@@ -1,0 +1,169 @@
+<html>
+<head>
+<title>FastCGI Developer's Kit Index Page</title>
+</head>
+
+<body>
+<center>
+<h2>FastCGI Developer's Kit Index Page</h2>
+</center>
+
+<!--Copyright (c) 1996 Open Market, Inc.                                    -->
+<!--See the file "LICENSE.TERMS" for information on usage and redistribution-->
+<!--of this file, and for a DISCLAIMER OF ALL WARRANTIES.                   -->
+<!-- $Id: index.html,v 1.1 1997/09/16 15:36:25 stanleyg Exp $ -->
+
+<ul>
+    <li><a HREF = "doc">doc/</a>
+        directory.
+    <ul>
+        <li><a href = "doc/fastcgi-whitepaper/fastcgi.htm">FastCGI
+            Technical White Paper.</a>  Start here.<br>
+            Motivates FastCGI, then explains the FastCGI interface,
+            FastCGI application roles, the FastCGI application
+            library, server support for FastCGI, and FastCGI performance.
+        <li><a href = "doc/fcgi-perf.htm">Understanding FastCGI
+            Application Performance</a> document.<br>
+            Why FastCGI applications often run faster than applications
+            coded directly to Web server APIs.
+        <li><a HREF = "doc/fcgi-devel-kit.htm">FastCGI Developer's Kit</a>
+            document.<br>
+            <ul>
+                <li>Describes how to configure and build the
+                    kit for your development platform.
+                <li>Tells how to write applications using the
+                    libraries in the kit.
+                <li>Documents <tt>cgi-fcgi</tt>, a tool in the kit
+                    that allows you to develop and test FastCGI applications
+                    using a Web server that lacks FastCGI support.
+            </ul>
+        <li><a href = "doc/fastcgi-prog-guide/cover.htm">Open Market
+             FastCGI 1.0 Programmer's Guide.</a><br>
+             Programmer-oriented documentation for developers of
+             applications that run on the Open Market's Secure
+             WebServer 2.0.  The content overlaps considerably with Section 3
+             of the Developer's Kit document.
+        <li><a HREF = "doc/FCGI_Accept.3">FCGI_Accept.3</a>,
+            <a HREF = "doc/FCGI_Finish.3">FCGI_Finish.3</a>,
+            <a HREF = "doc/FCGI_SetExitStatus.3">FCGI_SetExitStatus.3</a>,
+            <a HREF = "doc/FCGI_StartFilterData.3">FCGI_StartFilterData.3</a>,
+                 and
+            <a HREF = "doc/cgi-fcgi.1">cgi-fcgi.1</a> manpages.
+	<li><a HREF = "doc/fcgi-perl.htm">Integrating FastCGI with Perl-5</a>
+	     document.<br>
+	     How to build FastCGI support into the Perl-5 interpreter
+             and how to write FastCGI applications in Perl.
+	<li> <a HREF = "doc/fcgi-tcl.htm">Integrating FastCGI with Tcl</a>
+	     document.<br>
+	     How to build FastCGI support into the Tcl interpreter
+             and how to write FastCGI applications in Tcl.
+	<li> <a HREF = "doc/fcgi-java.htm">Integrating FastCGI with Java</a>
+	     document.<br>
+	     How to build Web server applications in Java using
+             FastCGI.
+       <li><a HREF = "doc/www5-api-workshop.html">FastCGI:
+            A High-Performance Gateway Interface</a> document.<br>
+            Position paper presented at the workshop
+            "Programming the Web -- a search for APIs",
+            Fifth International World Wide Web Conference,
+            6 May 1996, Paris, France.  Short paper, addressed to an
+            audience of technical specialists.
+       <li><a HREF = "doc/fcgi-spec.html">FastCGI Specification</a>
+            document.<br>
+            Defines the interface between a FastCGI
+            application and a Web server that supports FastCGI.
+            This is dry stuff, not needed for writing applications!
+     </ul>
+    <li><a HREF = "include">include/</a>
+        directory.<br>
+        .h files for the FastCGI libraries.
+    <li><a HREF = "libfcgi">libfcgi/</a>
+        directory.<br>
+        .c files for the FastCGI libraries.
+    <li><a HREF = "examples">examples/</a>
+        directory.<br>
+        Several example programs.  The links below invoke the
+        programs.  Use the section that corresponds to the
+        Web server you have configured for FastCGI:
+        <ul>
+          <li>Open Market Secure WebServer:
+          <ul>
+            <li><a href="/apps/echo"><tt>echo</tt></a>,
+              an example program that returns a page containing all of its
+              inputs -- environment variables and <tt>stdin</tt>. (Source code:
+              <a href="examples/echo.c"><tt>echo.c</tt></a>.)
+              Notice the FastCGI process ID in the initial
+              environment (there are two <tt>echo</tt> processes
+              running).  Also notice the request variables
+              that carry ticketing information (<tt>SI_*</tt>);
+              the anonymous ticket has been forced into the URL so you
+              can see it.  Alter it if you wish -- see what happens.
+            <li><a href="/apps/echo-protected"><tt>echo</tt></a>,
+              the same program accessed via a URL that is access
+              controlled by a simple Authorizer.
+              (Source code:
+              <a href="examples/tiny-authorizer.c"><tt>tiny-authorizer.c</tt></a>.)
+              Authenticate with user ID <tt>fastcgi</tt> and
+              password <tt>sano</tt> to gain access.  In addition
+              to demonstrating Authorizer-based access control, this
+              application demonstrates Authorizer-controlled session affinity:
+              Use the query string
+              <a href="/apps/echo-protected?0"><tt>?0</tt></a>
+              to route your request to <tt>echo</tt> process 0,
+              and the query string
+              <a href="/apps/echo-protected?1"><tt>?1</tt></a>
+              to route your request to <tt>echo</tt> process 1.
+            <li><a href="/SampleStore/App"><tt>sample-store</tt></a>,
+              a more realistic example. (Source code:
+              <a href="examples/sample-store.c"><tt>sample-store.c</tt></a>.)
+              This shopping cart implementation demonstrates how
+              FastCGI applications can get high performance using
+              in-memory caching yet preserve data across crashes.
+              Request routing is controlled by the anonymous ticket in
+              the URL; if you erase your ticket you'll get a new
+              shopping cart.  Using <tt>ps</tt>, locate and kill the
+              two <tt>sample-store</tt> processes; the Web server will
+              restart them and the new processes will recover your
+              shopping cart.  The program also illustrates how a
+              single application can play multiple roles.
+          </ul>
+          <li>NCSA and Apache servers:
+          <ul>
+            <li><a href="examples/echo.fcg"><tt>echo</tt></a>,
+              an example program that returns a page containing all of its
+              inputs -- environment variables and <tt>stdin</tt>. (Source code:
+              <a href="examples/echo.c"><tt>echo.c</tt></a>.)
+          </ul>
+           <li>Any Web server, using <tt>cgi-fcgi</tt>:
+          <ul>
+            <li><a href="examples/echo.cgi"><tt>echo</tt></a>,
+              an example program that returns a page containing all of its
+              inputs -- environment variables and <tt>stdin</tt>. (Source code:
+              <a href="examples/echo.c"><tt>echo.c</tt></a>.)
+          </ul>
+        </ul>
+    <li><a HREF = "perl-5">perl-5/</a>
+        directory.<br>
+        Bits for building FastCGI-integrated Perl-5 if you can't
+        use the already-built Perl-5 interpreters from
+        <a href="http://www.fastcgi.com/applibs/perl-5">www.fastcgi.com</a>.
+    <li><a HREF = "tcl">tcl/</a>
+        directory.<br>
+        Bits for building FastCGI-integrated Tcl if you can't
+        use the already-built Tcl interpreters from
+        <a href="http://www.fastcgi.com/applibs/tcl">www.fastcgi.com</a>.
+    <li><a HREF = "java/src">java/src</a>
+        directory.<br>
+        Source code for FastCGI Java classes.
+    <li><a HREF = "cgi-fcgi">cgi-fcgi/</a>
+        directory.<br>
+        .c file for the CGI-to-FastCGI bridge.
+</ul>
+
+<hr>
+<address>
+&#169 1996, Open Market, Inc.
+</address>
+
+</body>
+</html>

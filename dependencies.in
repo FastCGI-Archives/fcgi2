@@ -1,0 +1,19 @@
+#------------------------
+#
+# Start of dependencies.in
+#
+
+#
+# OMI provided dependencies
+#
+OMI_DEPENDS_ON(Tcl,V7.4)
+
+#
+# System library dependencies
+#
+OMI_NETWORK
+OMI_MATHLIB
+
+#
+# End of dependencies.in
+#------------------------

@@ -1,0 +1,226 @@
+<html><head><title></title></head>
+<body bgcolor=#ffffff>
+ 
+<a href="cover.htm">[Top]</a> <a href="ch1intro.htm">[Prev]</a> <a href="ch3perl.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+<a name="3659">
+<center><h1>2 Developing FastCGI <br>Applications in C</h1></center>
+</a><a name="917">
+This chapter explains how to code FastCGI applications in C and how to build them into executables. <p>
+</a><a name="4230">
+If you are converting a CGI application into a FastCGI application, in many cases you will only need to add a few lines of code. For more complex applications, you may also need to rearrange some code.<p>
+</a><a name="5371">
+<h1> The I/O Libraries</h1>
+</a><a name="5384">
+The FastCGI Software Development Kit that accompanies Open Market WebServer 2.0 includes I/O libraries to simplify the job of converting existing CGI applications to FastCGI or writing new FastCGI applications. There are two libraries in the kit: fcgi_stdio and fcgiapp. You must include one of these header files in your program:<p>
+</a><ul><a name="5386">
+<li><code>fcgi_stdio.h</code>
+</a><a name="4237">
+<li><code>fcgiapp.h</code>
+</a></ul><a name="4199">
+The <code>fcgi_stdio</code> library is a layer on top of the <code>fcgiapp</code> library, and we recommend strongly that you use it, both for converting existing CGI applications and for writing new FastCGI applications. The fcgi_stdio library offers several advantages:<p>
+</a><ul><a name="5811">
+<li>Simplicity: there are only 3 new API calls to learn
+</a><a name="5828">
+<li>Familiarity: If you are converting a CGI application to FastCGI, you will find few changes between CGI and FastCGI. We designed our library to make the job of building a FastCGI application as similar as possible to that of building a FastCGI application: you use the same environment variables, same techniques for parsing query strings, the same I/O routines, and so on. 
+</a><a name="5817">
+<li>Convenience: the library provides full binary compatibility between CGI and FastCGI. That is, you can run the same binary as either CGI or FastCGI. 
+</a></ul><a name="5399">
+The fcgiapp library is more specific to FastCGI, without trying to provide the veneer of familiarity with CGI. This manual describes the fcgi_stdio library; the fcgiapp library is documented in the header files that accompany the development kit. <p>
+</a><a name="5847">
+<h1> Code Structure</h1>
+</a><a name="4240">
+To structure code for FastCGI, you separate your code into two sections:<p>
+</a><ul><a name="4200">
+<li>Initialization section, which is executed only once.
+</a><a name="4201">
+<li>Response loop section, which gets executed every time the FastCGI script gets called.
+</a></ul><a name="4202">
+A response loop typically has the following format:<p>
+</a><pre><a name="4203">
+while (FCGI_Accept() &gt;= 0) {
+</a>
+<a name="4204">
+# body of response loop
+</a>
+<a name="4205">
+}
+</a>
+</pre><a name="4206">
+The <code>FCGI_Accept</code> blocks until a client request comes in, and then returns 0. If there is a system failure, or the system administrator terminates the process, Accept will return -1. <p>
+</a><a name="5852">
+If the application was invoked as a CGI program, the first call to Accept returns 0 and the second always returns -1, producing CGI behavior. (See <a href="apaman.htm#95860">"FCGI_Accept (3)" on page &#32;21</a> for details.)<p>
+</a><a name="5909">
+Also note that the CGI world encourages small scripts, whereas FastCGI encourages combining scripts. You may choose to rethink the overall structure of your applications to take better advantage of FastCGI performance gains.<p>
+</a><a name="5373">
+<h1> Example 1: TinyFastCGI</h1>
+</a><a name="4263">
+Here is a simple example of a responder FastCGI application written in C:<p>
+<pre>
+#include "fcgi_stdio.h" /* fcgi library; put it first*/<br>#include &lt;stdlib.h&gt;
+
+int count;
+
+void initialize(void)
+{
+  count=0;
+}
+
+void main(void)
+{
+/* Initialization. */  
+  initialize();
+
+/* Response loop. */
+  while (FCGI_Accept() &gt;= 0)   {
+    printf("Content-type: text/html\r\n"
+           "\r\n"
+           "&lt;title&gt;FastCGI Hello! (C, fcgi_stdio library)&lt;/title&gt;"
+           "&lt;h1&gt;FastCGI Hello! (C, fcgi_stdio library)&lt;/h1&gt;"
+           "Request number %d running on host &lt;i&gt;%s&lt;/i&gt;\n",
+            ++count, getenv("SERVER_HOSTNAME"));
+  }
+}
+</pre>
+<h1> Example 2: Prime Number Generator</h1>
+</a><a name="4182">
+Consider a responder application that generates the n-th prime number. <p>
+</a><a name="5217">
+A CGI application would have no efficient way of solving this problem. For example, if the user asks for the 50,000th prime number, a CGI application would have to calculate the first prime number, then the second, and so on, up until the 50,000th. The application would then terminate, taking with it all its hard-earned calculations. If a client then asks for the 49,000th prime number, the server will have to spawn a new CGI application which will have to start calculating prime numbers from scratch.<p>
+</a><a name="4315">
+FastCGI applications can be much more efficient at this sort of problem, since they can maintain state. A FastCGI application can calculate an extensive table of prime numbers in its initialization phase and then keep the table around indefinitely. Whenever a client requests a particular prime number, the response loop merely needs to look it up in the table. <p>
+</a><a name="4343">
+Here is the code for the prime number example:<p>
+<pre>
+#include "fcgi_stdio.h"
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+#define POTENTIALLY_PRIME 0
+#define COMPOSITE 1
+#define VALS_IN_SIEVE_TABLE 1000000
+#define MAX_NUMBER_OF_PRIME_NUMBERS 78600 
+
+/* All initialized to POTENTIALLY_PRIME */
+long int  sieve_table[VALS_IN_SIEVE_TABLE]; 
+long int  prime_table[MAX_NUMBER_OF_PRIME_NUMBERS];  
+/* Use Sieve of Erastothenes method of building 
+   a prime number table. */
+void
+initialize_prime_table(void)
+{
+ long int prime_counter=1;
+ long int current_prime=2, c, d; 
+  
+  prime_table[prime_counter]=current_prime;
+
+  while (current_prime &lt; VALS_IN_SIEVE_TABLE)   {
+   /* Mark off composite numbers. */
+     for (c = current_prime; c &lt;= VALS_IN_SIEVE_TABLE; 
+          c += current_prime)  {
+        sieve_table[c] = COMPOSITE;  
+     }
+
+   /* Find the next prime number. */
+     for (d=current_prime+1; sieve_table[d] == COMPOSITE; d++); 
+   /* Put the new prime number into the table. */ 
+     prime_table[++prime_counter]=d; 
+     current_prime=d;
+  }
+}
+
+
+void main(void)
+{
+    char *query_string;
+    long int n;
+
+    initialize_prime_table();
+
+    while(FCGI_Accept() &gt;= 0) {
+        /*
+         * Produce the necessary HTTP header.
+         */
+        printf("Content-type: text/html\r\n"
+               "\r\n");
+        /*
+         * Produce the constant part of the HTML document.
+         */
+        printf("&lt;title&gt;Prime FastCGI&lt;/title&gt;\n"
+               "&lt;h1&gt;Prime FastCGI&lt;/h1&gt;\n");
+        /*
+         * Read the query string and produce the variable part
+         * of the HTML document.
+         */
+        query_string = getenv("QUERY_STRING");
+        if(query_string == NULL) {
+            printf("Usage: Specify a positive number in the query string.\n");
+        } else {
+            query_string = strchr(query_string, `=') + 1;
+            n = strtol(query_string);
+            if(n &lt; 1) {
+                printf("The query string `%s' is not a positive number.\n",
+                       query_string);
+            } else if(n &gt; MAX_NUMBER_OF_PRIME_NUMBERS) {
+                printf("The number %d is too large for this program.\n", n);
+            } else
+                printf("The %ldth prime number is %ld.\n", prime_table[n]);
+            }
+        }
+    } /* while FCGI_Accept */
+}
+</pre><a name="5349">
+This application has a noticeable start up cost while it initializes the table, but subsequent accesses are fast.<p>
+</a><a name="5151">
+<h1> Building</h1>
+</a><a name="4630">
+This section explains how to build and debug FastCGI applications written in C.<p>
+</a><a name="4629">
+The C preprocessor needs to know the location of the <code>fcgi_stdio.h</code> header file, which is at the following pathname:<p>
+</a><pre><a name="4642">
+<em>$toolkit</em>/include/fcgi_stdio.h
+</a>
+</pre><a name="4645">
+where <em>$toolkit</em> symbolizes the directory in which you have installed the Software Development Kit for FastCGI. <p>
+</a><a name="4760">
+The linker needs to know the location of the <code>libfcgi.a</code> library file, which is at the following pathname:<p>
+</a><pre><a name="4647">
+<em>$toolkit</em>/libfcgi/libfcgi.a 
+</a>
+</pre><a name="4648">
+If your linker does not search the Berkeley socket library, then you must add linker directives to force this search.<p>
+</a><a name="4773">
+We provide a sample application <code>Makefile</code> at the following pathname: <p>
+</a><pre><a name="4649">
+<em>$toolkit</em>/examples/Makefile
+</a>
+</pre><a name="4652">
+This <code>Makefile</code> contains the necessary rules and pathnames to build the C FastCGI applications accompanying the toolkit. To build all the applications, type:<p>
+</a><pre><a name="4653">
+$ ./configure<br>$ make 
+</a>
+</pre><a name="4190">
+<h1> Memory Leaks</h1>
+</a><a name="4178">
+Memory leaks are seldom a problem in CGI programming because CGI applications rarely run long enough to be concerned with leaks. However, memory leaks can become a problem in FastCGI applications, particularly if each call to a popular FastCGI application causes additional memory to leak. <p>
+</a><a name="4785">
+When converting to FastCGI, you can either use a tool such as Purify from Pure Software to discover and fix storage leaks or you can run a C garbage collector such as Great Circle from Geodesic Systems. <p>
+</a><a name="4972">
+<p>
+</a>
+<hr><br>
+ 
+<a href="cover.htm">[Top]</a> <a href="ch1intro.htm">[Prev]</a> <a href="ch3perl.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+
+<!-- This file was created with Quadralay WebWorks Publisher 3.0.3 -->
+<!-- -->
+<!-- For more information on how this document, and how the rest of -->
+<!-- this server was created, email yourEmail@xyzcorp.com -->
+<!-- -->
+<!-- Last updated: 04/15/96 08:00:16 -->
+
+</body>
+</html>

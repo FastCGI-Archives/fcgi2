@@ -1,0 +1,13 @@
+# descrip.dfc
+# This is a generated file, DO NOT EDIT
+# Another service of Ace Wrecking & Software
+# If we don't have it then you don't need it
+#
+
+IncludeDir ../include
+
+UseLocalLibrary libfcgi wnt ..\\libfcgi
+
+BuildConsoleApp cgi-fcgi cgi-fcgi.c
+
+

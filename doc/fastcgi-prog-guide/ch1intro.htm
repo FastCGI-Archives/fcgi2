@@ -1,0 +1,243 @@
+<html><head><title></title></head>
+<body bgcolor=#ffffff>
+ 
+<a href="cover.htm">[Top]</a> <a href="ap_guide.htm">[Prev]</a> <a href="ch2c.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+<a name="9432">
+<center><h1>1 The Fast Common<br>Gateway Interface</h1></center>
+</a><a name="7982">
+The Fast Common Gateway Interface (FastCGI) is an enhancement to the existing CGI (Common Gateway Interface), which is a standard for interfacing external applications with Web servers. <p>
+</a><a name="8373">
+FastCGI is a proposed open standard and we expect both free and commercial Web servers to support it. FastCGI is included in Open Market WebServer and Secure WebServer, versions 2.0 and greater.<p>
+</a><a name="8485">
+<h1> Advantages of FastCGI</h1>
+</a><a name="8369">
+FastCGI extends and enhances the CGI model in several ways:<p>
+</a><ul><a name="7832">
+<li>FastCGI enables applications to persist between client requests, eliminating application start up overhead and allowing the application to maintain state between client calls.
+</a><a name="7995">
+<li>FastCGI enables applications to reside on remote systems (rather than having to reside on the same system as the Web server)
+</a><a name="7997">
+<li>FastCGI enables additional flexibility in application functionality, with explicit support for applications that do client authentication and filtering of input.
+</a></ul><a name="8396">
+<h2> Long-lived Applications</h2>
+</a><a name="8458">
+CGI applications are ephemeral and short-lived: each time a client requests a CGI application, the server asks the operating system to spawn a new CGI process. After the CGI process satisfies the request, the server kills it. The server spawns and subsequently kills a new process for each client request. <p>
+</a><a name="8459">
+FastCGI applications are long-lived, and can persist between client calls. The server spawns the FastCGI process once and it continues to run and satisfy client requests until it is explicitly terminated. You can also ask the Web server to start multiple copies of a FastCGI application, if you expect that concurrent processing will improve the application's performance. <p>
+</a><a name="5761">
+Long-lived applications have two important advantages over short-lived applications:<p>
+</a><ul><a name="7138">
+<li>A short-lived application pays start up overhead on every request; a long-lived application spreads the overhead over many requests. For an application that has a heavy start up cost, such as opening a database, doing initialization on every call can be very inefficient. Reinitializing for every client is also very inefficient for Perl programs, where the interpreter reads through the entire program before executing any of it.
+</a><a name="9204">
+<li>A long-lived application can cache information in memory between requests, allowing it to respond more quickly to later requests.
+</a></ul><a name="8733">
+FastCGI is not the only way to get a long-lived application on the Web, however. For example, there are many existing search engines that are implemented as long-lived applications.<p>
+</a><a name="8734">
+In most cases, these applications rely on customized Web servers. In other words, since most Web servers do not support long-lived applications, a programmer must code this support into a Web server. This approach requires a tremendous amount of work and also ties the application to a particular server.<p>
+</a><a name="8735">
+Another way to get a long-lived application is to write code that calls routines from the Web server's API. This alternative involves a lot of extra coding, ties the application to a particular Web server, and introduces problems of maintainability, scalability, and security.<p>
+</a><a name="8736">
+We believe that FastCGI is the most general and flexible strategy for building long-lived Web applications.<p>
+</a><a name="8445">
+<h2> Separating Application and Server</h2>
+</a><a name="8446">
+CGI applications must run on the same node as the Web server; FastCGI applications can run on any node that can be reached from your Web server using TCP/IP protocols. For example, you might want to run the FastCGI application on a high-speed computer server or database engine, and run the Web server on a different node.<p>
+</a><a name="8406">
+<h2> FastCGI "Roles"</h2>
+</a><a name="8777">
+CGI and FastCGI applications are effective ways to allow an application to act as an extension to the Web server. CGI provides no explicit support for different kinds of applications: under CGI, every application receives an HTTP request, does something with it, and generates an HTTP response. FastCGI provides explicit support for several common "roles" that applications can play. <p>
+</a><a name="8769">
+The three roles supported by the WebServer 2.0 are: <p>
+</a><ul><a name="8409">
+<li>Responder
+</a><a name="8410">
+<li>Filter
+</a><a name="8411">
+<li>Authorizer
+</a></ul><a name="8412">
+<h3> Responder Applications</h3>
+</a><a name="8679">
+A <em>responder</em> application is the most basic kind of FastCGI application: it receives the information associated with an HTTP request and generates an HTTP response. Responder is the role most similar to traditional CGI programming, and most FastCGI applications are responders.<p>
+</a><a name="8680">
+<h3> Filter Applications</h3>
+</a><a name="8681">
+A <em>filter</em> FastCGI application receives the information associated with an HTTP request, plus an extra stream of data from a file stored on the Web server, and generates a "filtered" version of the data stream as an HTTP response. <p>
+</a><a name="8421">
+With filter applications, the system administrator maps a particular MIME-type to a particular filter FastCGI application. When a client requests a URL with that MIME-type, the Web server invokes the filter application, which processes the file at the specified URL and sends a response (usually HTML text) back to the client.<p>
+</a><a name="8422">
+For example, suppose you write a filter FastCGI application that converts SGML text to HTML, and map the extension .sgml (MIME-type SGML) to your filter FastCGI application. Now, suppose that a user requests the following URL:<p>
+</a><pre><a name="8423">
+/www.aerjug.com/docs/chap1.sgml
+</a>
+</pre><a name="8424">
+Given this URL, the Web server passes <code>chap1.sgml</code> as input to your filter FastCGI application, which processes <code>chap1.sgml</code> and returns an HTML version of it to the requesting client.<p>
+</a><a name="8425">
+<h3> Authorizer Applications</h3>
+</a><a name="8426">
+An <em>authorizer</em> FastCGI application receives the information in an HTTP request header and generates a decision whether to authorize the request.<p>
+</a><a name="8428">
+To mark a FastCGI application as having the authorizer role, the system administrator names the application inside the server configuration file, using a directive called <code>AuthorizeRegion</code>. (See the Open Market Web Server manual for information on server configuration directives.)<p>
+</a><a name="8429">
+When a client requests a URL that meets the <code>AuthorizeRegion </code>criteria, the Web server calls your authorizer FastCGI application. If your application grants authorization (by returning a response code of 200), the Web server resumes execution of commands in the <code>AuthorizeRegion</code> section. If your application denies authorization (by returning any other response code), the Web server stops processing subsequent commands in the <code>AuthorizeRegion</code> section, and returns the response from your FastCGI application to the client.<p>
+</a><a name="8431">
+Authorizer applications can return headers containing environment variables. Other CGI or FastCGI programs accessing this request (including other authorizers) can access these environment variables. The headers must have the following format:<p>
+</a><pre><a name="8432">
+Variable-<em>name</em>: <em>value</em>
+</a>
+</pre><a name="8433">
+For example, the following header<p>
+</a><pre><a name="8434">
+Variable-AUTH_METHOD: database lookup
+</a>
+</pre><a name="8435">
+causes the environment variable <code>AUTH_METHOD</code> to be set to <code>"database lookup"</code> for this request. Other CGI or FastCGI applications running on this request can access the value of <code>AUTH_METHOD</code>. <p>
+</a><a name="8437">
+Authorizer applications cannot successfully read from standard input. Any attempts to read from standard input result in an immediate EOF.<p>
+</a><a name="8438">
+All data that authorizer applications write to standard error will get written to the traditional server error logs. <p>
+</a><a name="4207">
+<h1> Writing FastCGI Applications</h1>
+</a><a name="9301">
+The work involved in writing a FastCGI application depends in large part on the I/O libraries that you use. This manual describes how to write FastCGI applications in terms of the Open Market libraries, which are available for C, Perl, and Tcl. FastCGI is an open standard and you are welcome to build your own libraries for other languages as well, but this manual focuses on building FastCGI applications in the context of the Open Market libraries.<p>
+</a><a name="9443">
+<p>
+</a><a name="9450">
+In general, the goal of the libraries is to make the job of writing a FastCGI application as much like writing a CGI application as possible. For example, you use the same techniques for query string decoding, HTML output to stdout, use of environment variables, and so on. When you use our libraries, porting CGI applications to FastCGI is mostly a matter of restructuring the code to take advantage of FastCGI features and libraries. <p>
+</a><a name="9469">
+<h2> Code Structure</h2>
+</a><a name="9470">
+The main task of converting a CGI program into a FastCGI program is separating the initialization code from the code that needs to run for each request. The structure should look something like this:<p>
+</a><pre><a name="9471">
+Initialization code
+</a>
+<a name="9472">
+Start of response loop
+</a>
+<a name="9473">
+   body of response loop
+</a>
+<a name="9474">
+End of response loop
+</a>
+</pre><a name="9475">
+The <em>initialization code</em> is run exactly once, when the application is initialized. Initialization code usually performs time-consuming operations such as opening databases or calculating values for tables or bitmaps. <p>
+</a><a name="9477">
+The <em>response loop</em> runs continuously, waiting for client requests to arrive. The loop starts with a call to <code>FCGI_Accept</code>, a routine in the FastCGI library. The <code>FCGI_Accept</code> routine blocks program execution until a client requests the FastCGI application. When a client request comes in, <code>FCGI_Accept</code> unblocks, runs one iteration of the response loop body, and then blocks again waiting for another client request. The loop terminates only when the system administrator or the Web server kills the FastCGI application.<p>
+</a><a name="9480">
+<h2> Initial Environment Variables</h2>
+</a><a name="9786">
+When a FastCGI process starts up, it has not yet accepted a request, and therefore none of the CGI environment variables are set.<p>
+</a><a name="9787">
+You set the initial environment of a FastCGI process started by the <code>AppClass </code>directive using the <code>-initial-env</code> option. The process would use this environment to configure its options and locate files or databases.<p>
+</a><a name="9829">
+In FastCGI processes started by the <code>AppClass</code> directive with the -affinity option, the <code>FCGI_PROCESS_ID</code> variable is set in the initial environment (not in the environment of a request). <code>FCGI_PROCESS_ID</code> is a decimal number in the range 0 to N - 1 where N is the number of processes (argument to the<code> -processes</code> option to <code>AppClass</code>). The process would use <code>FCGI_PROCESS_ID </code>in conjunction with other variables to locate session-related files or databases during restart.<p>
+</a><a name="9785">
+<h2> Per-Request Environment Variables</h2>
+</a><a name="9481">
+In general, FastCGI uses the same per-request environment variables as CGI, and you access the values of environment variables in FastCGI applications just as you would in CGI applications. The only differences are as follows:<p>
+</a><ul><a name="9483">
+<li>In Authorizer FastCGI applications, the Web server unsets the <code>PATH_INFO</code>, <code>PATH_TRANSLATED</code>, and <code>CONTENT_LENGTH</code> variables.
+</a><a name="9484">
+<li>In Filter FastCGI applications, the Web server sets two additional environment variables:
+</a><ul>
+<a name="9486">
+<li><code>FILE_LAST_MOD</code>: The Web server sets <code>FILE_LAST_MOD</code> to the date and time that filter input file was last modified. The format is the number of seconds since midnight (UTC), January 1, 1970. 
+</a><a name="9488">
+<li><code>FCGI_DATA_LENGTH</code>: The application reads at most <code>FCGI_DATA_LENGTH</code> bytes from the data stream before receiving the end-of-stream indication.
+</a></ul>
+<a name="9490">
+<li>FastCGI sets <code>FCGI_ROLE</code> for each request to <code>RESPONDER</code>, <code>AUTHORIZER</code>, or <code>FILTER</code>.
+</a></ul><a name="9048">
+<h2> Building FastCGI Applications in C</h2>
+</a><a name="9049">
+The Software Development Toolkit that accompanies WebServer 2.0 contains two libraries, fcgi_stdio and fcgiapp, for building FastCGI applications in C. <p>
+</a><a name="9723">
+The fcgi_stdio library implements our philosophy of making FastCGI applications similar to CGI applications, and provides full binary compatibility between FastCGI applications and CGI applications: you can run the same C binary as either CGI or FastCGI. <p>
+</a><a name="9545">
+The fcgiapp library is more specific to FastCGI, and doesn't attempt the veneer of CGI. <p>
+</a><a name="9731">
+We recommend that you use the fcgi_stdio library, and this manual describes the routines in that library. The documentation for the fcgiapp library is in the code in the development kit.<p>
+</a><a name="9570">
+<h2> Building FastCGI Applications in Perl</h2>
+</a><a name="9581">
+To build FastCGI applications in Perl, you need a FastCGI-savvy version of Perl, plus the FastCGI extension to Perl. We build FastCGI-savvy versions of the Perl interpreter for several common platforms and make them available on our Website. For details and examples, see Chapter <a href="ch3perl.htm#3659">3, "Developing FastCGI Applications in Perl," on page 17</a>.<p>
+</a><a name="9562">
+<h2> Building FastCGI Applications in Tcl</h2>
+</a><a name="9586">
+To build FastCGI applications in Tcl, you need a FastCGI-savvy version of Tcl. We build FastCGI-savvy versions of the Tcl interpreter for several common platforms and make them available on our Website. For details and examples, see Chapter <a href="ch4tcl.htm#3659">4, "Developing FastCGI Applications in Tcl," on page 19</a>.<p>
+</a><a name="8360">
+<h1> Implementation Details</h1>
+</a><a name="8066">
+The FastCGI application libraries are designed to shield you from the details of the FastCGI design. This section is designed for the curious reader who would like some low-level understanding. If you are not curious about the implementation, you can happily skip this section.<p>
+</a><a name="8554">
+As shown in the following figure, CGI applications use the three standard POSIX streams (<code>stdin</code>, <code>stdout</code>, and <code>stderr</code>), plus environment variables, to communicate with an HTTP server. <p>
+</a><a name="8359">
+<img src="ch1intra.gif"><p>
+</a><a name="4295">
+<p>
+</a><a name="8575">
+<h5>Figure 1:&#32; Flow of Data in CGI</h5>
+</a><a name="9001">
+The fundamental difference between FastCGI and CGI is that FastCGI applications are long-lived, which means that the Web Server needs to rendezvous with a running application, rather than starting the application in order to explicitly communicate with it.<p>
+</a><a name="9110">
+The FastCGI implementation basically creates a bidirectional connection between two processes that have no relationship. FastCGI uses a single connection for all the data associated with an application -- stdin, stdout, stderr, and environment variables. The data on the connection is encapsulated using a FastCGI protocol that allows stdin and the environment variables to share the same half connection (on the way in) and stdout and stderr to share the half connection (on the way out).<p>
+</a><a name="9020">
+On the input side, the FastCGI application receives data on the connection, unpacks it to separate stdin from the environment variables and then invokes the application. On the output side, FastCGI wraps stdout and stderr with appropriate protocol headers, and sends the encapsulated data out to the server.<p>
+</a><a name="9032">
+Since a FastCGI application does not always run on the same node as the HTTP server, we support two implementations of the connection: a <em>stream pipe</em><a href="#9645"><sup>1</sup></a>, for communications on the same machine, and TCP streams, for communication when the client and the server are on different machines.<p>
+</a><a name="8576">
+<img src="ch1inta1.gif"><p>
+</a><a name="7549">
+<h5>Figure 2:&#32; Flow of Data in FastCGI when server and application are on different machines</h5>
+</a><a name="7874">
+<h2> The fcgi_stdio Library: I/O Compatibility</h2>
+</a><a name="8977">
+The implementation for I/O compatibility is that the library <code>fcgi_stdio.h</code> contains macros to translate the types and procedures defined in stdio.h into the appropriate FastCGI calls. For example, consider a FastCGI program written in C containing the following line of code:<p>
+</a><pre><a name="5877">
+fprintf(stdout, "&lt;H2&gt;Aerobic Juggling&lt;/H2&gt;/n");
+</a>
+</pre><a name="9659">
+<code>fcgi_stdio.h</code> header file contains the macro<p>
+</a><pre><a name="6403">
+#define fprintf FCGI_fprintf
+</a>
+</pre><a name="6402">
+So the preprocessor translates the <code>fprintf</code> call into the following call:<p>
+</a><pre><a name="6411">
+FCGI_fprintf(stdout, "&lt;H2&gt;Aerobic Juggling&lt;/H2&gt;/n");
+</a>
+</pre><a name="5888">
+<code>FCGI_fprintf</code> takes the same arguments as <code>fprintf</code>. <p>
+</a><a name="9664">
+The implementation of FCGI_fprintf tests the file to see if it is a normal C stream or a FastCGI stream, and calls the appropriate implementation.<p>
+</a><a name="6463">
+The <code>fcgi_stdio.h</code> header file contains macros to translate calls to all ISO stdio.h routines (and all conventional Posix additions, such as <code>fileno</code>, <code>fdopen</code>, <code>popen</code>, and <code>pclose</code>) into their FastCGI equivalents. <p>
+</a><a name="9678">
+<h2> The fcgi_stdio Library: Binary compatibility</h2>
+</a><a name="9579">
+The fcgi_stdio library provides full binary compatibility between FastCGI applications and CGI applications: you can run the same C binary as either CGI or FastCGI. <p>
+</a><a name="9580">
+The implementation is in FCGI_Accept: the FCGI_Accept function tests its environment to determine whether the application was invoked as a CGI program or an FastCGI program. If it was invoked as a CGI program, the request loop will satisfy a single client request and then exit, producing CGI behavior.<p>
+</a><a name="8957">
+<p>
+</a>
+<hr><br>
+ 
+<a href="cover.htm">[Top]</a> <a href="ap_guide.htm">[Prev]</a> <a href="ch2c.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+<sup>1</sup><a name="9645">
+UNIX Network Programming, W. Richard Stevens, 1990 Prentice-Hall, Section 7.9<p>
+</a>
+
+<!-- This file was created with Quadralay WebWorks Publisher 3.0.3 -->
+<!-- -->
+<!-- For more information on how this document, and how the rest of -->
+<!-- this server was created, email yourEmail@xyzcorp.com -->
+<!-- -->
+<!-- Last updated: 04/15/96 08:00:13 -->
+
+</body>
+</html>

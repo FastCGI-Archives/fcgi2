@@ -1,0 +1,340 @@
+dnl	This file is an input file used by the GNU "autoconf" program to
+dnl	generate the file "configure", which is run during Tcl installation
+dnl	to configure the system for the local environment.
+AC_INIT(tcl.h)
+# @(#) configure.in 1.15 95/06/27 21:53:14
+
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_PREFIX_PROGRAM(tclsh)
+AC_PROG_CC
+AC_C_CROSS
+AC_SUBST(CC)
+
+#--------------------------------------------------------------------
+#	On SVR4 systems, force linking with the socket libs
+#--------------------------------------------------------------------
+AC_CHECK_LIB(socket, main, [LIBS="$LIBS -lsocket"])
+AC_CHECK_LIB(nsl, main, [LIBS="$LIBS -lnsl"])
+AC_SUBST(LIBS)
+
+#--------------------------------------------------------------------
+#	Supply substitutes for missing POSIX library procedures, or
+#	set flags so Tcl uses alternate procedures.
+#--------------------------------------------------------------------
+
+AC_REPLACE_FUNCS(getcwd opendir strerror strstr)
+AC_REPLACE_FUNCS(strtol tmpnam waitpid)
+AC_CHECK_FUNC(getwd, , AC_DEFINE(NO_GETWD))
+AC_CHECK_FUNC(wait3, , AC_DEFINE(NO_WAIT3))
+
+#--------------------------------------------------------------------
+#	On a few very rare systems, all of the libm.a stuff is
+#	already in libc.a.  Set compiler flags accordingly.
+#	Also, Linux requires the "ieee" library for math to work
+#	right (and it must appear before "-lm").
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(sin, MATH_LIBS="", MATH_LIBS="-lm")
+AC_SUBST(MATH_LIBS)
+AC_CHECK_LIB(ieee, main, [MATH_LIBS="-lieee $MATH_LIBS"])
+
+#--------------------------------------------------------------------
+#	Supply substitutes for missing POSIX header files.  Special
+#	notes:
+#	    - Sprite's dirent.h exists but is bogus.
+#	    - stdlib.h doesn't define strtol, strtoul, or
+#	      strtod insome versions of SunOS
+#	    - some versions of string.h don't declare procedures such
+#	      as strstr
+#--------------------------------------------------------------------
+
+AC_HAVE_HEADERS(unistd.h)
+AC_MSG_CHECKING(dirent.h)
+AC_TRY_LINK([#include <sys/types.h>
+#include <dirent.h>], [
+#ifndef _POSIX_SOURCE
+#   ifdef __Lynx__
+	/*
+	 * Generate compilation error to make the test fail:  Lynx headers
+	 * are only valid if really in the POSIX environment.
+	 */
+
+	missing_procedure();
+#   endif
+#endif
+DIR *d;
+struct dirent *entryPtr;
+char *p;
+d = opendir("foobar");
+entryPtr = readdir(d);
+p = entryPtr->d_name;
+closedir(d);
+], tcl_ok=yes, tcl_ok=no)
+AC_EGREP_HEADER([Sprite version.* NOT POSIX], dirent.h, tcl_ok=no)
+if test $tcl_ok = no; then
+    AC_DEFINE(NO_DIRENT_H)
+fi
+AC_MSG_RESULT($tcl_ok)
+AC_CHECK_HEADER(errno.h, , AC_DEFINE(NO_ERRNO_H))
+AC_CHECK_HEADER(float.h, , AC_DEFINE(NO_FLOAT_H))
+AC_CHECK_HEADER(limits.h, , AC_DEFINE(NO_LIMITS_H))
+AC_CHECK_HEADER(stdlib.h, tcl_ok=1, tcl_ok=0)
+AC_EGREP_HEADER(strtol, stdlib.h, , tcl_ok=0)
+AC_EGREP_HEADER(strtoul, stdlib.h, , tcl_ok=0)
+AC_EGREP_HEADER(strtod, stdlib.h, , tcl_ok=0)
+if test $tcl_ok = 0; then
+    AC_DEFINE(NO_STDLIB_H)
+fi
+AC_CHECK_HEADER(string.h, tcl_ok=1, tcl_ok=0)
+AC_EGREP_HEADER(strstr, string.h, , tcl_ok=0)
+AC_EGREP_HEADER(strerror, string.h, , tcl_ok=0)
+if test $tcl_ok = 0; then
+    AC_DEFINE(NO_STRING_H)
+fi
+AC_CHECK_HEADER(sys/time.h, , AC_DEFINE(NO_SYS_TIME_H))
+AC_CHECK_HEADER(sys/wait.h, , AC_DEFINE(NO_SYS_WAIT_H))
+
+#--------------------------------------------------------------------
+#	On some systems strstr is broken: it returns a pointer even
+#	even if the original string is empty.
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING([proper strstr implementation])
+AC_TRY_RUN([
+extern int strstr();
+int main()
+{
+    exit(strstr("\0test", "test") ? 1 : 0);
+}
+], tcl_ok=yes, tcl_ok=no)
+if test $tcl_ok = yes; then
+    AC_MSG_RESULT(yes)
+else
+    AC_MSG_RESULT([broken, using substitute])
+    LIBOBJS="$LIBOBJS strstr.o"
+fi
+
+#--------------------------------------------------------------------
+#	Check for strtoul function.  This is tricky because under some
+#	versions of AIX strtoul returns an incorrect terminator
+#	pointer for the string "0".
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(strtoul, tcl_ok=1, tcl_ok=0)
+AC_TRY_RUN([
+extern int strtoul();
+int main()
+{
+    char *string = "0";
+    char *term;
+    int value;
+    value = strtoul(string, &term, 0);
+    if ((value != 0) || (term != (string+1))) {
+        exit(1);
+    }
+    exit(0);
+}], , tcl_ok=0)
+if test $tcl_ok = 0; then
+    test -n "$verbose" && echo "	Adding strtoul.o."
+    LIBOBJS="$LIBOBJS strtoul.o"
+fi
+
+#--------------------------------------------------------------------
+#	Check for the strtod function.  This is tricky because in some
+#	versions of Linux strtod mis-parses strings starting with "+".
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(strtod, tcl_ok=1, tcl_ok=0)
+AC_TRY_RUN([
+extern double strtod();
+int main()
+{
+    char *string = " +69";
+    char *term;
+    double value;
+    value = strtod(string, &term);
+    if ((value != 69) || (term != (string+4))) {
+	exit(1);
+    }
+    exit(0);
+}], , tcl_ok=0)
+if test $tcl_ok = 0; then
+    test -n "$verbose" && echo "	Adding strtod.o."
+    LIBOBJS="$LIBOBJS strtod.o"
+fi
+
+#--------------------------------------------------------------------
+#	Under Solaris 2.4, strtod returns the wrong value for the
+#	terminating character under some conditions.  Check for this
+#	and if the problem exists use a substitute procedure
+#	"fixstrtod" that corrects the error.
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(strtod, tcl_strtod=1, tcl_strtod=0)
+if test "$tcl_strtod" = 1; then
+    AC_MSG_CHECKING([for Solaris strtod bug])
+    AC_TRY_RUN([
+	extern double strtod();
+	int main()
+	{
+	    char *string = "NaN";
+	    char *term;
+	    strtod(string, &term);
+	    if ((term != string) && (term[-1] == 0)) {
+		exit(1);
+	    }
+	    exit(0);
+	}], AC_MSG_RESULT(ok), [
+	    AC_MSG_RESULT(buggy)
+	    LIBOBJS="$LIBOBJS fixstrtod.o"
+	    AC_DEFINE(strtod, fixstrtod)
+	])
+fi
+
+#--------------------------------------------------------------------
+#	Check for various typedefs and provide substitutes if
+#	they don't exist.
+#--------------------------------------------------------------------
+
+AC_TYPE_MODE_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_UID_T
+
+#--------------------------------------------------------------------
+#	If a system doesn't have an opendir function (man, that's old!)
+#	then we have to supply a different version of dirent.h which
+#	is compatible with the substitute version of opendir that's
+#	provided.  This version only works with V7-style directories.
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(opendir, , AC_DEFINE(USE_DIRENT2_H))
+
+#--------------------------------------------------------------------
+#	Check for the existence of sys_errlist (this is only needed if
+#	there's no strerror, but I don't know how to conditionalize the
+#	check).
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING(sys_errlist)
+AC_TRY_LINK(, [
+extern char *sys_errlist[];
+extern int sys_nerr;
+sys_errlist[sys_nerr-1][0] = 0;
+], tcl_ok=yes, tcl_ok=no)
+AC_MSG_RESULT($tcl_ok)
+if test $tcl_ok = no; then
+    AC_DEFINE(NO_SYS_ERRLIST)
+fi
+
+#--------------------------------------------------------------------
+#	The check below checks whether <sys/wait.h> defines the type
+#	"union wait" correctly.  It's needed because of weirdness in
+#	HP-UX where "union wait" is defined in both the BSD and SYS-V
+#	environments.  Checking the usability of WIFEXITED seems to do
+#	the trick.
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING([union wait])
+AC_TRY_LINK([#include <sys/types.h> 
+#include <sys/wait.h>], [
+union wait x;
+WIFEXITED(x);		/* Generates compiler error if WIFEXITED
+			 * uses an int. */
+], tcl_ok=yes, tcl_ok=no)
+AC_MSG_RESULT($tcl_ok)
+if test $tcl_ok = no; then
+    AC_DEFINE(NO_UNION_WAIT)
+fi
+
+#--------------------------------------------------------------------
+#	Check to see whether the system supports the matherr function
+#	and its associated type "struct exception".
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING([matherr support])
+AC_TRY_COMPILE([#include <math.h>], [
+struct exception x;
+x.type = DOMAIN;
+x.type = SING;
+], tcl_ok=yes, tcl_ok=no)
+AC_MSG_RESULT($tcl_ok)
+if test $tcl_ok = yes; then
+    AC_DEFINE(NEED_MATHERR)
+fi
+
+#--------------------------------------------------------------------
+#	Check to see whether the system provides a vfork kernel call.
+#	If not, then use fork instead.  Also, check for a problem with
+#	Solaris 2.4 and vforks and signals that can core dumps can occur
+#	if a vforked child resets a signal handler.  If the problem
+#	exists, then use fork instead of vfork.
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(vfork, tcl_ok=1, tcl_ok=0)
+if test "$tcl_ok" = 1; then
+    AC_MSG_CHECKING([Solaris 2.4 vfork/signal bug]);
+    AC_TRY_RUN([
+	#include <stdio.h>
+	#include <signal.h>
+	#include <sys/wait.h>
+	int gotSignal = 0;
+	sigProc(sig)
+	    int sig;
+	{
+	    gotSignal = 1;
+	}
+	main()
+	{
+	    int pid, sts;
+	    (void) signal(SIGCHLD, sigProc);
+	    pid = vfork();
+	    if (pid <  0) {
+		exit(1);
+	    } else if (pid == 0) {
+		(void) signal(SIGCHLD, SIG_DFL);
+		_exit(0);
+	    } else {
+		(void) wait(&sts);
+	    }
+	    exit((gotSignal) ? 0 : 1);
+	}], AC_MSG_RESULT(ok), [
+	    AC_MSG_RESULT(buggy)
+	    tcl_ok=0
+	])
+fi
+rm -f core
+if test "$tcl_ok" = 0; then
+    AC_DEFINE(vfork, fork)
+fi
+
+#--------------------------------------------------------------------
+#	Check whether there is an strncasecmp function on this system.
+#	This is a bit tricky because under SCO it's in the socket
+#	library.
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(strncasecmp, ,
+    AC_CHECK_LIB(socket, strncasecmp, , [LIBOBJS="$LIBOBJS strncasecmp.o"]))
+
+#--------------------------------------------------------------------
+#	The code below deals with several issues related to gettimeofday:
+#	1. Some systems don't provide a gettimeofday function at all
+#	   (set NO_GETTOD if this is the case).
+#	2. SGI systems don't use the BSD form of the gettimeofday function,
+#	   but they have a BSDgettimeofday function that can be used instead.
+#	3. See if gettimeofday is declared in the <sys/time.h> header file.
+#	   if not, set the GETTOD_NOT_DECLARED flag so that tclPort.h can
+#	   declare it.
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNC(BSDgettimeofday, AC_DEFINE(HAVE_BSDGETTIMEOFDAY),
+	AC_CHECK_FUNC(gettimeofday, , AC_DEFINE(NO_GETTOD)))
+AC_MSG_CHECKING([for gettimeofday declaration])
+AC_EGREP_HEADER(gettimeofday, sys/time.h, AC_MSG_RESULT(present), [
+    AC_MSG_RESULT(missing)
+    AC_DEFINE(GETTOD_NOT_DECLARED)
+])
+
+AC_OUTPUT(Makefile)

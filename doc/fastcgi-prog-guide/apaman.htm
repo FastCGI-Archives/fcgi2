@@ -1,0 +1,176 @@
+<html><head><title></title></head>
+<body bgcolor=#ffffff>
+ 
+<a href="cover.htm">[Top]</a> <a href="ch4tcl.htm">[Prev]</a> <a href="ap_guida.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+<a name="3601">
+<center><h1>A FastCGI <br>Reference Pages</h1></center>
+</a><a name="95882">
+This appendix contains reference pages for the following FastCGI routines from the <code>fcgi_stdio</code> library:<p>
+</a><ul><a name="95884">
+<li><code>FCGI_Accept</code>
+</a><a name="95885">
+<li><code>FCGI_Start_Filter_Data</code>
+</a><a name="95859">
+<li><code>FCGI_SetExitStatus</code>
+</a></ul><a name="95860">
+<h1> FCGI_Accept (3)</h1>
+</a><a name="95861">
+<h2> Name</h2>
+</a><a name="95637">
+<code>FCGI_Accept, FCGI_ToFILE, FCGI_ToFcgiStream</code> - fcgi_stdio compatibility library<p>
+</a><a name="95652">
+<h2> Synopsis</h2>
+</a><pre><a name="95669">
+#include &lt;fcgi_stdio.h&gt;
+</a>
+<a name="95653">
+int <br>FCGI_Accept(void);
+</a>
+<a name="95654">
+FILE * <br>FCGI_ToFILE(FCGI_FILE *);
+</a>
+<a name="95655">
+FCGI_Stream * <br>FCGI_ToFcgiStream(FCGI_FILE *);
+</a>
+</pre><a name="95656">
+<h2> Description </h2>
+</a><a name="95683">
+The FCGI_Accept function accepts a new request from the HTTP server and creates a CGI-compatible execution environment for the request.<p>
+</a><a name="95657">
+If the application was invoked as a CGI program, the first call to FCGI_Accept is essentially a no-op and the second call returns -1. This causes a correctly coded FastCGI application to run a single request and exit, giving CGI behavior.<p>
+</a><a name="95658">
+If the application was invoked as a FastCGI server, the first call to FCGI_Accept indicates that the application has completed its initialization and is ready to accept its first request. Subsequent calls to FCGI_Accept indicate that the application has completed processing its current request and is ready to accept a new request.<p>
+</a><a name="95659">
+In completing the current request, FCGI_Accept may detect errors, such as a broken pipe to a client who has disconnected early. FCGI_Accept ignores such errors. An application that wishes to handle such errors should explicitly call fclose(stderr), then fclose(stdout); an EOF return from either one indicates an error.<p>
+</a><a name="95660">
+After accepting a new request, FCGI_Accept assigns new values to the global variables stdin, stdout, stderr, and environ. After FCGI_Accept returns, these variables have the same interpretation as on entry to a CGI program.<p>
+</a><a name="95661">
+In addition to the standard CGI environment variables, the environment variable <code>FCGI_ROLE</code> is always set to the role of the current request. The roles currently defined are <code>RESPONDER, AUTHORIZER</code>, and <code>FILTER</code>.<p>
+</a><a name="95662">
+In the <code>FILTER</code> role, the additional variables <code>FCGI_DATA_LENGTH</code> and <code>FCGI_DATA_LAST_MOD</code> are also defined. See <code>FCGI_StartFilterData</code><code>(3</code>) for complete information.<p>
+</a><a name="95663">
+The macros <code>FCGI_ToFILE</code> and <code>FCGI_ToFcgiStream</code> are provided to allow escape to native functions that use the types <code>FILE</code> or <code>FCGI_Stream</code>. In the case of <code>FILE</code>, functions would have to be separately compiled, since <code>fcgi_stdio.h</code> replaces the standard <code>FILE</code> with <code>FCGI_FILE</code>.<p>
+</a><a name="95664">
+<h2> Return Values</h2>
+</a><a name="95686">
+0 for successful call, -1 for error (application should exit).<p>
+</a><a name="95309">
+<h1> FCGI_StartFilterData (3)</h1>
+</a><a name="95310">
+<h2> Name</h2>
+</a><a name="95311">
+<code>FCGI_StartFilterData</code> -<code>fcgi_stdio</code> compatibility library<p>
+</a><a name="95312">
+<h2> Synopsis</h2>
+</a><pre><a name="95313">
+#include &lt;fcgi_stdio.h&gt;
+</a>
+<a name="95314">
+int FCGI_StartFilterData(void)
+</a>
+</pre><a name="95315">
+<h2> Description</h2>
+</a><a name="95728">
+Enables a FastCGI Filter application to begin reading its filter input data from <code>stdin</code>.<p>
+</a><a name="95729">
+In order to call <code>FCGI_StartFilterData</code>, the FastCGI application should have been invoked in the filter role (<code>getenv("FCGI_ROLE") == "FILTER"</code>), and should have read <code>stdin</code> to EOF, consuming the entire <code>FCGI_STDIN</code> data stream. The call to <code>FCGI_StartFilterData</code> positions stdin at the start of <code>FCGI_DATA</code>.<p>
+</a><a name="95730">
+If the preconditions are not met (e.g., the application has not read <code>stdin</code> to EOF), <code>FCGI_StartFilterData</code> returns a negative result, and the application will get EOF on attempts to read from <code>stdin</code>.<p>
+</a><a name="95731">
+The application can determine the number of bytes available on <code>FCGI_DATA</code> by performing <code>atoi(getenv("FCGI_DATA_LENGTH")</code>. If fewer than this many bytes are delivered on <code>stdin</code> after calling <code>FCGI_StartFilterData</code>, the application should perform an application-specific error response. If the application normally makes an update, most likely it should abort the update.<p>
+</a><a name="95732">
+The application can determine last modification time of the filter input data by performing <code>getenv("FCGI_DATA_LAST_MOD").</code> This allows applications to perform caching based on last modification time.<p>
+</a><a name="95733">
+<h2> Return Values</h2>
+</a><a name="95322">
+Returns 0 on success and a negative integer on failure. <p>
+</a><a name="95323">
+<h2> Example</h2>
+</a><a name="95363">
+The following example reads in all the client data, but ignores it. Then, the code calls <code>FCGI_StartFilterData</code>. Finally, the code reads in the file to be filtered and simply echos it back to the client. <p>
+</a><pre><a name="95324">
+while (FCGI_Accept() &gt;= 0) {
+</a>
+<a name="95325">
+...
+</a>
+<a name="95364">
+ /* Read data passed by client. */
+</a>
+<a name="95358">
+  while (getchar () != OF) 
+</a>
+<a name="95935">
+{
+</a>
+<a name="95930">
+}
+</a>
+<a name="95359">
+
+</a>
+<a name="95367">
+ /* Adjust standard input stream. */
+</a>
+<a name="95366">
+  status = FCGI_StartFilterData();
+</a>
+<a name="95369">
+
+</a>
+<a name="95360">
+ /* Read in filter data and echo it back to client. */
+</a>
+<a name="95368">
+  while ((len = fread(tempBuffer, 1, 1024, stdin)) &gt; 0) 
+</a>
+<a name="95361">
+    fwrite(tempBuffer, 1, len, stdout);
+</a>
+<a name="95844">
+
+</a>
+<a name="95845">
+} /* End FCGI_Accept loop */
+</a>
+</pre><a name="95846">
+<h1> FCGI_SetExitStatus(3)</h1>
+</a><a name="95793">
+<h2> Name </h2>
+</a><a name="95794">
+<code>FCGI_SetExitStatus</code> - <code>fcgi_stdio</code> compatibility library<p>
+</a><a name="95786">
+<h2> Synopsis </h2>
+</a><pre><a name="95795">
+#include &lt;fcgi_stdio.h&gt;
+</a>
+<a name="95787">
+void FCGI_SetExitStatus(int status);
+</a>
+</pre><a name="95788">
+<h2> Description </h2>
+</a><a name="95796">
+Sets the exit status for the current FastCGI request. The exit status is the status code the request would have exited with, had the request been run as a CGI program.<p>
+</a><a name="95789">
+You can call <code>FCGI_SetExitStatus</code> several times during a request; the last call before the request ends determines the value.<p>
+</a><a name="95797">
+<p>
+</a>
+<hr><br>
+ 
+<a href="cover.htm">[Top]</a> <a href="ch4tcl.htm">[Prev]</a> <a href="ap_guida.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
+<hr><br>
+ 
+
+
+<!-- This file was created with Quadralay WebWorks Publisher 3.0.3 -->
+<!-- -->
+<!-- For more information on how this document, and how the rest of -->
+<!-- this server was created, email yourEmail@xyzcorp.com -->
+<!-- -->
+<!-- Last updated: 04/15/96 08:00:20 -->
+
+</body>
+</html>

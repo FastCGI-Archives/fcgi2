@@ -1,0 +1,100 @@
+#
+#  Makefile for FastCGI examples directory
+#
+#  Open Market, Inc.
+#
+#  $Id: Makefile.in,v 1.1 1997/09/16 15:36:28 stanleyg Exp $
+#
+
+SHELL = @SHELL@
+O =     @O@
+L =     @L@
+CC	= @CC@
+
+INCLUDEDIR  = ../include
+CFLAGS	= @CCDEFS@ @PROFILE@ -I$(INCLUDEDIR)
+LIBS	= @LIBS@
+RANLIB	= @RANLIB@
+
+PERL_INSTALL = /usr/local/bin/perl5-fcgi
+TCL_INSTALL  = /usr/local/bin/tcl7.4-fcgi
+
+INCLUDES    = $(INCLUDEDIR)/fastcgi.h $(INCLUDEDIR)/fcgiapp.h \
+	      $(INCLUDEDIR)/fcgimisc.h $(INCLUDEDIR)/fcgiappmisc.h \
+              $(INCLUDEDIR)/fcgi_stdio.h
+LIBDIR      = ../libfcgi
+LIBFCGI	    = $(LIBDIR)/libfcgi.${L}
+TARGETS	    = tiny-cgi.cgi tiny-fcgi tiny-fcgi2 tiny-authorizer \
+	      echo echo2 sample-store sockets echo.fcg perl tclsh \
+              SampleStore.state.0 SampleStore.state.1 log-dump
+
+all: $(TARGETS)
+
+tiny-cgi.cgi: tiny-cgi.${O}
+	$(CC) $(CFLAGS) tiny-cgi.${O} -o tiny-cgi.cgi
+
+tiny-fcgi: tiny-fcgi.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) tiny-fcgi.${O} -o tiny-fcgi $(LIBFCGI) $(LIBS)
+
+tiny-fcgi2: tiny-fcgi2.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) tiny-fcgi2.${O} -o tiny-fcgi2 $(LIBFCGI) $(LIBS)
+
+tiny-authorizer: tiny-authorizer.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) tiny-authorizer.${O} -o tiny-authorizer $(LIBFCGI) $(LIBS)
+
+echo: echo.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) echo.${O} -o echo $(LIBFCGI) $(LIBS)
+
+echo2: echo2.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) echo2.${O} -o echo2 $(LIBFCGI) $(LIBS)
+
+sample-store: sample-store.${O} tclHash.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) sample-store.${O} tclHash.${O} -o sample-store $(LIBFCGI) $(LIBS)
+
+log-dump: log-dump.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) log-dump.${O} -o log-dump $(LIBFCGI) $(LIBS)
+
+sockets:
+	mkdir sockets
+
+echo.fcg:
+	rm -f echo.fcg
+	ln -s echo echo.fcg
+
+perl:
+	rm -f perl
+	ln -s $(PERL_INSTALL)/bin/perl perl
+
+tclsh:
+	rm -f tclsh
+	ln -s $(TCL_INSTALL)/bin/tclsh7.4 tclsh
+
+SampleStore.state.0:
+	mkdir SampleStore.state.0
+
+SampleStore.state.1:
+	mkdir SampleStore.state.1
+
+clean:
+	rm -rf sockets SampleStore.state.0 SampleStore.state.1
+	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out $(TARGETS)
+
+# ----------------------------------------------------------------------------
+
+tiny-cgi.${O}: tiny-cgi.c $(INCLUDES)
+
+tiny-fcgi.${O}: tiny-fcgi.c $(INCLUDES)
+
+tiny-fcgi2.${O}: tiny-fcgi2.c $(INCLUDES)
+
+tiny-authorizer.${O}: tiny-authorizer.c $(INCLUDES)
+
+echo.${O}: echo.c $(INCLUDES)
+
+echo2.${O}: echo2.c $(INCLUDES)
+
+sample-store.${O}: sample-store.c $(INCLUDES)
+
+tclHash.${O}: tclHash.c
+
+log-dump.${O}: log-dump.c $(INCLUDES)

@@ -1,0 +1,14 @@
+# descrip.dfc
+# This is a generated file, DO NOT EDIT
+# Another service of Ace Wrecking & Software
+# If we don't have it then you don't need it
+#
+InheritFrom ../
+IncludeDir ../include
+
+BuildObjectsForPlatform wnt os_win32.c 
+BuildObjectsForPlatform unix os_unix.c
+
+BuildDynamic libfcgi fcgi_stdio.c fcgiapp.c strerror.c os_unix.c os_win32.c
+
+ExportDynamic libfcgi

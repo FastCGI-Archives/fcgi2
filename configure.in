@@ -1,0 +1,126 @@
+dnl     $Id: configure.in,v 1.1 1997/09/16 15:36:24 stanleyg Exp $
+dnl
+dnl     This file is an input file used by the GNU "autoconf" program to
+dnl     generate the file "configure", which is run during the build
+dnl     to configure the system for the local environment.
+dnl
+
+AC_INIT(libfcgi/fcgiapp.c)
+#--------------------------------------------------------------------
+#  Perform common OMI configuration. This will include:
+#	1) Choosing compiler and associated build options.
+#	2) Checking for various common build associated programs.
+#	3) Determining the best build options for this platform.
+#	4) Checking for certain common header files.
+#	5) Checking for exports/global switch.
+#	6) Importing OMI dependencies (header files, libraries, and binaries).
+#       7) Checking for existence of various system libraries and routines.
+#--------------------------------------------------------------------
+OMI_CONFIG
+
+AC_CONFIG_HEADER(include/fcgi_config.h)
+AC_MSG_CHECKING(for sun_len in sys/un.h)
+AC_EGREP_HEADER(sun_len,
+   sys/un.h,
+   AC_MSG_RESULT(yes)
+   AC_DEFINE(HAVE_SOCKADDR_UN_SUN_LEN),
+   AC_MSG_RESULT(no))
+
+#--------------------------------------------------------------------
+#  What extra libraries do we need for this platform?
+#--------------------------------------------------------------------
+
+AC_CHECK_FUNCS(strerror strtol)
+
+AC_REPLACE_FUNCS(strerror strtol)
+
+#--------------------------------------------------------------------
+#       Include sys/select.h if it exists and if it supplies things
+#       that appear to be useful and aren't already in sys/types.h.
+#       This appears to be true only on the RS/6000 under AIX.  Some
+#       systems like OSF/1 have a sys/select.h that's of no use, and
+#       other systems like SCO UNIX have a sys/select.h that's
+#       pernicious.  If "fd_set" isn't defined anywhere then set a
+#       special flag.
+#--------------------------------------------------------------------
+
+AC_MSG_CHECKING(for fd_set in in sys/types.h)
+AC_TRY_LINK([#include <sys/types.h>],
+   [fd_set readMask, writeMask;],
+   AC_MSG_RESULT(yes),
+   AC_MSG_RESULT(no)
+   AC_MSG_CHECKING(for fd_mask in in sys/select.h)
+   AC_HEADER_EGREP(fd_mask,
+      sys/select.h,
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(HAVE_SYS_SELECT_H),
+      AC_MSG_RESULT(no)
+      AC_DEFINE(NO_FD_SET)))
+
+AC_MSG_CHECKING(for fpos in stdio.h)
+AC_EGREP_HEADER(fpos_t,
+   stdio.h,
+   AC_MSG_RESULT(yes)
+   AC_DEFINE(HAVE_FPOS),
+   AC_MSG_RESULT(no))
+
+AC_HAVE_HEADERS(windows.h)
+AC_HAVE_HEADERS(sys/socket.h)
+AC_HAVE_HEADERS(winsock.h)
+AC_HAVE_HEADERS(netdb.h)
+AC_HAVE_HEADERS(netinet/in.h)
+AC_HAVE_HEADERS(arpa/inet.h)
+AC_HAVE_HEADERS(strings.h)
+AC_HAVE_HEADERS(sys/time.h)
+
+#--------------------------------------------------------------------
+#  Do we need cross-process locking on this platform?
+#--------------------------------------------------------------------
+AC_MSG_CHECKING("if this machine needs cross-process locking")
+case "`uname -sr`" in
+    IRIX\ 5.*)	
+	AC_DEFINE(USE_LOCKING)
+	AC_MSG_RESULT(yes)
+    ;;
+    SunOS\ 5.*)	
+	AC_DEFINE(USE_LOCKING)
+	AC_MSG_RESULT(yes)
+    ;;
+    UNIX_System_V\ 4.0)
+	AC_DEFINE(USE_LOCKING)
+	AC_MSG_RESULT(yes)
+    ;;
+    *)
+	AC_MSG_RESULT(no)
+    ;;
+esac
+
+#--------------------------------------------------------------------
+#  Does va_arg(arg, long double) crash the compiler?
+#  hpux 9.04 compiler does and so does Stratus FTX (uses HP's compiler)
+#--------------------------------------------------------------------
+AC_MSG_CHECKING(if va_arg(arg, long double) crashes the compiler)
+AC_TRY_COMPILE([#include <stdarg.h>],
+   [long double lDblArg; va_list arg; lDblArg = va_arg(arg, long double);],
+   AC_MSG_RESULT(no),
+   AC_DEFINE(HAVE_VA_ARG_LONG_DOUBLE_BUG)
+   AC_MSG_RESULT(yes))
+
+#--------------------------------------------------------------------
+#  What's the target system?
+#--------------------------------------------------------------------
+case "$PLATFORM_CLASS" in
+    WINDOWS)	
+	SYSTEM="win32"
+    ;;
+    UNIX)	
+	SYSTEM="unix"
+    ;;
+esac
+
+AC_SUBST(SYSTEM)
+AC_OUTPUT(Makefile FastCGI.mak
+	  libfcgi/Makefile libfcgi/libfcgi.mak
+	  cgi-fcgi/Makefile cgi-fcgi/cgi-fcgi.mak
+ 	  examples/Makefile )
+
