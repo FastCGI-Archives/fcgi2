@@ -1,4 +1,6 @@
 *~
-bak  .bak  *.bak
-Debug
-Release
+bak .bak  *.bak
+Debug Release
+*.o
+*.exe
+samplestore

@@ -2,3 +2,6 @@
 bak  .bak  *.bak
 Debug
 Release
+*.exe
+*.o
+Makefile
