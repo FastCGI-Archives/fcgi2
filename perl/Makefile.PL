@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.2 1999/02/28 17:46:29 skimo Exp $
+# $Id: Makefile.PL,v 1.3 1999/03/08 16:26:05 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -42,6 +42,15 @@ $sys = $^O eq 'MSWin32' ? 'win32' : 'unix';
 push @o, "fcgiapp.o", "os_$sys.o" unless $prefix;
 $inc = $prefix ? "-I$prefix/include" : '-I.';
 
+push(@extras, CAPI => 'TRUE')
+     if ($] >= 5.005 and $^O eq 'MSWin32'
+        and $Config{archname} =~ /-object\b/i);
+
+push(@extras,
+    ABSTRACT => 'Fast CGI module',
+    AUTHOR   => 'Sven Verdoolaege (skimo@kotnet.org)')
+        if ($ExtUtils::MakeMaker::VERSION >= 5.4301); 
+        
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
@@ -64,6 +73,7 @@ WriteMakefile(
 			    },
     'clean'		=> { FILES => 'config.cache fcgi_config.h' },
     'PL_FILES'	=> { 'echo.PL' => 'echo.fpl', 'FCGI.PL' => 'FCGI.xs' },
+    @extras,
 );
 
 exit if -f 'fcgi_config.h' or $prefix;

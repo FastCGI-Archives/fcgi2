@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.2 1999/02/28 17:46:31 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.3 1999/03/08 16:26:04 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -26,6 +26,10 @@ __END__
 
 #ifndef TRUE
 #define TRUE  (1)
+#endif
+
+#ifdef WIN32
+#define environ _environ
 #endif
 
 extern char **environ;
