@@ -1,3 +1,5 @@
+Version 0.55 --	18 October 2000   <skimo@kotnet.org> Sven Verdoolaege
+
 	o small documentation fix
 	o compilation issues with older perls fixed
 	o library initialization when using sockets fixed
