@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.6 2001/09/21 15:05:20 skimo Exp $
+dnl     $Id: configure.in,v 1.7 2001/09/21 16:13:46 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -26,6 +26,7 @@ fi
 AC_PROG_CC
 AC_PROG_CPP 
 AC_PROG_INSTALL 
+AC_PROG_LIBTOOL
 AC_PROG_RANLIB
 AC_CHECK_TOOL([AR], [ar], [ar])
 
