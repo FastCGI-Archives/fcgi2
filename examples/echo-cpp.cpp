@@ -1,7 +1,7 @@
 /*
  *  A simple FastCGI application example in C++.
  *
- *  $Id: echo-cpp.cpp,v 1.9 2002/02/24 20:08:09 robs Exp $
+ *  $Id: echo-cpp.cpp,v 1.10 2002/02/25 00:46:17 robs Exp $
  *
  *  Copyright (c) 2001  Rob Saccoccio and Chelsea Networks
  *  All rights reserved.
@@ -119,7 +119,7 @@ int main (void)
         fcgi_streambuf cout_fcgi_streambuf(request.out);
         fcgi_streambuf cerr_fcgi_streambuf(request.err);
 
-#ifdef HAVE_IOSTREAM_WITHASSIGN_STREAMBUF
+#if HAVE_IOSTREAM_WITHASSIGN_STREAMBUF
         cin  = &cin_fcgi_streambuf;
         cout = &cout_fcgi_streambuf;
         cerr = &cerr_fcgi_streambuf;
@@ -161,7 +161,7 @@ int main (void)
         // have to be flushed here.
     }
 
-#ifdef HAVE_IOSTREAM_WITHASSIGN_STREAMBUF
+#if HAVE_IOSTREAM_WITHASSIGN_STREAMBUF
     cin  = cin_streambuf;
     cout = cout_streambuf;
     cerr = cerr_streambuf;
