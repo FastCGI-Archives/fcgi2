@@ -128,11 +128,11 @@ public int FCGIaccept() {
 		/*
 	 	* redirect stdin, stdout and stderr to fcgi socket 
 	 	*/
-		System.in = new BufferedInputStream(request.inStream, 8192);
-		System.out = new PrintStream(new BufferedOutputStream(
-						request.outStream, 8192));
-		System.err = new PrintStream(new BufferedOutputStream(
-						request.errStream, 512));
+		System.setIn(new BufferedInputStream(request.inStream, 8192));
+		System.setOut(new PrintStream(new BufferedOutputStream(
+		                              request.outStream, 8192)));
+		System.setErr(new PrintStream(new BufferedOutputStream(
+								      request.errStream, 512)));
 		System.setProperties(request.params);
 		}
 	return 0;
