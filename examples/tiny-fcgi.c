@@ -12,11 +12,15 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.1 1997/09/16 15:36:28 stanleyg Exp $";
+static const char rcsid[] = "$Id: tiny-fcgi.c,v 1.2 1999/01/30 22:27:36 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_stdio.h"
 #include <stdlib.h>
+
+#if defined HAVE_UNISTD_H || defined __linux__
+#include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #include <process.h>

@@ -16,8 +16,16 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: log-dump.c,v 1.1 1997/09/16 15:36:28 stanleyg Exp $";
+static const char rcsid[] = "$Id: log-dump.c,v 1.2 1999/01/30 22:27:33 roberts Exp $";
 #endif /* not lint */
+
+#if defined HAVE_UNISTD_H || defined __linux__
+#include <unistd.h>
+#endif
+#include <sys/types.h>
+#if defined __linux__
+int kill(pid_t pid, int sig);
+#endif
 
 #include "fcgi_stdio.h"
 #include <stdlib.h>

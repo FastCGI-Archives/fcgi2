@@ -46,7 +46,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: sample-store.c,v 1.1 1997/09/16 15:36:28 stanleyg Exp $";
+static const char rcsid[] = "$Id: sample-store.c,v 1.2 1999/01/30 22:27:34 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgi_stdio.h"  /* FCGI_Accept, FCGI_Finish, stdio */
@@ -59,8 +59,12 @@ static const char rcsid[] = "$Id: sample-store.c,v 1.1 1997/09/16 15:36:28 stanl
 #include <dirent.h>      /* readdir, closedir, DIR, dirent */
 #include <unistd.h>      /* fsync */
 
+#if defined __linux__
+int fsync(int fd);
+#endif
+
 /*
- * sample-store is designed to be configured as follows:
+ * sample-store is designed to be configured as follows (for the OM server):
  *
  * SI_Department SampleStoreDept -EnableAnonymousTicketing 1
  * Region /SampleStore/* { SI_RequireSI SampleStoreDept 1 }
@@ -125,6 +129,10 @@ static const char rcsid[] = "$Id: sample-store.c,v 1.1 1997/09/16 15:36:28 stanl
 #endif
 
 #define Strlen(str) (((str) == NULL) ? 0 : strlen(str))
+
+void panic(char *format,
+        char *arg1, char *arg2, char *arg3, char *arg4,
+        char *arg5, char *arg6, char *arg7, char *arg8);
 
 static void *Malloc(size_t size);
 static void Free(void *ptr);
@@ -218,7 +226,6 @@ static void Checkpoint(void);
  */
 static void Initialize(void)
 {
-    char *temp;
     ListOfString *fileList;
     int stateDirLen;
     /*
@@ -741,6 +748,7 @@ static int DoAddItemToCart(char *userId, char *item, int writeLog)
             WriteLog(LR_ADD_ITEM, userId, item, TRUE);
 	}
     }
+    return 0;
 }
 
 static void DisplayCart(
@@ -750,7 +758,6 @@ static void DisplayCart(
     CartObj *cart = Tcl_GetHashValue(cartEntry);
     ListOfString *items = cart->items;
     int numberOfItems = ListOfString_Length(items);
-    int i;
 
     DisplayHead("Your shopping cart", parent, "Images/cart-hd.gif");
     DisplayNumberOfItems(numberOfItems, processId);
@@ -801,6 +808,7 @@ static int DoRemoveItemFromCart(char *userId, char *item, int writeLog)
 	    }
         }
     }
+    return 0;
 }
 
 static void Purchase(
@@ -956,7 +964,8 @@ static char *StringCat4(char *str1, char *str2, char *str3, char *str4)
 static char *QueryLookup(char *query, char *name)
 {
     int nameLen = strlen(name);
-    char *queryTail, *nameFirst, *valueFirst, *valueLast, *value;
+    char *queryTail, *nameFirst, *valueFirst, *valueLast;
+
     if(query == NULL) {
         return NULL;
     }

@@ -40,12 +40,12 @@
  * of the Rights in Technical Data and Computer Software Clause as DFARS
  * 252.227-7013 and FAR 52.227-19.
  *
- * $Id: tclHash.c,v 1.1 1997/09/16 15:36:28 stanleyg Exp $
+ * $Id: tclHash.c,v 1.2 1999/01/30 22:27:35 roberts Exp $
  *
  */
 
 #ifndef lint
-static char sccsid[] = "@(#) tclHash.c 1.14 94/12/17 16:14:17";
+static const char rcsid[] = "$Id: tclHash.c,v 1.2 1999/01/30 22:27:35 roberts Exp $";
 #endif /* not lint */
 
 #include "tclInt.h"

@@ -12,8 +12,12 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: echo2.c,v 1.1 1997/09/16 15:36:28 stanleyg Exp $";
+static const char rcsid[] = "$Id: echo2.c,v 1.2 1999/01/30 22:27:32 roberts Exp $";
 #endif /* not lint */
+
+#if defined HAVE_UNISTD_H || __linux__
+#include <unistd.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,7 +27,7 @@ static const char rcsid[] = "$Id: echo2.c,v 1.1 1997/09/16 15:36:28 stanleyg Exp
 #include <process.h>
 #endif
 
-void PrintEnv(FCGX_Stream *out, char *label, char **envp)
+static void PrintEnv(FCGX_Stream *out, char *label, char **envp)
 {
     printf("%s:<br>\n<pre>\n", label);
     FCGX_FPrintF(out, "%s:<br>\n<pre>\n", label);
