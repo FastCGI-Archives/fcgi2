@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.12 2001/06/20 16:04:17 robs Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.13 2001/06/22 14:29:20 robs Exp $";
 #endif /* not lint */
 
 #include <errno.h>  /* for errno */
@@ -26,15 +26,17 @@ static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.12 2001/06/20 16:04:17 robs E
 #include <unistd.h>
 #endif
 
+#ifdef _WIN32
 #define DLLAPI  __declspec(dllexport)
-
-#define NO_FCGI_DEFINES
-#include "fcgi_stdio.h"
-#undef NO_FCGI_DEFINES
+#endif
 
 #include "fcgiapp.h"
 #include "fcgios.h"
 #include "fcgimisc.h"
+
+#define NO_FCGI_DEFINES
+#include "fcgi_stdio.h"
+#undef NO_FCGI_DEFINES
 
 #ifndef _WIN32
 

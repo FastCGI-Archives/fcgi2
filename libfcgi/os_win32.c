@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.19 2001/06/22 03:00:18 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.20 2001/06/22 14:28:29 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -29,8 +29,9 @@ static const char rcsid[] = "$Id: os_win32.c,v 1.19 2001/06/22 03:00:18 robs Exp
 #include <sys/timeb.h>
 
 #define DLLAPI  __declspec(dllexport)
-#include "fcgios.h"
+
 #include "fcgimisc.h"
+#include "fcgios.h"
 
 #define WIN32_OPEN_MAX 128 /* XXX: Small hack */
 
