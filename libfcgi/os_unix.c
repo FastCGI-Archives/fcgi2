@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.1 1997/09/16 15:36:33 stanleyg Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.2 1998/09/09 00:57:15 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -111,17 +111,6 @@ static fd_set writeFdSetPost;
 static int numWrPosted = 0;
 static int volatile maxFd = -1;
 
-/*
- * fcgiSocket will hold the socket file descriptor if the call to
- * accept below results in a connection being accepted.  This socket
- * will be used by FCGX_Accept and then set back to -1.
- */
-static int fcgiSocket = -1;
-union u_sockaddr {
-    struct sockaddr_un un;
-    struct sockaddr_in in;
-} static fcgiSa;
-static int fcgiClilen;
 
 /*
  *--------------------------------------------------------------
@@ -907,7 +896,7 @@ static int ClientAddrOK(struct sockaddr_in *saPtr, char *clientList)
  *
  *----------------------------------------------------------------------
  */
-static int AcquireLock(void)
+static int AcquireLock(int blocking)
 {
 #ifdef USE_LOCKING
     struct flock lock;
@@ -916,8 +905,10 @@ static int AcquireLock(void)
     lock.l_whence = SEEK_SET;
     lock.l_len = 0;
 
-    if(fcntl(FCGI_LISTENSOCK_FILENO, F_SETLKW, &lock) < 0) {
-        return -1;
+    if(fcntl(FCGI_LISTENSOCK_FILENO, 
+             blocking ? F_SETLKW : F_SETLK, &lock) < 0) {
+        if (errno != EINTR)
+            return -1;
     }
 #endif /* USE_LOCKING */
     return 0;
@@ -978,53 +969,93 @@ int OS_FcgiIpcAccept(char *clientAddrList)
     int socket;
     union u_sockaddr {
         struct sockaddr_un un;
-	struct sockaddr_in in;
+        struct sockaddr_in in;
     } sa;
-    int clilen = sizeof(sa);
+    int clilen;
     
-    for(;;) {
-        if(AcquireLock() < 0) {
-	    return -1;
-	}
-	/*
-	 * If there was a connection accepted from a prior FCGX_IsCGI
-	 * test, use it.
-	 */
-	if(fcgiSocket != -1) {
-	    socket = fcgiSocket;
-	    memcpy(&sa, &fcgiSa, fcgiClilen);
-	    clilen = fcgiClilen;
-	    /*
-	     * Clear out the fcgiSocket as we will not be needing
-	     * it later.
-	     */
-	    fcgiSocket = -1;
-	} else {
-            do {
-                socket = accept(FCGI_LISTENSOCK_FILENO,
-                                (struct sockaddr *) &sa.un,
-                                &clilen);
-            } while ((socket < 0) && (errno==EINTR));
-	}
-	if(ReleaseLock() < 0) {
-	    return -1;
-	}
-	if(socket < 0) {
-	    return -1;
-	}
-	/*
-	 * If the new connection uses TCP/IP, check the IP address;
-	 * if the address isn't valid, close the connection and
-	 * try again.
-	 */
-	if(sa.in.sin_family == AF_INET
-	   && !ClientAddrOK(&sa.in, clientAddrList)) {
-	    close(socket);
-	    socket = -1;
-	} else {
-	    return socket;
-	}
+    if (AcquireLock(TRUE) < 0) {
+        return (-1);
     }
+    for (;;) {
+        do {
+            clilen = sizeof(sa);
+            socket = accept(FCGI_LISTENSOCK_FILENO,
+                            (struct sockaddr *) &sa.un,
+                            &clilen);
+        } while ((socket < 0) && (errno == EINTR));
+
+        if (socket >= 0) {
+            /*
+            * If the new connection uses TCP/IP, check the client IP address;
+            * if the address isn't valid, close the connection and
+            * try again.
+            */
+            if ((sa.in.sin_family == AF_INET)
+                    && (!ClientAddrOK(&sa.in, clientAddrList))) {
+                close(socket);
+                continue;
+            } 
+            break;
+        }
+
+        /* Based on Apache's (v1.3.1) http_main.c accept() handling and 
+         * Stevens' Unix Network Programming Vol 1, 2nd Ed, para. 15.6
+         */
+        switch (errno) {
+#ifdef EPROTO
+            /* EPROTO on certain older kernels really means
+             * ECONNABORTED, so we need to ignore it for them.
+             * See discussion in new-httpd archives nh.9701
+             * search for EPROTO.
+             *
+             * Also see nh.9603, search for EPROTO:
+             * There is potentially a bug in Solaris 2.x x<6,
+             * and other boxes that implement tcp sockets in
+             * userland (i.e. on top of STREAMS).  On these
+             * systems, EPROTO can actually result in a fatal
+             * loop.  See PR#981 for example.  It's hard to
+             * handle both uses of EPROTO.
+             */
+            case EPROTO:
+#endif
+#ifdef ECONNABORTED
+            case ECONNABORTED:
+#endif
+            /* Linux generates the rest of these, other tcp
+             * stacks (i.e. bsd) tend to hide them behind
+             * getsockopt() interfaces.  They occur when
+             * the net goes sour or the client disconnects
+             * after the three-way handshake has been done
+             * in the kernel but before userland has picked
+             * up the socket.
+             */
+#ifdef ECONNRESET
+            case ECONNRESET:
+#endif
+#ifdef ETIMEDOUT
+            case ETIMEDOUT:
+#endif
+#ifdef EHOSTUNREACH
+            case EHOSTUNREACH:
+#endif
+#ifdef ENETUNREACH
+            case ENETUNREACH:
+#endif
+                break;  /* switch(errno) */
+
+            default: {
+                    int errnoSave = errno;
+                    ReleaseLock();
+                    errno = errnoSave;
+                }
+                return (-1);
+        }  /* switch(errno) */
+    }  /* for(;;) */
+
+    if (ReleaseLock() < 0) {
+        return (-1);
+    }
+    return (socket);
 }
 
 /*
@@ -1065,76 +1096,16 @@ int OS_IpcClose(int ipcFd)
  */
 int OS_IsFcgi()
 {
-    int flags, flags1 ;
-  
-    fcgiClilen = sizeof(fcgiSa);
-    
-    /*
-     * Put the file descriptor into non-blocking mode.
-     */
-    flags = fcntl(FCGI_LISTENSOCK_FILENO, F_GETFL, 0);
-    flags |= O_NONBLOCK;
-    if( (fcntl(FCGI_LISTENSOCK_FILENO, F_SETFL, flags)) == -1 ) {
-        /*
-         * XXX: The reason for the assert is that this call is not
-         *      supposed to return an error unless the 
-         *      FCGI_LISTENSOCK_FILENO is closed.  If it is closed
-         *      then we have an unexpected error which should cause 
-         *      the assert to pop.  The same is true for the following
-         *      asserts in this function.
-         */
-        assert(errno == 0);
-    }
+    int type = 0;
+    int len = sizeof(type);
 
-    /*
-     * Perform an accept() on the file descriptor.  If this is not a
-     * listener socket we will get an error.  Typically this will be
-     * ENOTSOCK but it differs from platform to platform.
-     */
-    fcgiSocket = accept(FCGI_LISTENSOCK_FILENO, (struct sockaddr *) &fcgiSa.un,
-                        &fcgiClilen);
-    if(fcgiSocket >= 0) {
-        /*
-         * This is a FastCGI listener socket because we accepted a
-         * connection.  fcgiSocket will be tested in FCGX_Accept before
-         * performing another accept so that we don't lose this state.
-         *
-         * The new connection is put into blocking mode as we're not
-         * doing asynchronous I/O.
-         */
-        flags1 = fcntl(fcgiSocket, F_GETFL, 0);
-        flags1 &= ~(O_NONBLOCK);
-        if( (fcntl(fcgiSocket, F_SETFL, flags1)) == -1 ) {
-            assert(errno == 0);
-        }
-	isFastCGI = TRUE;
+    if (getsockopt(FCGI_LISTENSOCK_FILENO, SOL_SOCKET, 
+                   SO_TYPE, (char *)&type, &len) == 0) {
+        isFastCGI = TRUE;
     } else {
-        /*
-         * If errno == EWOULDBLOCK then this is a valid FastCGI listener 
-         * socket without any connection pending at this time.
-	 *
-	 * NOTE: hp-ux can also return EAGAIN for listener sockets in
-	 * non-blocking mode when no connections are present.
-         */
-#if (EAGAIN != EWOULDBLOCK)
-        if((errno == EWOULDBLOCK) || (errno == EAGAIN)) {
-#else
-        if(errno == EWOULDBLOCK) {
-#endif
-	    isFastCGI = TRUE;
-        } else {
-	    isFastCGI = FALSE;
-        }
+        isFastCGI = FALSE;
     }
-
-    /*
-     * Put the file descriptor back in blocking mode.
-     */
-    flags &= ~(O_NONBLOCK);
-    if( (fcntl(FCGI_LISTENSOCK_FILENO, F_SETFL, flags)) == -1 ) {
-        assert(errno == 0);
-    }
-    return isFastCGI;
+    return (isFastCGI);
 }
 
 /*

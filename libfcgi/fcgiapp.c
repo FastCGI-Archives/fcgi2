@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.1 1997/09/16 15:36:33 stanleyg Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.2 1998/09/09 00:57:15 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -2059,7 +2059,7 @@ int FCGX_Accept(
 	    reqDataPtr->ipcFd = OS_FcgiIpcAccept(webServerAddressList);
 	    if(reqDataPtr->ipcFd < 0) {
                 reqDataPtr = NULL;
-		return -1;
+		    return (errno > 0) ? (0 - errno) : -9999;
 	    }
 	}
         /*
