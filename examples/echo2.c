@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: echo2.c,v 1.4 1999/07/26 05:33:00 roberts Exp $";
+static const char rcsid[] = "$Id: echo2.c,v 1.5 1999/07/26 22:07:19 roberts Exp $";
 #endif /* not lint */
 
 #if defined HAVE_UNISTD_H || __linux__
@@ -79,5 +79,5 @@ int main ()
         PrintEnv(out, "Initial environment", environ);
     } /* while */
 
-    exit(0);
+    return 0;
 }
