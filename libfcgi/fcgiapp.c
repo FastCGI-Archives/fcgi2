@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.16 2000/11/05 17:09:35 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.17 2000/11/05 17:37:56 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1991,6 +1991,7 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         if (errStatus || outStatus || FCGX_GetError(reqDataPtr->in))
         {
             OS_IpcClose(reqDataPtr->ipcFd);
+            reqDataPtr->ipcFd = -1;
         }
     }
 
