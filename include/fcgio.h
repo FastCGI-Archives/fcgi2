@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.h,v 1.3 2001/06/18 14:40:01 robs Exp $
+// $Id: fcgio.h,v 1.4 2001/06/20 16:05:55 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostream
 // objects
@@ -272,7 +272,7 @@ class fcgi_streambuf : public streambuf
     FCGX_Stream * fcgx_strm;
 
     // our buffer
-    static const int buffersize;
+    static int buffersize;
     char buffer[FCGIO_BUFSIZE];
 
     // little flag so that we can tell if the
@@ -280,7 +280,7 @@ class fcgi_streambuf : public streambuf
     int defined;
 };
 
-const int fcgi_streambuf::buffersize = FCGIO_BUFSIZE;
+int fcgi_streambuf::buffersize = FCGIO_BUFSIZE;
 
 // Here's the istream class definition.
 class fcgi_istream : public istream
