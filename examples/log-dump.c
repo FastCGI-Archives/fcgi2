@@ -15,7 +15,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: log-dump.c,v 1.4 1999/07/28 00:30:10 roberts Exp $";
+static const char rcsid[] = "$Id: log-dump.c,v 1.5 2001/09/01 01:12:26 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -32,15 +32,11 @@ static const char rcsid[] = "$Id: log-dump.c,v 1.4 1999/07/28 00:30:10 roberts E
 int kill(pid_t pid, int sig);
 #endif
 
-#if defined HAVE_UNISTD_H
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
 #include "fcgi_stdio.h"
-
-#ifndef NULL
-#define NULL 0
-#endif
 
 static int successCount = 0;
 static int failureCount = 0;
