@@ -7,7 +7,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.36 2002/12/15 20:01:46 skimo Exp $
+# $Id: FCGI.PL,v 1.37 2002/12/15 20:02:48 skimo Exp $
 
 package FCGI;
 
@@ -165,8 +165,9 @@ sub Finish {
     return unless $req->{accepted};
     if ($req->{bound}) {
 	$req->UndoBindings();
-	close ${$req->{out}};
-	close ${$req->{err}};
+	# apparently these are harmful
+	# close ${$req->{out}};
+	# close ${$req->{err}};
     }
     $req->{accepted} = 0;
 }
