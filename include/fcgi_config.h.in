@@ -1,24 +1,13 @@
 /* fcgi_config.h.in.  Generated automatically from configure.in by autoheader.  */
-/* acconfig.h -  Used by autoheader to generate include/fcgi_config.h. */
-
-/* Define if socklen_t exists. */
-#undef HAVE_SOCKLEN
-
-/* Define if sockaddr_un in <sys/un.h> contains the sun_len component */
-#undef HAVE_SOCKADDR_UN_SUN_LEN
-
-/* Define if we have f{set,get}pos functions */
-#undef HAVE_FPOS
-
-/* Define if we need cross-process locking */
-#undef USE_LOCKING
-
-/* Define if va_arg(arg, long double) crashes the compiler. */
-#undef HAVE_VA_ARG_LONG_DOUBLE_BUG
-
 
 /* Define if you have the <arpa/inet.h> header file. */
 #undef HAVE_ARPA_INET_H
+
+/* Define if there's a fileno() prototype in stdio.h */
+#undef HAVE_FILENO_PROTO
+
+/* Define if the fpos_t typedef is in stdio.h */
+#undef HAVE_FPOS
 
 /* Define if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -31,6 +20,9 @@
 
 /* Define if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
+
+/* Define if you have the pthread library */
+#undef HAVE_LIBPTHREAD
 
 /* Define if you have the `resolv' library (-lresolv). */
 #undef HAVE_LIBRESOLV
@@ -50,6 +42,12 @@
 /* Define if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
 
+/* Define if sockaddr_un in sys/un.h contains a sun_len component */
+#undef HAVE_SOCKADDR_UN_SUN_LEN
+
+/* Define if the socklen_t typedef is in sys/socket.h */
+#undef HAVE_SOCKLEN
+
 /* Define if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -64,6 +62,9 @@
 
 /* Define if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
 
 /* Define if you have the <sys/socket.h> header file. */
 #undef HAVE_SYS_SOCKET_H
@@ -80,8 +81,14 @@
 /* Define if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define if va_arg(arg, long double) crashes the compiler */
+#undef HAVE_VA_ARG_LONG_DOUBLE_BUG
+
 /* Define if you have the ANSI C header files. */
 #undef STDC_HEADERS
+
+/* Define if cross-process locking is required by accept() */
+#undef USE_LOCKING
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
