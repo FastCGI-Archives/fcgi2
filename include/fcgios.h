@@ -19,20 +19,22 @@
 #define _FCGIOS_H
 
 #ifdef _WIN32
+#include <io.h>
 #define OS_Errno GetLastError()
 #define OS_SetErrno(err) SetLastError(err)
 #ifndef DLLAPI
 #define DLLAPI __declspec(dllimport)
 #endif
-#else
+
+#else /* !_WIN32 */
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 #define DLLAPI
 #define OS_Errno errno
 #define OS_SetErrno(err) errno = (err)
-#endif
+#endif /* !_WIN32 */
 
-#ifdef _WIN32
-#include <io.h>
-#endif
 
 /* This is the initializer for a "struct timeval" used in a select() call
  * right after a new request is accept()ed to determine readablity.  Its
@@ -48,7 +50,6 @@
 #ifndef STDIN_FILENO
 #define STDIN_FILENO  0
 #endif
-
 
 #ifndef STDOUT_FILENO
 #define STDOUT_FILENO 1
