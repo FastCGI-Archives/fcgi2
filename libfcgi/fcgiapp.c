@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.26 2001/06/22 14:21:03 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.27 2001/06/22 14:38:59 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -44,7 +44,6 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.26 2001/06/22 14:21:03 robs Exp 
 #endif
 
 #ifdef _WIN32
-#undef DLLAPI
 #define DLLAPI  __declspec(dllexport)
 #endif
 
