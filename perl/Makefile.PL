@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.27 2001/09/22 16:43:46 skimo Exp $
+# $Id: Makefile.PL,v 1.28 2001/09/23 20:29:40 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -13,19 +13,35 @@ use Getopt::Long;
 @dist2 = qw(fcgiapp.c os_unix.c os_win32.c);
 @dist3 = (@h1, qw(fcgi_config_x86.h));
 
-GetOptions ("pure-perl!" => \$pure);
+GetOptions ("pure-perl!" => \$pure,
+	    "use-installed:s" => \$useinstalled);
 $pure = "0" unless defined $pure;
 open(CFG,">FCGI.cfg");
 print CFG "\$pure = $pure;1;\n";
 close CFG;
 
 $libfound = 0;
+@libs = ();
 
 if (! $pure) {
     my $cwd = cwd();
     my $devkit = "$cwd/..";
 
-    if (-d "$devkit/libfcgi" && -d "$devkit/include") {
+    if (defined $useinstalled) {
+	require ExtUtils::Liblist;
+	my $mm = MM->new({NAME => 'FCGI'});
+	my $libspec = $useinstalled ? "-L$useinstalled/lib " : "";
+	$libspec .= "-lfcgi";
+	my @l = $mm->ext($libspec);
+	if ($l[0] || $l[1] || $l[2]) {
+	    $prefix = "$useinstalled/include" if $useinstalled;
+	    $libfound = 1;
+	    push @libs, $libspec;
+	}
+	# avoid duplicate check for complete kit
+	ExtUtils::MakeMaker::WriteEmptyMakefile() if ! -f "Makefile";
+    }
+    if (!$libfound && -d "$devkit/libfcgi" && -d "$devkit/include") {
 	# devkit
 	if (grep { ! -f "$devkit/include/$_" } @dist3 
 		or grep { ! -f "$devkit/libfcgi/$_" } @dist2)
@@ -44,23 +60,6 @@ if (! $pure) {
 	eval 'package MY; sub postamble { $extrarules; }';
 	$prefix = $devkit;
     }
-    else {
-	    # CPAN  
-	    for $dir ("/usr", "/usr/local") {
-	        if (-d "$dir/lib/" && -f "$dir/lib/libfcgi.a" 
-	        	&& -d "$dir/include" && !grep {!-f "$dir/include/$_"} (@h)) 
-	        {
-	            print "Found fcgi library and include files in $dir\n";
-	            print "Will be using those instead of the included files\n";
-	            print "Edit Makefile.PL if you don't like it\n";
-	            
-	            $prefix = $dir;
-		    $libfound = 1;
-	            push @libs, "-L$dir/lib -lfcgi"; 
-	            last;
-	        }
-	    }
-	}
 }
 
 $sys = $^O eq 'MSWin32' ? 'win32' : 'unix';
@@ -88,14 +87,12 @@ if ($pure) {
 } else {
 
 	if ("$sys" eq "win32") {
-		@libs = (scalar @libs)
-			? map { "$_ :nosearch -lws2_32" } @libs 
-			: (':nosearch -lws2_32');
+		push @libs, ":nosearch -lws2_32";
 		push @extras, 'DEFINE' => '-DDLLAPI=__declspec(dllexport)';
 	}
 
     push @extras,
-	'LIBS'	=> [ @libs ],
+	'LIBS'	=> [ "@libs" ],
 	'OBJECT'	=> "@o",
 	'INC'	=> $inc;
 }
