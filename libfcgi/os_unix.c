@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.10 1999/07/28 00:20:22 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.11 1999/08/02 19:22:00 skimo Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -1042,7 +1042,7 @@ int OS_FcgiIpcAccept(char *clientAddrList)
         struct sockaddr_un un;
         struct sockaddr_in in;
     } sa;
-#if defined __linux__
+#ifdef HAVE_SOCKLEN
     socklen_t len;
 #else
     int len;
@@ -1141,7 +1141,7 @@ int OS_IsFcgi()
         struct sockaddr_in in;
         struct sockaddr_un un;
     } sa;
-#if defined __linux__
+#ifdef HAVE_SOCKLEN
     socklen_t len = sizeof(sa);
 #else
     int len = sizeof(sa);
