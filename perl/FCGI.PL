@@ -7,7 +7,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.33 2001/09/25 08:21:27 skimo Exp $
+# $Id: FCGI.PL,v 1.34 2001/10/04 08:04:16 skimo Exp $
 
 package FCGI;
 
@@ -276,7 +276,7 @@ __END__
 
 sub Request(;***$*$) {
     my @defaults = (\*STDIN, \*STDOUT, \*STDERR, \%ENV, 0, 0);
-    $_[4] = fileno($_[4]) if defined(fileno($_[4]));
+    $_[4] = fileno($_[4]) if defined($_[4]) && defined(fileno($_[4]));
     splice @defaults,0,@_,@_;
     RequestX(@defaults);
 }
