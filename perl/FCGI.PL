@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.18 2000/11/01 15:12:26 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.19 2000/11/05 19:11:58 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -290,7 +290,10 @@ FCGI_Finish(FCGP_Request* request)
 	}
     }
 #endif
-    FCGX_Finish_r(request->requestPtr);
+    if (request->bound)
+	FCGX_Finish_r(request->requestPtr);
+    else
+	FCGX_Free(request->requestPtr);
     request->accepted = FALSE;
 }
 

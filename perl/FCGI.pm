@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.15 2000/11/03 15:42:10 skimo Exp $
+# $Id: FCGI.pm,v 1.16 2000/11/05 19:11:58 skimo Exp $
 
 package FCGI;
 
@@ -13,7 +13,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.56';
+$VERSION = '0.57';
 
 bootstrap FCGI;
 
