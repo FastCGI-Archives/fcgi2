@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.18 2001/06/20 17:02:09 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.19 2001/06/22 03:00:18 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -347,8 +347,6 @@ int OS_LibInit(int stdioFds[3])
     if (val != NULL) 
     {
         HANDLE shutdownEvent = (HANDLE) atoi(val);
-
-        putenv(SHUTDOWN_EVENT_NAME"=");
 
         if (! CreateThread(NULL, 0, ShutdownRequestThread, 
                            shutdownEvent, 0, NULL))
