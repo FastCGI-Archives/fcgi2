@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.3 1999/07/26 04:45:52 roberts Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.4 1999/07/26 04:55:14 roberts Exp $";
 #endif /* not lint */
 
 #include <stdio.h>
@@ -40,6 +40,8 @@ static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.3 1999/07/26 04:45:52 roberts E
 #include "fastcgi.h"
 #include "fcgi_config.h"
 #include "fcgios.h"
+
+extern char *environ[];
 
 static int wsReadPending = 0;
 static int fcgiReadPending = 0;
@@ -679,8 +681,9 @@ static int ParseArgs(int argc, char *argv[],
     return err;
 }
 
-int main(int argc, char **argv, char **envp)
+int main(int argc, char **argv)
 {
+    char **envp = environ;
     int count;
     FCGX_Stream *paramsStream;
     int numFDs;
@@ -802,5 +805,5 @@ int main(int argc, char **argv, char **envp)
         FCGIexit(999);
     }
 
-    exit(0);
+    return 0;
 }
