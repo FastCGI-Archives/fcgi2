@@ -7,7 +7,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.35 2002/12/15 19:18:56 skimo Exp $
+# $Id: FCGI.PL,v 1.36 2002/12/15 20:01:46 skimo Exp $
 
 package FCGI;
 
@@ -218,12 +218,19 @@ sub write {
 }
 
 sub write_record {
-    my ($self, $type, $content, $len) = @_;
-    my $padlen = (8 - ($len % 8)) % 8;
-    my $templ = "CCnnCxa${len}x$padlen";
-    my $data = pack($templ, 
-		    VERSION_1, $type, $self->{id}, $len, $padlen, $content);
-    syswrite $self->{socket}, $data;
+    my ($self, $type, $content, $length) = @_;
+    my $offset = 0;
+    while ($length > 0) {
+	my $len = $length > 32*1024 ? 32*1024 : $length;
+	my $padlen = (8 - ($len % 8)) % 8;
+	my $templ = "CCnnCxa${len}x$padlen";
+	my $data = pack($templ, 
+			VERSION_1, $type, $self->{id}, $len, $padlen, 
+			substr($content, $offset, $len));
+	syswrite $self->{socket}, $data;
+	$length -= $len;
+	$offset += $len;
+    }
 }
 
 { package FCGI::Stream;
