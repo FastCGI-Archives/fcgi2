@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.34 2003/06/22 00:16:43 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.35 2004/01/31 17:47:07 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -28,6 +28,7 @@ static const char rcsid[] = "$Id: os_win32.c,v 1.34 2003/06/22 00:16:43 robs Exp
 #include <stdio.h>
 #include <sys/timeb.h>
 #include <process.h>
+#include <signal.h>
 
 #define DLLAPI  __declspec(dllexport)
 
@@ -276,6 +277,9 @@ static void ShutdownRequestThread(void * arg)
     WaitForSingleObject(shutdownEvent, INFINITE);
 
     shutdownPending = TRUE;
+
+    // emulate the unix behaviour
+    raise(SIGTERM);
 
     if (listenType == FD_PIPE_SYNC)
     {
