@@ -1,7 +1,7 @@
 #
 #  Makefile for FastCGI development kit
 #
-#  $Id: Makefile.am,v 1.4 2001/11/28 02:53:52 robs Exp $
+#  $Id: Makefile.am,v 1.5 2001/11/28 03:04:37 robs Exp $
 #
 
 SUBDIRS = libfcgi cgi-fcgi examples include
@@ -10,6 +10,13 @@ include_HEADERS = fcgi_config.h
 
 EXTRA_DIST = LICENSE.TERMS		\
              Makefile.nt		\
+             cgi-fcgi/cgi-fcgi.mak	\
+             examples/authorizer.mak	\
+             examples/echo.mak		\
+             examples/echox.mak		\
+             examples/size.mak		\
+             examples/echo-cpp.mak	\
+             libfcgi/libfcgi.mak	\
              include/fcgi_config_x86.h	\
              java/FCGIGlobalDefs.java	\
              java/FCGIInputStream.java	\
