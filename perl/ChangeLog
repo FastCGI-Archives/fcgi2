@@ -1,3 +1,13 @@
+Version 0.67 --	22 December 2002   <skimo@kotnet.org> Sven Verdoolaege
+
+	o Fixes for pure perl version based on report and patch
+	  from "Kurtis D. Rader" <kdrader@us.ibm.com>
+	o FCGI_UndoBinding perl 5.8.0 compatibility
+	  Reported by Marko Asplund <aspa@kronodoc.fi>
+	o Fix problem with fcgi_config.h on win32.
+	  Reported by Igor Franchuk <softdep@rol.ru>
+	o Add minimal tests
+
 Version 0.66 --	5 September 2002   <skimo@kotnet.org> Sven Verdoolaege
 
 	o perl 5.8.0 compatibility fix by Autrijus
