@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.13 2001/06/22 14:29:20 robs Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.14 2001/09/01 01:09:30 robs Exp $";
 #endif /* not lint */
 
 #include <errno.h>  /* for errno */
@@ -42,9 +42,9 @@ static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.13 2001/06/22 14:29:20 robs E
 
 extern char **environ;
 
-/* These definitions should be supplied by stdio.h but for some
- * reason they get lost on certain platforms. */
-#ifndef fileno
+#ifdef HAVE_FILENO_PROTO
+#include <stdio.h>
+#else
 extern int fileno(FILE *stream);
 #endif
 
