@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.28 2002/02/23 21:22:02 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.29 2002/02/24 15:07:03 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -1614,7 +1614,10 @@ static int acceptSocket(const char *webServerAddrs)
             fd_set readfds;
 
             FD_ZERO(&readfds);
+
+#pragma warning( disable : 4127 ) 
             FD_SET((unsigned int) hListen, &readfds);
+#pragma warning( default : 4127 ) 
 
             if (select(0, &readfds, NULL, NULL, &timeout) == 0)
             {
