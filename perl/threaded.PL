@@ -9,19 +9,20 @@ __END__
 
 use FCGI;
 use Thread;
+use IO::Handle;
 
 use constant THREAD_COUNT => 5;
 
 sub doit {
     my $k = shift;
     my %env;
-    my $in = do { local *FH };
-    my $out = do { local *FH };
-    my $err = do { local *FH };
+    my $in = new IO::Handle;
+    my $out = new IO::Handle;
+    my $err = new IO::Handle;
 
     my $request = FCGI::request();
 
-    while ($request->accept(\$in, \$out, \$err, \%env) >= 0) {
+    while ($request->accept($in, $out, $err, \%env) >= 0) {
 	print $out
            "Content-type: text/html\r\n",
            "\r\n",
@@ -30,10 +31,11 @@ sub doit {
            "Request counts for ", THREAD_COUNT ," threads ",
 	   "running on host <i>$env{SERVER_NAME}</i><P><CODE>";
 
-	++$count[$k];
-
 	{
 	    lock(@count);
+
+	    ++$count[$k];
+
 	    for(my $i = 0; $i < THREAD_COUNT; ++$i) {
 		print $out $count[$i];
 		print $out " ";

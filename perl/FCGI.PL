@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.7 1999/07/29 12:01:00 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.8 1999/07/30 08:22:31 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -101,6 +101,7 @@ typedef struct FCGP_Request {
     SV*		    svout;
     SV*		    sverr;
     GV*		    gv[3];
+    GV*		    gvNew[3];
     HV*		    hvEnv;
     FCGX_Stream*    in;
     FCGX_ParamArray envp;
@@ -156,7 +157,7 @@ FCGI_UndoBinding(FCGP_Request* request)
 }
 
 static int 
-FCGI_Accept(FCGP_Request* request, GV **gvp)
+FCGI_Accept(FCGP_Request* request)
 {
     if(isCGI == -1) {
         /*
@@ -188,7 +189,7 @@ FCGI_Accept(FCGP_Request* request, GV **gvp)
         }
 #ifdef USE_SFIO
 	for (i = 0; i < 3; ++i) {
-	    io[i] = GvIOn(request->gv[i] = gvp[i]);
+	    io[i] = GvIOn(request->gv[i] = request->gvNew[i]);
 	    if (!(i == 0 ? IoIFP(io[i]) : IoOFP(io[i]))) {
 		IoIFP(io[i]) = sftmp(0);
 		/*IoIFP(io[i]) = sfnew(NULL, NULL, SF_UNBOUND, 0, 
@@ -206,9 +207,12 @@ FCGI_Accept(FCGP_Request* request, GV **gvp)
 	    newSVrv(request->sverr = newSV(0), "FCGI::Stream");
 	    newSVrv(request->svin = newSV(0), "FCGI::Stream");
 	}
-	sv_magic((SV *)request->gv[1] = gvp[1], request->svout, 'q', Nullch, 0);
-	sv_magic((SV *)request->gv[2] = gvp[2], request->sverr, 'q', Nullch, 0);
-	sv_magic((SV *)request->gv[0] = gvp[0], request->svin, 'q', Nullch, 0);
+	sv_magic((SV *)request->gv[1] = request->gvNew[1], 
+		request->svout, 'q', Nullch, 0);
+	sv_magic((SV *)request->gv[2] = request->gvNew[2], 
+		request->sverr, 'q', Nullch, 0);
+	sv_magic((SV *)request->gv[0] = request->gvNew[0], 
+		request->svin, 'q', Nullch, 0);
 	sv_setiv(SvRV(request->svout), (IV) out);
 	sv_setiv(SvRV(request->sverr), (IV) error);
 	sv_setiv(SvRV(request->svin), (IV) request->in);
@@ -339,9 +343,9 @@ BOOT:
     memset(&global_request, 0, sizeof(global_request));
     global_request.compat = 1;
     global_request.requestPtr = &global_fcgx_request;
-    global_request.gv[0] = gv_fetchpv("STDIN",TRUE, SVt_PVIO);
-    global_request.gv[1] = gv_fetchpv("STDOUT",TRUE, SVt_PVIO);
-    global_request.gv[2] = gv_fetchpv("STDERR",TRUE, SVt_PVIO);
+    global_request.gvNew[0] = gv_fetchpv("STDIN",TRUE, SVt_PVIO);
+    global_request.gvNew[1] = gv_fetchpv("STDOUT",TRUE, SVt_PVIO);
+    global_request.gvNew[2] = gv_fetchpv("STDERR",TRUE, SVt_PVIO);
 
 
 SV *
@@ -362,7 +366,6 @@ accept(...)
 
     PREINIT:
     FCGP_Request* request = &global_request;
-    GV *gv[3];
 
     CODE:
     if (items != 0 && items != 5)
@@ -375,7 +378,7 @@ accept(...)
 	REQUEST_ARG(0,request);
 	for(i = 1; i <= 3; ++i) {
 	    if (SvROK(ST(i)) && isGV(SvRV(ST(i)))) {
-		gv[i-1] = (GV*)SvRV(ST(i));
+		request->gvNew[i-1] = (GV*)SvRV(ST(i));
 	    } else
 		croak("%s is not a GLOB reference", names[i]);
 	}
@@ -396,7 +399,7 @@ accept(...)
         /*
          * Call FCGI_Accept but preserve environ.
          */
-        acceptStatus = FCGI_Accept(request, gv);
+        acceptStatus = FCGI_Accept(request);
         /*
          * Make Perl variable settings for the new request.
          */
@@ -463,21 +466,21 @@ flush(...)
     FCGI_Flush(request);
 
 void
-set_exit_status(status,...)
-
-    int status;
+set_exit_status(...)
 
     PROTOTYPE: $;$
 
     PREINIT:
     FCGP_Request* request = &global_request;
+    int status;
 
     CODE:
     if (items != 1 && items != 2)
 	croak("Usage: FCGI::set_exit_status(status[,request])");
     if (items == 2) {
-	REQUEST_ARG(1,request);
+	REQUEST_ARG(0,request);
     }
+    status = (int)SvIV(ST(items-1));
     FCGI_SetExitStatus(request, status);
 
 int
@@ -517,7 +520,7 @@ DIE(msg)
 	char *	msg;
 
 	CODE:
-	if (!PL_in_eval)
+	if (!PL_in_eval) /* ? maybe !(PL_in_eval & 1) */
 	    FCGX_PutS(msg, (FCGX_Stream *) SvIV((SV*) SvRV(global_sverr)));
 
 void

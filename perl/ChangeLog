@@ -1,3 +1,15 @@
+Version 0.46 -- 30 July 1999  <skimo@kotnet.org> Sven Verdoolaege
+
+	o new thread safe interface
+	o new threaded example program
+
+Version 0.45 -- 8 March 1999  <skimo@kotnet.org> Sven Verdoolaege
+
+	o FCGI.pm now part of the devel kit
+	o library fixes  ("Rob Saccoccio" <robs@ipass.net>)
+	o allow bypassing of installation of handlers
+	o ActivePerl compatibility (Murray Nesbitt <murray@ActiveState.com>)
+
 Version 0.43 -- 22 December 1998  <skimo@kotnet.org> Sven Verdoolaege
 
 	o POST on bigendians (Paul GABORIT <gaborit@enstimac.fr>)
