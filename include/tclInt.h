@@ -20,26 +20,26 @@
  * and need not follow the licensing terms described here, provided that
  * the new terms are clearly indicated on the first page of each file where
  * they apply.
- * 
+ *
  * IN NO EVENT SHALL THE AUTHORS OR DISTRIBUTORS BE LIABLE TO ANY PARTY
  * FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES
  * ARISING OUT OF THE USE OF THIS SOFTWARE, ITS DOCUMENTATION, OR ANY
  * DERIVATIVES THEREOF, EVEN IF THE AUTHORS HAVE BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * THE AUTHORS AND DISTRIBUTORS SPECIFICALLY DISCLAIM ANY WARRANTIES,
  * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.  THIS SOFTWARE
  * IS PROVIDED ON AN "AS IS" BASIS, AND THE AUTHORS AND DISTRIBUTORS HAVE
  * NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
- * 
+ *
  * RESTRICTED RIGHTS: Use, duplication or disclosure by the government
  * is subject to the restrictions as set forth in subparagraph (c) (1) (ii)
  * of the Rights in Technical Data and Computer Software Clause as DFARS
  * 252.227-7013 and FAR 52.227-19.
  *
- * $Id: tclInt.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: tclInt.h,v 1.2 1999/07/28 00:25:18 roberts Exp $
  *
  * @(#) tclInt.h 1.106 95/08/25 15:44:50
  */
@@ -58,6 +58,7 @@
  */
 
 #include <stdio.h>
+#include <assert.h>
 
 #ifndef _TCL
 #include "tcl.h"
@@ -186,7 +187,7 @@ typedef struct Var {
 				 * variables and array elements.  Malloc-ed. */
 	Tcl_HashTable *tablePtr;/* For array variables, this points to
 				 * information about the hash table used
-				 * to implement the associative array. 
+				 * to implement the associative array.
 				 * Points to malloc-ed data. */
 	struct Var *upvarPtr;	/* If this is a global variable being
 				 * referred to in a procedure, or a variable
@@ -787,7 +788,7 @@ extern OpenFile **	tclOpenFiles;
  *----------------------------------------------------------------
  */
 
-extern void		panic();
+#define panic(a)  assert(a)
 extern void		TclCopyAndCollapse _ANSI_ARGS_((int count, char *src,
 			    char *dst));
 extern void		TclDeleteVars _ANSI_ARGS_((Interp *iPtr,
