@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.19 2001/11/27 12:58:09 robs Exp $
+dnl     $Id: configure.in,v 1.20 2001/11/27 16:27:13 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -18,12 +18,12 @@ AC_PROG_CXX
 
 dnl autoconf defaults CXX to 'g++', so its unclear whether it exists/works
 AC_MSG_CHECKING([whether $CXX works])
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 AC_TRY_COMPILE([#include <iostream.h>], [istream is(NULL);], 
                [CXX_WORKS=1]
                [AC_MSG_RESULT(yes)], 
                [AC_MSG_RESULT(no)])
-AC_LANG_C
+AC_LANG([C])
 
 if test -n "${CXX_WORKS}"; then
 	LIBFCGIXX=libfcgi++.la
