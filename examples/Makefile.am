@@ -1,4 +1,4 @@
-# $Id: Makefile.am,v 1.7 2001/12/21 03:12:49 robs Exp $
+# $Id: Makefile.am,v 1.8 2001/12/22 03:16:21 robs Exp $
 
 noinst_PROGRAMS     = authorizer        \
                       echo              \
@@ -10,8 +10,8 @@ noinst_PROGRAMS     = authorizer        \
 
 EXTRA_PROGRAMS = threaded echo-cpp
 
-INCLUDEDIR  = $(srcdir)/../include
-CPPFLAGS    = @CPPFLAGS@ -I$(INCLUDEDIR)
+INCLUDEDIR  = ../include
+CPPFLAGS    = @CPPFLAGS@ -I$(top_srcdir)/include
 
 INCLUDE_FILES   = $(INCLUDEDIR)/fastcgi.h    \
                   $(INCLUDEDIR)/fcgiapp.h    \

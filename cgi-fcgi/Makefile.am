@@ -1,8 +1,8 @@
-# $Id: Makefile.am,v 1.3 2001/09/24 18:03:03 skimo Exp $
+# $Id: Makefile.am,v 1.4 2001/12/22 03:16:22 robs Exp $
 bin_PROGRAMS     = cgi-fcgi
 
-INCLUDEDIR  = $(srcdir)/../include
-CPPFLAGS    = @CPPFLAGS@ -I$(INCLUDEDIR)
+INCLUDEDIR  = ../include
+CPPFLAGS    = @CPPFLAGS@ -I$(top_srcdir)/include
 
 INCLUDE_FILES   = $(INCLUDEDIR)/fastcgi.h  \
 		  $(INCLUDEDIR)/fcgiapp.h  \
