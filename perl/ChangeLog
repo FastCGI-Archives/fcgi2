@@ -1,6 +1,9 @@
+Version 0.56 --	3 November 2000   <skimo@kotnet.org> Sven Verdoolaege
+
 	o add example remote.fpl
 	o provide access to the Request parameters
 	o add IsFastCGI method
+	o fix warn handler (Andrew Pimlott <pimlott@idiomtech.com>)
 
 Version 0.55 --	18 October 2000   <skimo@kotnet.org> Sven Verdoolaege
 
