@@ -1,7 +1,7 @@
 //
 // Provides support for FastCGI via C++ iostreams.
 //
-// $Id: fcgio.h,v 1.14 2002/02/24 20:12:23 robs Exp $
+// $Id: fcgio.h,v 1.15 2002/02/25 13:16:11 robs Exp $
 //
 // This work is based on routines written by George Feinberg. They
 // have been mostly re-written and extensively changed by
@@ -88,8 +88,8 @@ protected:
     // FastCGI library (FCGX) maintains its own input and output buffers.  
     virtual std::streambuf * setbuf(char_type * buf, std::streamsize len);
 
-    virtual int xsgetn(char_type * s, std::streamsize n);
-    virtual int xsputn(const char_type * s, std::streamsize n);
+    virtual std::streamsize xsgetn(char_type * s, std::streamsize n);
+    virtual std::streamsize xsputn(const char_type * s, std::streamsize n);
 
 private:
 
