@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.14 2000/04/21 18:10:53 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.15 2000/07/10 09:56:49 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -150,9 +150,9 @@ FCGI_Bind(FCGP_Request* request)
     dTHX;
 
 #ifdef USE_SFIO
-    sfdisc(IoIFP(request->io[0]), sfdcnewfcgi(fcgx_req->in));
-    sfdisc(IoOFP(request->io[1]), sfdcnewfcgi(fcgx_req->out));
-    sfdisc(IoOFP(request->io[2]), sfdcnewfcgi(fcgx_req->err));
+    sfdisc(IoIFP(request->io[0]), sfdcnewfcgi(request->requestPtr->in));
+    sfdisc(IoOFP(request->io[1]), sfdcnewfcgi(request->requestPtr->out));
+    sfdisc(IoOFP(request->io[2]), sfdcnewfcgi(request->requestPtr->err));
 #else
     sv_magic((SV *)request->gv[1], request->svout, 'q', Nullch, 0);
     sv_magic((SV *)request->gv[2], request->sverr, 'q', Nullch, 0);
@@ -210,6 +210,9 @@ FCGI_Accept(FCGP_Request* request)
         return(EOF);
     } 
     if(!req_isCGI) {
+#ifdef USE_SFIO
+	int i;
+#endif
 	FCGX_Request *fcgx_req = request->requestPtr;
         int acceptResult;
 
@@ -259,6 +262,9 @@ FCGI_Accept(FCGP_Request* request)
 static void 
 FCGI_Finish(FCGP_Request* request)
 {
+#ifdef USE_SFIO
+    int i;
+#endif
     dTHX;
 
     if(!request->accepted) {
