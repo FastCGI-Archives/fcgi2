@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.22 2001/12/07 02:28:14 robs Exp $
+dnl     $Id: configure.in,v 1.23 2001/12/07 21:08:38 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -36,13 +36,14 @@ AC_SUBST(ECHO_CPP)
 
 AC_LANG([C])
 
-AC_CHECK_LIB([nsl],       [main])
-AC_CHECK_LIB([resolv],    [main])
-AC_CHECK_LIB([socket],    [main])
-AC_CHECK_LIB([dnet_stub], [main])
-AC_CHECK_LIB([ieee],      [main])
+AC_CHECK_LIB([nsl],       [gethostbyname])
+AC_CHECK_LIB([socket],    [socket]) 
 
-AC_CHECK_LIB([pthread],   [main],  [threaded=threaded${EXEEXT}])
+dnl AC_CHECK_LIB([resolv],    [main])
+dnl AC_CHECK_LIB([dnet_stub], [main])
+dnl AC_CHECK_LIB([ieee],      [main])
+
+AC_CHECK_LIB([pthread],   [pthread_create],  [threaded=threaded${EXEEXT}])
 AC_SUBST([threaded])
 
 FCGI_COMMON_CHECKS
