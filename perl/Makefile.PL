@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.18 2001/09/01 00:55:26 robs Exp $
+# $Id: Makefile.PL,v 1.19 2001/09/01 02:55:48 robs Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -41,9 +41,10 @@ if (! $pure) {
 	    use File::Copy qw(copy);
 
 		# TODO: stop or save if a local file has been modified
-		foreach (@dist3, @dist2) { unlink };
+		foreach (@dist1, @dist2, @dist3) { unlink };
+		foreach (@dist1) { copy("$devkit/$_", ".") || die $! };
+		foreach (@dist2) { copy("$devkit/libfcgi/$_", ".") || die $! };
 		foreach (@dist3) { copy("$devkit/include/$_", ".") || die $! };
-		foreach (@dist2)  { copy("$devkit/libfcgi/$_", ".") || die $! };
 	}
 	else {
 	    # CPAN  
