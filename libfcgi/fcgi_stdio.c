@@ -12,47 +12,62 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.7 1999/07/27 15:00:16 roberts Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.8 1999/07/28 00:24:15 roberts Exp $";
 #endif /* not lint */
+
+#include "fcgi_config.h"
 
 #ifdef _WIN32
 #define DLLAPI  __declspec(dllexport)
+#include <windows.h>
+#endif
+
+#include <errno.h>  /* for errno */
+#include <stdarg.h> /* for va_arg */
+#include <stdlib.h> /* for malloc */
+#include <string.h> /* for strerror */
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
 #endif
 
 #define NO_FCGI_DEFINES
 #include "fcgi_stdio.h"
 #undef NO_FCGI_DEFINES
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-#include <errno.h>
-    /* for errno */
-#include <stdarg.h>
-    /* for va_arg */
-#include <stdlib.h>
-    /* for malloc */
-#include <string.h>
-    /* for strerror */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 #include "fcgiapp.h"
 #include "fcgios.h"
+
+#ifndef _WIN32
+
+extern char **environ;
+
+/* These definitions should be supplied by stdio.h but for some
+ * reason they get lost on certain platforms. */
+#ifndef fileno
+extern int fileno(FILE *stream);
+#endif
+
+extern FILE *fdopen(int fildes, const char *type);
+extern FILE *popen(const char *command, const char *type);
+extern int pclose(FILE *stream);
+
+#else /* _WIN32 */
+
+#define popen _popen
+
+#endif /* _WIN32 */
 
 #ifndef FALSE
 #define FALSE (0)
 #endif
+
 #ifndef TRUE
 #define TRUE  (1)
 #endif
 
 FCGI_FILE _fcgi_sF[3];
 
-#ifdef _WIN32
-#define popen _popen
-#endif
 
 /*
  *----------------------------------------------------------------------
@@ -101,9 +116,6 @@ FCGI_FILE _fcgi_sF[3];
  */
 static int acceptCalled = FALSE;
 static int isCGI = FALSE;
-#ifndef _WIN32
-extern char **environ;
-#endif
 
 int FCGI_Accept(void)
 {
@@ -747,22 +759,6 @@ FCGI_FILE *FCGI_tmpfile(void)
  *
  *----------------------------------------------------------------------
  */
-
-/*
- * These definitions should be supplied by stdio.h but for some
- * reason they get lost on certain platforms.
- */
-/*
- * XXX: Need to find the right way to handle this for NT
- */
-#ifndef _WIN32
-#ifndef fileno
-extern int fileno(FILE *stream);
-#endif
-extern FILE *fdopen(int fildes, const char *type);
-extern FILE *popen(const char *command, const char *type);
-extern int pclose(FILE *stream);
-#endif
 
 int FCGI_fileno(FCGI_FILE *fp)
 {

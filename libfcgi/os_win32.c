@@ -1,4 +1,4 @@
-/* 
+/*
  * os_win32.c --
  *
  *
@@ -6,9 +6,9 @@
  *  All rights reserved.
  *
  *  This file contains proprietary and confidential information and
- *  remains the unpublished property of Open Market, Inc. Use, 
- *  disclosure, or reproduction is prohibited except as permitted by 
- *  express written license agreement with Open Market, Inc. 
+ *  remains the unpublished property of Open Market, Inc. Use,
+ *  disclosure, or reproduction is prohibited except as permitted by
+ *  express written license agreement with Open Market, Inc.
  *
  *  Bill Snapper
  *  snapper@openmarket.com
@@ -16,32 +16,26 @@
  * (Special thanks to Karen and Bill.  They made my job much easier and
  *  significantly more enjoyable.)
  */
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#endif
-
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.1 1997/09/16 15:36:33 stanleyg Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.2 1999/07/28 00:18:31 roberts Exp $";
 #endif /* not lint */
 
-#include <windows.h>
-#include <stdio.h>
-#include "fcgios.h"
+#include "fcgi_config.h"
 
-/*
- * io.c will instantiate globals; all other
- * modules access these variables as externs.
- */
-#ifndef EXTRN
-#define EXTRN extern
-#endif
+#define DLLAPI  __declspec(dllexport)
 
 #include <assert.h>
+#include <stdio.h>
 #include <sys/timeb.h>
+#include <windows.h>
 
-#define WIN32_OPEN_MAX 32 /* XXX: Small hack */
+#include "fcgios.h"
 
 #define ASSERT assert
+
+#define WIN32_OPEN_MAX 32 /* XXX: Small hack */
+#define MUTEX_VARNAME "_FCGI_MUTEX_"
+
 
 static HANDLE hIoCompPort = INVALID_HANDLE_VALUE;
 static HANDLE hStdinCompPort = INVALID_HANDLE_VALUE;
@@ -53,9 +47,7 @@ static HANDLE stdioHandles[3] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 static HANDLE hPipeMutex = INVALID_HANDLE_VALUE;;
 static char pipeMutexEnv[80] = "";
 
-#define MUTEX_VARNAME "_FCGI_MUTEX_"
-
-/* 
+/*
  * An enumeration of the file types
  * supported by the FD_TABLE structure.
  *
@@ -78,7 +70,7 @@ typedef union {
     unsigned int value;
 } DESCRIPTOR;
 
-/* 
+/*
  * Structure used to map file handle and socket handle
  * values into values that can be used to create unix-like
  * select bitmaps, read/write for both sockets/files.
@@ -206,7 +198,7 @@ found_entry:
  *      because you can't guarantee that all applications will
  *      create standard input with sufficient access to perform
  *      asynchronous I/O.  Since we don't want to block the app
- *      reading from stdin we make it look like it's using I/O 
+ *      reading from stdin we make it look like it's using I/O
  *      completion ports to perform async I/O.
  *
  * Results:
@@ -224,7 +216,7 @@ static void StdinThread(LPDWORD startup){
     int fd;
     int bytesRead;
     POVERLAPPED_REQUEST pOv;
-    
+
     while(doIo) {
         /*
          * Block until a request to read from stdin comes in or a
@@ -235,7 +227,7 @@ static void StdinThread(LPDWORD startup){
             doIo = 0;
             break;
         }
-	
+
 	ASSERT((fd == STDIN_FILENO) || (fd == -1));
         if(fd == -1) {
             doIo = 0;
@@ -245,7 +237,7 @@ static void StdinThread(LPDWORD startup){
 
         if(ReadFile(stdioHandles[STDIN_FILENO], pOv->clientData1, bytesRead,
                     &bytesRead, NULL)) {
-            PostQueuedCompletionStatus(hIoCompPort, bytesRead, 
+            PostQueuedCompletionStatus(hIoCompPort, bytesRead,
                                        STDIN_FILENO, (LPOVERLAPPED)pOv);
         } else {
             doIo = 0;
@@ -282,7 +274,7 @@ int OS_LibInit(int stdioFds[3])
     DWORD threadId;
     char *cLenPtr = NULL;
     char *mutexPtr = NULL;
-    
+
     if(libInitialized)
         return 0;
 
@@ -342,7 +334,7 @@ int OS_LibInit(int stdioFds[3])
         if(SetNamedPipeHandleState(hListen, &pipeMode, NULL, NULL)) {
             listenType = FD_PIPE_SYNC;
             /*
-             * Lookup the mutex.  If one is found, save it and 
+             * Lookup the mutex.  If one is found, save it and
              * remove it from the env table if it's not already
              * been done.
              */
@@ -363,7 +355,7 @@ int OS_LibInit(int stdioFds[3])
         libInitialized = 1;
         return 0;
     }
-    
+
     /*
      * Setup standard input asynchronous I/O.  There is actually a separate
      * thread spawned for this purpose.  The reason for this is that some
@@ -415,7 +407,7 @@ int OS_LibInit(int stdioFds[3])
 	}
     }
 
-    /* 
+    /*
      * Create the thread that will read stdin if the CONTENT_LENGTH
      * is non-zero.
      */
@@ -595,7 +587,7 @@ int OS_CreateLocalIpcFd(char *bindPath)
     int	    tcp = FALSE;
     int flag = 1;
     char    *tp;
-    
+
     strcpy(host, bindPath);
     if((tp = strchr(host, ':')) != 0) {
 	*tp++ = 0;
@@ -637,7 +629,7 @@ int OS_CreateLocalIpcFd(char *bindPath)
 	return retFd;
     }
 
-  
+
     /*
      * Initialize the SECURITY_ATTRIUBTES structure.
      */
@@ -678,7 +670,7 @@ int OS_CreateLocalIpcFd(char *bindPath)
     localPath = malloc(bpLen+2);
     strcpy(localPath, bindPathPrefix);
     strcat(localPath, bindPath);
-    
+
     /*
      * Create and setup the named pipe to be used by the fcgi server.
      */
@@ -772,7 +764,7 @@ int OS_FcgiConnect(char *bindPath)
 	}
 	return pseudoFd;
     }
-    
+
     /*
      * Not a TCP connection, create and connect to a named pipe.
      */
@@ -783,7 +775,7 @@ int OS_FcgiConnect(char *bindPath)
     strcpy(pipePath, bindPathPrefix);
     strcat(pipePath, bindPath);
 
-    hPipe = CreateFile (pipePath, 
+    hPipe = CreateFile (pipePath,
 			/* Generic access, read/write. */
 			GENERIC_WRITE | GENERIC_READ,
 			/* Share both read and write. */
@@ -815,7 +807,7 @@ int OS_FcgiConnect(char *bindPath)
     }
     return pseudoFd;
 }
-     
+
 
 /*
  *--------------------------------------------------------------
@@ -987,7 +979,7 @@ int OS_SpawnChild(char *execPath, int listenFd)
     StartupInfo.hStdInput  = fdTable[listenFd].fid.fileHandle;
     StartupInfo.hStdOutput = INVALID_HANDLE_VALUE;
     StartupInfo.hStdError  = INVALID_HANDLE_VALUE;
-    
+
     /*
      * Make the listener socket inheritable.
      */
@@ -1003,7 +995,7 @@ int OS_SpawnChild(char *execPath, int listenFd)
      */
     success = CreateProcess(execPath,	/* LPCSTR address of module name */
 			NULL,           /* LPCSTR address of command line */
-		        NULL,		/* Process security attributes */ 
+		        NULL,		/* Process security attributes */
 			NULL,		/* Thread security attributes */
 			TRUE,		/* Inheritable Handes inherited. */
 			0,		/* DWORD creation flags  */
@@ -1026,7 +1018,7 @@ int OS_SpawnChild(char *execPath, int listenFd)
  *
  *	This initiates an asynchronous read on the standard
  *	input handle.  This handle is not guaranteed to be
- *      capable of performing asynchronous I/O so we send a 
+ *      capable of performing asynchronous I/O so we send a
  *      message to the StdinThread to do the synchronous read.
  *
  * Results:
@@ -1038,7 +1030,7 @@ int OS_SpawnChild(char *execPath, int listenFd)
  *
  *--------------------------------------------------------------
  */
-int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr, 
+int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr,
                       ClientData clientData)
 {
     POVERLAPPED_REQUEST pOv;
@@ -1159,7 +1151,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
  *
  *--------------------------------------------------------------
  */
-int OS_AsyncWrite(int fd, int offset, void *buf, int len, 
+int OS_AsyncWrite(int fd, int offset, void *buf, int len,
 		  OS_AsyncProc procPtr, ClientData clientData)
 {
     DWORD bytesWritten;
@@ -1184,35 +1176,35 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
      * Only file offsets should be non-zero, but make sure.
      */
     if (fdTable[fd].type == FD_FILE_ASYNC)
-	/* 
+	/*
 	 * Only file opened via OS_AsyncWrite with
 	 * O_APPEND will have an offset != -1.
 	 */
 	if (fdTable[fd].offset >= 0)
-	    /* 
+	    /*
 	     * If the descriptor has a memory mapped file
 	     * handle, take the offsets from there.
 	     */
 	    if (fdTable[fd].hMapMutex != NULL) {
 		/*
 		 * Wait infinitely; this *should* not cause problems.
-		 */ 
+		 */
 		WaitForSingleObject(fdTable[fd].hMapMutex, INFINITE);
-	        
+
 		/*
 		 * Retrieve the shared offset values.
 		 */
 		pOv->overlapped.OffsetHigh = *(fdTable[fd].offsetHighPtr);
 		pOv->overlapped.Offset = *(fdTable[fd].offsetLowPtr);
-	        
+
 		/*
 		 * Update the shared offset values for the next write
 		 */
 		*(fdTable[fd].offsetHighPtr) += 0;	/* XXX How do I handle overflow */
 		*(fdTable[fd].offsetLowPtr) += len;
-		
+
 		ReleaseMutex(fdTable[fd].hMapMutex);
-	    } else 
+	    } else
 	        pOv->overlapped.Offset = fdTable[fd].offset;
 	else
 	    pOv->overlapped.Offset = offset;
@@ -1354,7 +1346,7 @@ int OS_DoIo(struct timeval *tmo)
     int ms;
     int ms_last;
     int err;
-    
+
     /* XXX
      * We can loop in here, but not too long, as wait handlers
      * must run.
@@ -1375,7 +1367,7 @@ int OS_DoIo(struct timeval *tmo)
 	    err = WSAGetLastError();
 	    return 0; /* timeout */
         }
-	
+
 	ASSERT((fd >= 0) && (fd < WIN32_OPEN_MAX));
 	/* call callback if descriptor still valid */
 	ASSERT(pOv);
@@ -1417,7 +1409,7 @@ int OS_FcgiIpcAccept(char *serverHostList)
     SOCKET hSock;
     int clilen = sizeof(sa);
     DWORD waitForStatus;
-    
+
     switch(listenType) {
 
     case FD_PIPE_SYNC:
@@ -1437,7 +1429,7 @@ int OS_FcgiIpcAccept(char *serverHostList)
          */
     	pConnected = ConnectNamedPipe(hListen, NULL) ?
 	                      TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-	                            
+
         ReleaseMutex(hPipeMutex);
 	    if(pConnected) {
 	        /*
@@ -1471,7 +1463,7 @@ int OS_FcgiIpcAccept(char *serverHostList)
 	} else {
 	    char	*tp1, *tp2;
 	    int	match = 0;
-	    if (serverHostList == NULL) 
+	    if (serverHostList == NULL)
 	        isNewConnection = TRUE;
 	    else {
 	        tp1 = (char *) malloc(strlen(serverHostList)+1);
@@ -1480,7 +1472,7 @@ int OS_FcgiIpcAccept(char *serverHostList)
 		while(tp1) {
 		    if ((tp2 = strchr(tp1, ',')) != NULL)
 		        *tp2++ = 0;
-			
+
 		    if (inet_addr(tp1) == sa.sin_addr.s_addr) {
 		        match = 1;
 			break;
@@ -1509,7 +1501,7 @@ int OS_FcgiIpcAccept(char *serverHostList)
       default:
         exit(101);
 	break;
-	
+
     }
 }
 
@@ -1608,7 +1600,7 @@ void OS_SetFlags(int fd, int flags)
 {
     long int pLong = 1L;
     int err;
-    
+
     if(fdTable[fd].type == FD_SOCKET_SYNC && flags == O_NONBLOCK) {
         if (ioctlsocket(fdTable[fd].fid.sock, FIONBIO, &pLong) ==
 	    SOCKET_ERROR) {

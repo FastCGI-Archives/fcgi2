@@ -10,43 +10,44 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.6 1999/07/27 15:00:17 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.7 1999/07/28 00:22:18 roberts Exp $";
 #endif /* not lint */
+
+#include "fcgi_config.h"
 
 #ifdef _WIN32
 #define DLLAPI  __declspec(dllexport)
 #endif
 
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>      /* for fcntl */
+#include <math.h>
+#include <memory.h>     /* for memchr() */
+#include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h> /* for getpeername */
+#endif
+
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 
-#include "fcgi_config.h"
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <memory.h>     /* for memchr() */
-#include <errno.h>
-#include <stdarg.h>
-#include <math.h>
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h> /* for getpeername */
-#endif
-#include <fcntl.h>      /* for fcntl */
-
 #include "fcgimisc.h"
-#include "fcgiapp.h"
 #include "fcgiappmisc.h"
 #include "fastcgi.h"
 #include "fcgios.h"
+#include "fcgiapp.h"
 
 /*
  * This is a workaround for one version of the HP C compiler
@@ -59,7 +60,6 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.6 1999/07/27 15:00:17 roberts Ex
 #define LONG_DOUBLE long double
 #endif
 
-
 /*
  * Globals
  */
@@ -67,7 +67,6 @@ static int libInitialized = 0;
 static char *webServerAddressList = NULL;
 static FCGX_Request reqData;
 static FCGX_Request *reqDataPtr = &reqData;
-
 
 static void *Malloc(size_t size)
 {

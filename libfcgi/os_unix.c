@@ -17,51 +17,54 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.9 1999/07/27 15:00:18 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.10 1999/07/28 00:20:22 roberts Exp $";
 #endif /* not lint */
 
-#include "fcgimisc.h"
-#include "fcgiapp.h"
-#include "fcgiappmisc.h"
-#include "fastcgi.h"
+#include "fcgi_config.h"
 
-#include <stdio.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
+#include <arpa/inet.h>
 #include <assert.h>
+#include <errno.h>
+#include <fcntl.h>      /* for fcntl */
+#include <math.h>
+#include <memory.h>     /* for memchr() */
+#include <netinet/tcp.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>     /* for memchr() */
-#include <errno.h>
-#include <stdarg.h>
-#include <math.h>
-#ifdef HAVE_SYS_SOCKET_H
-#include <sys/socket.h> /* for getpeername */
-#endif
+#include <sys/time.h>
+#include <sys/types.h>
 #include <sys/un.h>
-#include <fcntl.h>      /* for fcntl */
+
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
-#include <sys/time.h>
 
-#include <sys/types.h>
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
 #endif
-#include <arpa/inet.h>
-#include <netinet/tcp.h>
 
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h> /* for getpeername */
+#endif
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#include "fastcgi.h"
+#include "fcgiapp.h"
+#include "fcgiappmisc.h"
+#include "fcgimisc.h"
 #include "fcgios.h"
 
-#ifndef _CLIENTDATA
-#   if defined(__STDC__) || defined(__cplusplus)
-    typedef void *ClientData;
-#   else
-    typedef int *ClientData;
-#   endif /* __STDC__ */
-#define _CLIENTDATA
+#ifndef FALSE
+#define FALSE 0
+#endif
+
+#ifndef TRUE
+#define TRUE 1
 #endif
 
 /*
@@ -88,17 +91,6 @@ typedef struct {
 
 static int asyncIoTableSize = 16;
 static AioInfo *asyncIoTable = NULL;
-#define STDIN_FILENO  0
-#define STDOUT_FILENO 1
-#define STDERR_FILENO 2
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
 
 static int isFastCGI = FALSE;
 static int libInitialized = FALSE;
