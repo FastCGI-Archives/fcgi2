@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.4 1999/07/28 00:37:03 roberts Exp $
+#  $Id: Makefile.in,v 1.5 1999/07/28 01:08:15 roberts Exp $
 #
 
 SHELL = @SHELL@
@@ -16,22 +16,19 @@ CFLAGS	= @CCDEFS@ @PROFILE@ -I$(INCLUDEDIR)
 LIBS	= @LIBS@
 RANLIB	= @RANLIB@
 
-PERL_INSTALL = /usr/local/bin/perl5-fcgi
-TCL_INSTALL  = /usr/local/bin/tcl7.4-fcgi
-
 INCLUDES    = $(INCLUDEDIR)/fastcgi.h $(INCLUDEDIR)/fcgiapp.h \
 	      $(INCLUDEDIR)/fcgimisc.h $(INCLUDEDIR)/fcgiappmisc.h \
               $(INCLUDEDIR)/fcgi_stdio.h
 LIBDIR      = ../libfcgi
 LIBFCGI	    = $(LIBDIR)/libfcgi.${L}
 TARGETS	    = tiny-fcgi tiny-fcgi2 tiny-authorizer \
-	      echo echo2 sample-store sockets echo.fcg perl tclsh \
-              SampleStore.state.0 SampleStore.state.1 log-dump threaded.fcg
+	      echo echo2 SampleStore/sample-store sockets echo.fcg \
+              SampleStore/SampleStore.state.0 SampleStore/SampleStore.state.1 log-dump threaded.fcg
 
 all: $(TARGETS)
 
 threaded.fcg: threaded.c $(INCLUDES)
-	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) $(LIBS) -lpthread
+	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) -lpthread
 
 tiny-fcgi: tiny-fcgi.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) tiny-fcgi.${O} -o tiny-fcgi $(LIBFCGI) $(LIBS)
@@ -48,8 +45,8 @@ echo: echo.${O} $(LIBFCGI)
 echo2: echo2.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) echo2.${O} -o echo2 $(LIBFCGI) $(LIBS)
 
-sample-store: sample-store.${O} tclHash.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) sample-store.${O} tclHash.${O} -o sample-store $(LIBFCGI) $(LIBS)
+SampleStore/sample-store: SampleStore/sample-store.${O} SampleStore/tclHash.${O} $(LIBFCGI)
+	$(CC) $(CFLAGS) -ISampleStore SampleStore/sample-store.${O} SampleStore/tclHash.${O} -o SampleStore/sample-store $(LIBFCGI) $(LIBS)
 
 log-dump: log-dump.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) log-dump.${O} -o log-dump $(LIBFCGI) $(LIBS)
@@ -61,22 +58,14 @@ echo.fcg:
 	rm -f echo.fcg
 	ln -s echo echo.fcg
 
-perl:
-	rm -f perl
-	ln -s $(PERL_INSTALL)/bin/perl perl
+SampleStore/SampleStore.state.0:
+	mkdir SampleStore/SampleStore.state.0
 
-tclsh:
-	rm -f tclsh
-	ln -s $(TCL_INSTALL)/bin/tclsh7.4 tclsh
-
-SampleStore.state.0:
-	mkdir SampleStore.state.0
-
-SampleStore.state.1:
-	mkdir SampleStore.state.1
+SampleStore/SampleStore.state.1:
+	mkdir SampleStore/SampleStore.state.1
 
 clean:
-	rm -rf sockets SampleStore.state.0 SampleStore.state.1
+	rm -rf sockets SampleStore/SampleStore.state.?
 	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out $(TARGETS)
 
 # ----------------------------------------------------------------------------
@@ -93,6 +82,6 @@ echo2.${O}: echo2.c $(INCLUDES)
 
 sample-store.${O}: sample-store.c $(INCLUDES)
 
-tclHash.${O}: tclHash.c
+SampleStore/tclHash.${O}: SampleStore/tclHash.c
 
 log-dump.${O}: log-dump.c $(INCLUDES)
