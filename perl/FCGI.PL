@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.16 2000/10/18 20:39:15 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.17 2000/11/01 14:27:49 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -423,6 +423,32 @@ Flush(request)
 
     CODE:
     FCGI_Flush(request);
+
+HV *
+GetEnvironment(request)
+    FCGI    request;
+
+    PROTOTYPE: $
+
+    CODE:
+    RETVAL = request->hvEnv;
+
+    OUTPUT: 
+    RETVAL
+
+void
+GetHandles(request)
+    FCGI    request;
+
+    PROTOTYPE: $
+
+    PREINIT:
+    int	    i;
+
+    PPCODE:
+    EXTEND(sp,3);
+    for (i = 0; i < 3; ++i)
+	PUSHs(sv_2mortal(newRV(request->gv[i])));
 
 void
 Detach(request)

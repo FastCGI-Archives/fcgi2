@@ -1,4 +1,4 @@
-# $Id: FCGI.pm,v 1.12 2000/10/18 20:39:15 skimo Exp $
+# $Id: FCGI.pm,v 1.13 2000/11/01 14:27:49 skimo Exp $
 
 package FCGI;
 
@@ -13,7 +13,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.55';
+$VERSION = '0.56';
 
 bootstrap FCGI;
 
@@ -230,6 +230,14 @@ Temporarily detaches filehandles on an accepted connection.
 =item $req->Attach()
 
 Re-attaches filehandles on an accepted connection.
+
+=item $env = $req->GetEnvironment()
+
+Returns the environment parameter passed to FCGI::Request.
+
+=item ($in, $out, $err) = $req->GetHandles()
+
+Returns the file handle parameters passed to FCGI::Request.
 
 =back
 
