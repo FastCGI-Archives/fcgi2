@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.17 2000/08/02 12:36:43 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.18 2000/08/26 02:43:01 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -90,6 +90,7 @@ typedef struct {
 #define AIO_RD_IX(fd) (fd * 2)
 #define AIO_WR_IX(fd) ((fd * 2) + 1)
 
+static int asyncIoInUse = FALSE;
 static int asyncIoTableSize = 16;
 static AioInfo *asyncIoTable = NULL;
 
@@ -521,6 +522,7 @@ int OS_AsyncReadStdin(void *buf, int len, OS_AsyncProc procPtr,
 {
     int index = AIO_RD_IX(STDIN_FILENO);
 
+    asyncIoInUse = TRUE;
     ASSERT(asyncIoTable[index].inUse == 0);
     asyncIoTable[index].procPtr = procPtr;
     asyncIoTable[index].clientData = clientData;
@@ -581,6 +583,7 @@ int OS_AsyncRead(int fd, int offset, void *buf, int len,
     int index = AIO_RD_IX(fd);
 
     ASSERT(asyncIoTable != NULL);
+    asyncIoInUse = TRUE;
 
     if(fd > maxFd)
         maxFd = fd;
@@ -629,6 +632,8 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
 {
     int index = AIO_WR_IX(fd);
 
+    asyncIoInUse = TRUE;
+
     if(fd > maxFd)
         maxFd = fd;
 
@@ -666,22 +671,26 @@ int OS_AsyncWrite(int fd, int offset, void *buf, int len,
  */
 int OS_Close(int fd)
 {
-    int index = AIO_RD_IX(fd);
+    if (asyncIo) {
+        int index = AIO_RD_IX(fd);
 
-    FD_CLR(fd, &readFdSet);
-    FD_CLR(fd, &readFdSetPost);
-    if(asyncIoTable[index].inUse != 0) {
-        asyncIoTable[index].inUse = 0;
-    }
+        FD_CLR(fd, &readFdSet);
+        FD_CLR(fd, &readFdSetPost);
+        if (asyncIoTable[index].inUse != 0) {
+            asyncIoTable[index].inUse = 0;
+        }
 
-    FD_CLR(fd, &writeFdSet);
-    FD_CLR(fd, &writeFdSetPost);
-    index = AIO_WR_IX(fd);
-    if(asyncIoTable[index].inUse != 0) {
-        asyncIoTable[index].inUse = 0;
+        FD_CLR(fd, &writeFdSet);
+        FD_CLR(fd, &writeFdSetPost);
+        index = AIO_WR_IX(fd);
+        if (asyncIoTable[index].inUse != 0) {
+            asyncIoTable[index].inUse = 0;
+        }
+
+        if (maxFd == fd) {
+            maxFd--;
+        }
     }
-    if(maxFd == fd)
-        maxFd--;
     return close(fd);
 }
 
@@ -736,6 +745,7 @@ int OS_DoIo(struct timeval *tmo)
     fd_set readFdSetCpy;
     fd_set writeFdSetCpy;
 
+    asyncIoInUse = TRUE;
     FD_ZERO(&readFdSetCpy);
     FD_ZERO(&writeFdSetCpy);
 
