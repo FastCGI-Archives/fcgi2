@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.6 1999/01/30 22:24:11 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.7 1999/02/05 04:08:56 roberts Exp $";
 #endif /* not lint */
 
 #include "fcgimisc.h"
@@ -973,9 +973,9 @@ int OS_FcgiIpcAccept(char *clientAddrList)
         struct sockaddr_in in;
     } sa;
 #if defined __linux__
-    socklen_t clilen;
+    socklen_t len;
 #else
-    int clilen;
+    int len;
 #endif    
 
     if (AcquireLock(TRUE) < 0) {
@@ -983,18 +983,13 @@ int OS_FcgiIpcAccept(char *clientAddrList)
     }
     for (;;) {
         do {
-            clilen = sizeof(sa);
+            len = sizeof(sa);
             socket = accept(FCGI_LISTENSOCK_FILENO,
-                            (struct sockaddr *) &sa.un,
-                            &clilen);
+                            (struct sockaddr *) &sa.un, &len);
         } while ((socket < 0) && (errno == EINTR));
 
         if (socket >= 0) {
-            /*
-            * If the new connection uses TCP/IP, check the client IP address;
-            * if the address isn't valid, close the connection and
-            * try again.
-            */
+        
             if (sa.in.sin_family == AF_INET) {
 #ifdef TCP_NODELAY
                 /* No replies to outgoing data, so disable Nagle algorithm */
@@ -1002,13 +997,50 @@ int OS_FcgiIpcAccept(char *clientAddrList)
                 setsockopt(socket, IPPROTO_TCP, TCP_NODELAY, 
                            (char *)&set, sizeof(set));
 #endif            
-                if (!ClientAddrOK(&sa.in, clientAddrList)) {
-                    close(socket);
-                    continue;
-                }
                 
+                /* Check that the client IP address is OK */
+                if (ClientAddrOK(&sa.in, clientAddrList))
+                    break;
             }
-            break;
+            else {
+                /* This works around a problem on Linux 2.0.x and
+                 * SCO Unixware (maybe others?).  When a connect() is made to 
+                 * a Unix Domain socket, but its not accept()ed before the 
+                 * web server gets impatient and close()s, an accept()
+                 * here results in a valid file descriptor, but no data to
+                 * read.  This causes a block on the first read() - and 
+                 * never returns!  
+                 *
+                 * Another approach to this is to write()
+                 * to the socket to provoke a SIGPIPE, but this is a pain
+                 * because of the FastCGI protocol, the fact that whatever
+                 * is written has to be universally ignored by all FastCGI
+                 * web servers, and a SIGPIPE handler has to be installed
+                 * which returns (or SIGPIPE is ignored).
+                 * 
+                 * READABLE_UNIX_FD_DROP_DEAD_TIMEVAL = 2,0  by default.
+                 *
+                 * Making it shorter is probably safe, but I'll leave that
+                 * to you.  Making it 0,0 doesn't work reliably.  The 
+                 * shorter you can reliably make it, the faster your
+                 * application will be able to recover (waiting 2 seconds
+                 * may _cause_ the problem when there is a very high demand).
+                 * At any rate, this is better than perma-blocking. */
+                 
+                struct timeval tval = { READABLE_UNIX_FD_DROP_DEAD_TIMEVAL };
+                fd_set read_fds;
+
+                FD_ZERO(&read_fds);
+                FD_SET(socket, &read_fds);
+                if (select(socket + 1, &read_fds, NULL, NULL, &tval) > 0
+                    && FD_ISSET(socket, &read_fds))
+                { 
+                    break;
+                }
+            }
+
+            close(socket);
+            continue;
         }
 
         /* Based on Apache's (v1.3.1) http_main.c accept() handling and 
