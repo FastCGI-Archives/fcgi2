@@ -17,10 +17,12 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.15 1999/08/15 17:57:17 roberts Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.16 2000/02/03 08:52:56 skimo Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
+
+#include <sys/types.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -38,7 +40,6 @@ static const char rcsid[] = "$Id: os_unix.c,v 1.15 1999/08/15 17:57:17 roberts E
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <sys/un.h>
 
 #ifdef HAVE_NETDB_H
