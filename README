@@ -2,7 +2,7 @@ FastCGI Developer's Kit README
 ------------------------------
 
     Version 2.0b2, 04 April 1997
-    $Id: README,v 1.4 1999/06/10 21:20:33 roberts Exp $
+    $Id: README,v 1.5 1999/07/26 04:28:07 roberts Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,6 +37,10 @@ release of the FDK.
 
 Changes with devkit 2.1.1
 -------------------------
+
+ *) Add multithread support to the fcgiapp lib and an example multithreaded
+    application, threaded.c.  Based on work by Dennis Payne 
+    <dpayne@softscape.com> and Gene Sokolov <hook@aktrad.ru>.
 
  *) Remove the printf() and #include of stdio.h from examples/echo2.c.
 

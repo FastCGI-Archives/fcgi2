@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fcgiapp.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: fcgiapp.h,v 1.2 1999/07/26 04:28:10 roberts Exp $
  */
 
 #ifndef _FCGIAPP_H
@@ -77,6 +77,25 @@ typedef struct FCGX_Stream {
  */
 typedef char **FCGX_ParamArray;
 
+/*
+ * State associated with a request.  
+ *
+ * Its exposed for API simplicity, DON'T use it - it WILL change!
+ */
+typedef struct FCGX_Request {
+    int ipcFd;               /* < 0 means no connection */
+    int isBeginProcessed;     /* FCGI_BEGIN_REQUEST seen */
+    int requestId;            /* valid if isBeginProcessed */
+    int keepConnection;       /* don't close ipcFd at end of request */
+    int role;
+    int appStatus;
+    int nWriters;             /* number of open writers (0..2) */
+    FCGX_Stream *inStream;
+    FCGX_Stream *outStream;
+    FCGX_Stream *errStream;
+    struct Params *paramsPtr;
+} FCGX_Request;
+
 
 /*
  *======================================================================
@@ -99,9 +118,92 @@ DLLAPI int FCGX_IsCGI(void);
 /*
  *----------------------------------------------------------------------
  *
+ * FCGX_Init --
+ *
+ *      Initialize the FCGX library.  Call in multi-threaded apps
+ *      before calling FCGX_Accept_r().
+ *
+ *      Returns 0 upon success.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI int FCGX_Init(void);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_InitRequest --
+ *
+ *      Initialize a FCGX_Request for use with FCGX_Accept_r().
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI void FCGX_InitRequest(FCGX_Request *request);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_Accept_r --
+ *
+ *      Accept a new request (multi-thread safe).  Be sure to call 
+ * 	FCGX_Init() first.
+ *
+ * Results:
+ *	0 for successful call, -1 for error.
+ *
+ * Side effects:
+ *
+ *      Finishes the request accepted by (and frees any
+ *      storage allocated by) the previous call to FCGX_Accept.
+ *      Creates input, output, and error streams and
+ *      assigns them to *in, *out, and *err respectively.
+ *      Creates a parameters data structure to be accessed
+ *      via getenv(3) (if assigned to environ) or by FCGX_GetParam
+ *      and assigns it to *envp.
+ *
+ *      DO NOT retain pointers to the envp array or any strings
+ *      contained in it (e.g. to the result of calling FCGX_GetParam),
+ *      since these will be freed by the next call to FCGX_Finish
+ *      or FCGX_Accept.
+ *
+ *	DON'T use the FCGX_Request, its structure WILL change.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI int FCGX_Accept_r(
+        FCGX_Stream **in,
+        FCGX_Stream **out,
+        FCGX_Stream **err,
+        FCGX_ParamArray *envp,
+        FCGX_Request *request);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_Finish_r --
+ *
+ *      Finish the request (multi-thread safe).
+ *
+ * Side effects:
+ *
+ *      Finishes the request accepted by (and frees any
+ *      storage allocated by) the previous call to FCGX_Accept.
+ *
+ *      DO NOT retain pointers to the envp array or any strings
+ *      contained in it (e.g. to the result of calling FCGX_GetParam),
+ *      since these will be freed by the next call to FCGX_Finish
+ *      or FCGX_Accept.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI void FCGX_Finish_r(FCGX_Request *request);
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FCGX_Accept --
  *
- *      Accepts a new request from the HTTP server.
+ *      Accept a new request (NOT multi-thread safe).
  *
  * Results:
  *	0 for successful call, -1 for error.
@@ -134,7 +236,7 @@ DLLAPI int FCGX_Accept(
  *
  * FCGX_Finish --
  *
- *      Finishes the current request from the HTTP server.
+ *      Finish the current request (NOT multi-thread safe).
  *
  * Side effects:
  *

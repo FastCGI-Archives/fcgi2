@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.3 1999/02/12 00:46:41 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.4 1999/07/26 04:28:08 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -59,7 +59,15 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.3 1999/02/12 00:46:41 roberts Ex
 #define LONG_DOUBLE long double
 #endif
 
-static int osLibInitialized = 0;
+
+/*
+ * Globals 
+ */
+static int libInitialized = 0;
+static char *webServerAddressList = NULL;
+static FCGX_Request reqData;
+static FCGX_Request *reqDataPtr = &reqData;
+
 
 static void *Malloc(size_t size)
 {
@@ -1249,23 +1257,6 @@ static unsigned char *AlignPtr8(unsigned char *p) {
     return p + u;
 }
 
-/*
- * State associated with a request
- */
-typedef struct ReqData {
-    int ipcFd;               /* < 0 means no connection */
-    int isBeginProcessed;     /* FCGI_BEGIN_REQUEST seen */
-    int requestId;            /* valid if isBeginProcessed */
-    int keepConnection;       /* don't close ipcFd at end of request */
-    int role;
-    int appStatus;
-    int nWriters;             /* number of open writers (0..2) */
-    FCGX_Stream *inStream;
-    FCGX_Stream *outStream;
-    FCGX_Stream *errStream;
-    ParamsPtr paramsPtr;
-} ReqData;
-
 
 /*
  * State associated with a stream
@@ -1286,7 +1277,7 @@ typedef struct FCGX_Stream_Data {
     int paddingLen;           /* reader: bytes of unread padding */
     int isAnythingWritten;    /* writer: data has been written to ipcFd */
     int rawWrite;             /* writer: write data without stream headers */
-    ReqData *reqDataPtr;      /* request data not specific to one stream */
+    FCGX_Request *reqDataPtr; /* request data not specific to one stream */
 } FCGX_Stream_Data;
 
 /*
@@ -1729,7 +1720,7 @@ static void FillBuffProc(FCGX_Stream *stream)
  *----------------------------------------------------------------------
  */
 static FCGX_Stream *NewStream(
-        ReqData *reqDataPtr, int bufflen, int isReader, int streamType)
+        FCGX_Request *reqDataPtr, int bufflen, int isReader, int streamType)
 {
     /*
      * XXX: It would be a lot cleaner to have a NewStream that only
@@ -1843,7 +1834,7 @@ static FCGX_Stream *SetReaderType(FCGX_Stream *stream, int streamType)
  *
  *----------------------------------------------------------------------
  */
-static FCGX_Stream *NewReader(ReqData *reqDataPtr, int bufflen, int streamType)
+static FCGX_Stream *NewReader(FCGX_Request *reqDataPtr, int bufflen, int streamType)
 {
     return NewStream(reqDataPtr, bufflen, TRUE, streamType);
 }
@@ -1860,7 +1851,7 @@ static FCGX_Stream *NewReader(ReqData *reqDataPtr, int bufflen, int streamType)
  *
  *----------------------------------------------------------------------
  */
-static FCGX_Stream *NewWriter(ReqData *reqDataPtr, int bufflen, int streamType)
+static FCGX_Stream *NewWriter(FCGX_Request *reqDataPtr, int bufflen, int streamType)
 {
     return NewStream(reqDataPtr, bufflen, FALSE, streamType);
 }
@@ -1884,7 +1875,7 @@ FCGX_Stream *CreateWriter(
         int bufflen,
         int streamType)
 {
-    ReqData *reqDataPtr = Malloc(sizeof(ReqData));
+    FCGX_Request *reqDataPtr = Malloc(sizeof(FCGX_Request));
     reqDataPtr->ipcFd = ipcFd;
     reqDataPtr->requestId = requestId;
     /*
@@ -1899,9 +1890,6 @@ FCGX_Stream *CreateWriter(
  * Control
  *======================================================================
  */
-
-static int isCGI = -1;
-static int isFastCGI = -1;
 
 /*
  *----------------------------------------------------------------------
@@ -1925,23 +1913,23 @@ static int isFastCGI = -1;
  */
 int FCGX_IsCGI(void)
 {
-    /*
-     * Already been here, no need to test again.
-     */
-    if(isCGI != -1) {
-        return isCGI;
+    static int isFastCGI = -1;
+    
+    if (isFastCGI != -1) {
+        return !isFastCGI;
     }
     
-    if(!osLibInitialized) {
-        if(OS_LibInit(NULL) == -1) {
-	    exit(OS_Errno);
-	}
-	osLibInitialized = 1;
-    }
+    if (!libInitialized) {
+        int rc = FCGX_Init();
+        if (rc) {
+            /* exit() isn't great, but hey */
+            exit((rc < 0) ? rc : -rc);
+        }
+    }                 
 
     isFastCGI = OS_IsFcgi();
-    isCGI = !isFastCGI;
-    return isCGI;
+
+    return !isFastCGI;
 }
 
 /*
@@ -1963,31 +1951,105 @@ int FCGX_IsCGI(void)
  *
  *----------------------------------------------------------------------
  */
-static ReqData *reqDataPtr = NULL;
 
 void FCGX_Finish(void)
 {
-    if(reqDataPtr != NULL && reqDataPtr->inStream != NULL) {
-        /*
-         * Complete the previous request.
-         */
+    FCGX_Finish_r(reqDataPtr);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_Finish_r --
+ *
+ *      Finishes the current request from the HTTP server.
+ *
+ * Side effects:
+ *
+ *      Finishes the request accepted by (and frees any
+ *      storage allocated by) the previous call to FCGX_Accept.
+ *
+ *      DO NOT retain pointers to the envp array or any strings
+ *      contained in it (e.g. to the result of calling FCGX_GetParam),
+ *      since these will be freed by the next call to FCGX_Finish
+ *      or FCGX_Accept.
+ *
+ *----------------------------------------------------------------------
+ */
+void FCGX_Finish_r(FCGX_Request *reqDataPtr)
+{
+    if (reqDataPtr == NULL) {
+        return;
+    }
+
+    if (reqDataPtr->inStream) {
         int errStatus = FCGX_FClose(reqDataPtr->errStream);
         int outStatus = FCGX_FClose(reqDataPtr->outStream);
-        int prevRequestFailed = (errStatus != 0)
-                || (outStatus != 0)
-                || (FCGX_GetError(reqDataPtr->inStream) != 0);
+
+        if (errStatus  || outStatus 
+            || FCGX_GetError(reqDataPtr->inStream) 
+            || !reqDataPtr->keepConnection) 
+        {
+            OS_IpcClose(reqDataPtr->ipcFd);
+        }
+
         ASSERT(reqDataPtr->nWriters == 0);
+
         FreeStream(&reqDataPtr->inStream);
         FreeStream(&reqDataPtr->outStream);
         FreeStream(&reqDataPtr->errStream);
+
         FreeParams(&reqDataPtr->paramsPtr);
-        if(prevRequestFailed || !reqDataPtr->keepConnection) {
-            OS_IpcClose(reqDataPtr->ipcFd);
-            reqDataPtr->ipcFd = -1;
-        }
+    }
+
+    if (!reqDataPtr->keepConnection) {
+        reqDataPtr->ipcFd = -1;
     }
 }
 
+
+void FCGX_InitRequest(FCGX_Request *request)
+{
+    memset(request, 0, sizeof(FCGX_Request));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_Init --
+ *
+ *      Initilize the FCGX library.  This is called by FCGX_Accept()
+ *      but must be called by the user when using FCGX_Accept_r().
+ *
+ * Results:
+ *	    0 for successful call.
+ *
+ *----------------------------------------------------------------------
+ */
+int FCGX_Init(void)
+{
+    char *p;
+    
+    if (libInitialized) {
+        return 0;
+    }
+
+    /* If our compiler doesn't play by the ISO rules for struct layout, halt. */
+    ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
+
+    memset(&reqData, 0, sizeof(FCGX_Request));
+
+    if (OS_LibInit(NULL) == -1) {
+        return OS_Errno ? OS_Errno : -9997;
+    }
+
+    p = getenv("FCGI_WEB_SERVER_ADDRS");
+    webServerAddressList = p ? StringCopy(p) : "";
+    
+    libInitialized = 1;
+    return 0;
+}
+
 /*
  *----------------------------------------------------------------------
  *
@@ -2015,8 +2077,6 @@ void FCGX_Finish(void)
  *
  *----------------------------------------------------------------------
  */
-static ReqData reqData;
-static char *webServerAddressList = NULL;
 
 int FCGX_Accept(
         FCGX_Stream **in,
@@ -2024,59 +2084,69 @@ int FCGX_Accept(
         FCGX_Stream **err,
         FCGX_ParamArray *envp)
 {
-    /*
-     * If our compiler doesn't play by the ISO rules for struct
-     * layout, halt.
-     */
-    ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
+    if (!libInitialized) {
+        int rc = FCGX_Init();
+        if (rc) {
+            return (rc < 0) ? rc : -rc;
+        }
+    }                 
 
-    if(!osLibInitialized) {
-        if(OS_LibInit(NULL) == -1) {
-	    exit(OS_Errno);
-	}
-	osLibInitialized = 1;
+    return FCGX_Accept_r(in, out, err, envp, &reqData);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_Accept_r --
+ *
+ *      Accepts a new request from the HTTP server.
+ *
+ * Results:
+ *	0 for successful call, -1 for error.
+ *
+ * Side effects:
+ *
+ *      Finishes the request accepted by (and frees any
+ *      storage allocated by) the previous call to FCGX_Accept.
+ *      Creates input, output, and error streams and
+ *      assigns them to *in, *out, and *err respectively.
+ *      Creates a parameters data structure to be accessed
+ *      via getenv(3) (if assigned to environ) or by FCGX_GetParam
+ *      and assigns it to *envp.
+ *
+ *      DO NOT retain pointers to the envp array or any strings
+ *      contained in it (e.g. to the result of calling FCGX_GetParam),
+ *      since these will be freed by the next call to FCGX_Finish
+ *      or FCGX_Accept.
+ *
+ *----------------------------------------------------------------------
+ */
+int FCGX_Accept_r(
+        FCGX_Stream **in,
+        FCGX_Stream **out,
+        FCGX_Stream **err,
+        FCGX_ParamArray *envp,
+        FCGX_Request *reqDataPtr)
+{
+    if (!libInitialized) {
+        return -9998;
     }
 
-    /*
-     * If our compiler doesn't play by the ISO rules for struct
-     * layout, halt.
-     */
-    ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
-    
-    if(reqDataPtr == NULL) {
-	/*
-	 * Very first call, so capture FCGI_WEB_SERVER_ADDRS from
-         * the initial environment, and initialize reqDataPtr
-         * and parts of reqData.
-	 */
-        char *p = getenv("FCGI_WEB_SERVER_ADDRS");
-	if (p != NULL) {
-            webServerAddressList = StringCopy(p);
-	}
-        reqDataPtr = &reqData;
-        reqDataPtr->ipcFd = -1;
-        reqDataPtr->inStream = NULL;
-        reqDataPtr->outStream = NULL;
-        reqDataPtr->errStream = NULL;
-    } else {
-        /*
-         * Not the first call.  Finish the current request, if any.
-         */
-        FCGX_Finish();
-    }
-    for(;;) {
+    /* Finish the current request, if any. */
+    FCGX_Finish_r(reqDataPtr);
+
+    for (;;) {
         /*
          * If a connection isn't open, accept a new connection (blocking).
          * If an OS error occurs in accepting the connection,
          * return -1 to the caller, who should exit.
          */
-        if(reqDataPtr->ipcFd < 0) {
-	    reqDataPtr->ipcFd = OS_FcgiIpcAccept(webServerAddressList);
-	    if(reqDataPtr->ipcFd < 0) {
-                reqDataPtr = NULL;
-		    return (errno > 0) ? (0 - errno) : -9999;
-	    }
-	}
+        if (reqDataPtr->ipcFd < 0) {
+            reqDataPtr->ipcFd = OS_FcgiIpcAccept(webServerAddressList);
+            if (reqDataPtr->ipcFd < 0) {
+                return (errno > 0) ? (0 - errno) : -9999;
+            }
+        }
         /*
          * A connection is open.  Read from the connection in order to
          * get the request's role and environment.  If protocol or other
@@ -2189,3 +2259,4 @@ void FCGX_SetExitStatus(int status, FCGX_Stream *stream)
     FCGX_Stream_Data *data = stream->data;
     data->reqDataPtr->appStatus = status;
 }
+
