@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.24 2001/04/30 15:35:18 skimo Exp $
+# $Id: FCGI.PL,v 1.25 2001/06/07 13:17:56 skimo Exp $
 
 package FCGI;
 
@@ -61,6 +61,7 @@ sub read_nv_len {
     return undef unless read $stream, $buf, 1, 0;
     my ($len) = unpack("C", $buf);
     if ($len & 0x80) {
+	$buf = pack("C", $len & 0x7F);
 	return undef unless read $stream, $buf, 3, 1;
 	$len = unpack("N", $buf);
     }
