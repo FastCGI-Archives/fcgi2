@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.12 2001/08/27 19:53:58 robs Exp $
+# $Id: Makefile.PL,v 1.13 2001/08/28 19:14:21 robs Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -26,14 +26,23 @@ $devkit = cwd() . "/..";
 if (-d "$devkit/libfcgi/" 
     && -d "$devkit/include" && !grep {!-f "$devkit/include/$_"} (@h)) 
 {
-    unless (-f "$devkit/libfcgi/libfcgi.a") {
-	warn "Please compile the library before attempting " .
-	      "to compile the perl module.\n";
-	exit -1;
-    }
     # devkit
     $prefix = $devkit;
-    push @libs, "-L$devkit/libfcgi -lfcgi";
+
+    if (-f "$devkit/libfcgi/libfcgi.a") {
+		push @libs, "-L$devkit/libfcgi -lfcgi";
+    }
+    elsif (-f "$devkit/libfcgi/Release/libfcgi.dll") {
+		push @libs, "-L$devkit/libfcgi/Release -lfcgi";
+    }
+    elsif (-f "$devkit/libfcgi/Debug/libfcgi.dll") {
+		push @libs, "-L$devkit/libfcgi/Debug -lfcgi";
+    }
+    else {
+		warn "Please compile the library before attempting " .
+	      	 "to compile the perl module.\n";
+		exit -1;
+    }
 } 
 else {
     # CPAN  
@@ -114,6 +123,15 @@ $mm = MM->new({
 delete $mm->{MAN3PODS}{oldinterface.pod};
 $mm->flush;
 
+if ($sys eq "win32") {
+    # Win can't deal with existence of FCGI.xs or absence of FCGI.c
+    unlink("FCGI.xs");
+    open(F, ">FCGI.c"); close(F);
+    $now = time; $before = $now - 600;
+    utime $before, $before, "FCGI.c";
+    utime $now, $now, "FCGI.PL";
+}
+
 exit if -f 'fcgi_config.h' or $prefix or $pure;
 
 # CPAN and no installed lib found
@@ -125,15 +143,6 @@ if ($sys eq "win32") {
     print "Using prebuilt fcgi_config.h file for Windows\n";
     unlink("fcgi_config.h");
     die $! unless copy("fcgi_config_x86.h","fcgi_config.h");
-
-    # Win build system also can't deal with existence of FCGI.xs or absence of
-    # FCGI.c
-    unlink("FCGI.xs");
-    open(F, ">FCGI.c"); close(F);
-    $now = time; $before = $now - 600;
-    utime $before, $before, "FCGI.c";
-    utime $now, $now, "FCGI.PL";
-
 } else {
     print "Running ./configure for you\n";
     print "Please read configure.readme for information on how to run it yourself\n";
