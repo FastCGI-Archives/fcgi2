@@ -3,7 +3,7 @@
 #
 #  Open Market, Inc.
 #
-#  $Id: Makefile.in,v 1.3 1999/07/26 05:06:10 roberts Exp $
+#  $Id: Makefile.in,v 1.4 1999/07/28 00:37:03 roberts Exp $
 #
 
 SHELL = @SHELL@
@@ -31,7 +31,7 @@ TARGETS	    = tiny-fcgi tiny-fcgi2 tiny-authorizer \
 all: $(TARGETS)
 
 threaded.fcg: threaded.c $(INCLUDES)
-	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) -lpthread
+	$(CC) $(CFLAGS) -D_REENTRANT threaded.c -o threaded.fcg $(LIBFCGI) $(LIBS) -lpthread
 
 tiny-fcgi: tiny-fcgi.${O} $(LIBFCGI)
 	$(CC) $(CFLAGS) tiny-fcgi.${O} -o tiny-fcgi $(LIBFCGI) $(LIBS)
