@@ -6,8 +6,8 @@
 vlink="#555555">
 
 <center>
-<a href="/fastcgi/words">
-    <img border=0 src="/kit/images/fcgi-hd.gif" alt="[[FastCGI]]"></a>
+<a href="http://fastcgi.com">
+    <img border=0 src="../images/fcgi-hd.gif" alt="[[FastCGI]]"></a>
 </center>
 <br clear=all>
 <h3><center>Integrating FastCGI with Perl-5</center></h3>
@@ -21,7 +21,7 @@ Copyright &copy; 1996 Open Market, Inc.  245 First Street, Cambridge,
   MA 02142 U.S.A.<br>
 Tel: 617-949-7000 URL:
   <a href="http://www.openmarket.com/">http://www.openmarket.com/</a><br>
-$Id: fcgi-perl.htm,v 1.1 1997/09/16 15:36:26 stanleyg Exp $ <br>
+$Id: fcgi-perl.htm,v 1.2 2001/05/14 13:00:30 robs Exp $ <br>
 </h5>
 <hr>
 
@@ -50,7 +50,7 @@ FastCGI has been integrated with Perl in two different ways:
   <li>By writing a module that plugs into any Perl interpreter that's
       been built with FastCGI's fcgi_stdio library
       layering over stdio.
-</ul>
+
 The first approach, implemented by Sven Verdoolaege
 (skimo@breughel.ufsia.ac.be), is probably the better of the two,
 since sfio is a generally useful addition to Perl.
@@ -171,7 +171,7 @@ will set your proper library path:
 <pre>
 % setenv PERL5LIB $INSTALL/lib:$INSTALL/lib/sun4-solaris/perl5.003_02
 </pre>
-</ul>
+
 <p>
 
   <li>Obtain Perl/Sfio module for FastCGI support from 
@@ -228,8 +228,8 @@ There are good sources of information on Perl at:
 <LI> <A HREF="http://www.perl.com/">http://www.perl.com/</A>
 <LI> <A HREF="http://www.metronet.com/perlinfo/">http://www.metronet.com/perlinfo/</A>
 </UL>
-</P>
-</A>
+<p></P>
+
 <LI> Unpack the tar file in the parent directory of the FastCGI kit
 directory, so that the perl directory is a sibling of <tt>fcgi-devel-kit</tt>.
 <EM>$perl</EM> is used as shorthand for the full path of the directory
@@ -335,7 +335,7 @@ You should specify the following <tt>ld</tt> flags:
 <UL>
 <LI> <strong>-L<em>$fcgi</em>/libfcgi</strong>
 </UL
-</DD>
+></DD>
 <P></P>
 
 <DT><EM>Additional Libraries:</EM></DT>
@@ -412,8 +412,8 @@ Pretty straightforward.<p>
 <EM>[...]</EM>
 > make install
 </PRE>
-</UL>
-</P>
+
+<p></P>
 <H4><a NAME = "S3.3">3.3 Advanced recipe</a></H4>
 
 <P>
@@ -423,64 +423,44 @@ not really want to re-run Configure, you can take the following steps.
 <P ALIGN=CENTER><STRONG>THIS IS NOT RECOMMENDED</STRONG></P>
 <P>
 Edit config.sh with your favorite editor and modify the following lines:
-<DL>
-<DT><EM>cc</EM></DT>
-<DD>
-Change to use gcc if you are not using it already. 
-</DD>
-<P></P>
-
-<DT><EM>ccflags</EM> AND <EM>cppflags</EM></DT>
-<DD>
-Add the following flags:
-<UL>
-<LI> <strong>-I<em>$fcgi</em>/include</strong>
-<LI> <strong>-include <em>$fcgi</em>/include/fcgi_stdio.h</strong>
-</UL>
-This assumes you are using GCC. See the above section on assumptions
-</DD>
-<P></P>
-
-<DT><EM>extensions</EM> AND <EM>known_extensions</EM></DT>
-<DD>
-Add FCGI to the list of extensions
-</DD>
-<P></P>
-
-<DT><EM>ldflags</EM></DT>
-<DD>
-Add -L $fcgi/libfcgi to the list.
-</DD>
-<P></P>
-
-<DT><EM>libs</EM></DT>
-<DD>
-Add -lfcgi to the list of libraries, should be added before -lc.
-</DD>
-<P></P>
-<DT><EM>static_ext</EM><STRONG> or </STRONG><EM>dynamic_ext</EM></DT>
-<DD>
-Add FCGI to the list of statically or dynamically loaded extensions.
-</DD>
-<P></P>
-<DT><EM>d_stdio_cnt_lval, d_stdio_ptr_lval, d_stdiobase, d_stdstdio</EM></DT>
-<DL>
-Change all of these to undef.
-</DL>
-<P>
-One you have edited config.sh you should do a "make Makefile depend all".
-If you're paranoid like me you may want to do a "make clean" first.
-</P>
-
-
-<H3><A NAME = "S4"> 4. Writing FastCGI applications in Perl</A></H3>
-<P>
-The Perl program <tt>examples/tiny-perl-fcgi</tt> performs the same function as
-the C program <tt>examples/tiny-fcgi</tt> that's used as an example in the
-<A HREF="fcgi-devel-kit.html#S3.1.1">FastCGI Developer's Kit document</A>.
-Here's what the Perl version looks like:
-</P>
-<pre>
+        <DL> 
+          <DT><EM>cc</EM></DT>
+          <DD> Change to use gcc if you are not using it already. </DD>
+          <P></P>
+          <DT><EM>ccflags</EM> AND <EM>cppflags</EM></DT>
+          <DD> Add the following flags: 
+            <UL>
+              <LI> <strong>-I<em>$fcgi</em>/include</strong> 
+              <LI> <strong>-include <em>$fcgi</em>/include/fcgi_stdio.h</strong> 
+            </UL>
+            This assumes you are using GCC. See the above section on assumptions 
+          </DD>
+          <P></P>
+          <DT><EM>extensions</EM> AND <EM>known_extensions</EM></DT>
+          <DD> Add FCGI to the list of extensions </DD>
+          <P></P>
+          <DT><EM>ldflags</EM></DT>
+          <DD> Add -L $fcgi/libfcgi to the list. </DD>
+          <P></P>
+          <DT><EM>libs</EM></DT>
+          <DD> Add -lfcgi to the list of libraries, should be added before -lc. 
+          </DD>
+          <P></P>
+          <DT><EM>static_ext</EM><STRONG> or </STRONG><EM>dynamic_ext</EM></DT>
+          <DD> Add FCGI to the list of statically or dynamically loaded extensions. 
+          </DD>
+          <P></P>
+          <DT><EM>d_stdio_cnt_lval, d_stdio_ptr_lval, d_stdiobase, d_stdstdio</EM></DT>
+          <DL> Change all of these to undef. </DL>
+          <P> One you have edited config.sh you should do a "make Makefile depend 
+            all". If you're paranoid like me you may want to do a "make clean" 
+            first. </P>
+          <H3><A NAME = "S4"> 4. Writing FastCGI applications in Perl</A></H3>
+          <P> The Perl program <tt>examples/tiny-perl-fcgi</tt> performs the same 
+            function as the C program <tt>examples/tiny-fcgi</tt> that's used 
+            as an example in the <A HREF="fcgi-devel-kit.htm#S3.1.1">FastCGI Developer's 
+            Kit</A>. Here's what the Perl version looks like: </P>
+          <pre>
 #!./perl
 use FCGI;
 $count = 0;
@@ -492,65 +472,54 @@ while(FCGI::accept() >= 0) {
           " running on host &lt;i&gt;$ENV('SERVER_NAME')&lt;/i&gt;");
 }
 </pre>
-
-If you've built Perl according to the recipe and you have a Web server set
-up to run FastCGI applications, load the FastCGI Developer's Kit Index Page
-in that server and run this Perl application now.<p>
-
-The script invokes Perl indirectly via the symbolic link
-<tt>examples/perl</tt>.  It does this because HP-UX has a limit of 32
-characters for the first line of a command-interpreter file such as
-<tt>examples/tiny-perl-fcgi</tt>.  If you run on HP-UX you won't want
-to sprinkle symbolic links to perl everywhere, so you should
-choose a <tt>PERL_PREFIX</tt> shorter than <tt>/usr/local/perl5-fcgi</tt>.<p>
-
-You need to be aware of the following bug.  If the
-initial environment to a FastCGI Perl application is empty (contains
-no name-value pairs) then when the first call to <tt>FCGI::accept</tt>
-returns, the environment will <i>still</i> be empty,
-i.e. <tt>%ENV</tt> will contain no associations.  All the variables
-associated with the first request are lost.  There are two known
-workarounds:<p>
-
-<ul>
-  <li>
-    In your Perl application, enumerate <tt>%ENV</tt> using
-    <tt>each</tt> before entering the <tt>FCGI::accept</tt>
-    loop.  The program <tt>examples/tiny-perl-fcgi</tt>
-    contains code for this.<p>
-  <li>
-    In configuring your application be sure to set at least one
-    initial environment variable.  You do this with the
-    <tt>AppClass -initial-env</tt> directive to the Web server,
-    or by running <tt>cgi-fcgi</tt> in a non-empty environment.
-</ul><p>
-
-The Perl subroutine <tt>FCGI::accept</tt> treats the initial
-environment differently than the C function <tt>FCGI_Accept</tt>.  The
-first call to the
-C function <tt>FCGI_Accept</tt> replaces the initial environment with
-the environment of the first request.  The first call to the Perl subroutine
-<tt>FCGI::accept</tt> adds the variable bindings of the first request
-to the bindings present in the initial environment.  So when the first
-call to <tt>FCGI::accept</tt> returns, bindings from the initial
-environment are still there (unless, due to naming conflicts, some of
-them have been overwritten by the first request).  The next call to
-<tt>FCGI::accept</tt> removes the bindings made on the previous call
-before adding a new set for the request just accepted, again preserving
-the initial environment.<p>
-
-The Perl <tt>FCGI</tt> module also includes
-subroutines <tt>FCGI::finish</tt>, <tt>FCGI::set_exit_status</tt>,
-and <tt>FCGI::start_filter_data</tt> that correspond to
-C functions in <tt>fcgi_stdio.h</tt>; see the manpages for
-full information.<p>
-
-Converting a Perl CGI application to FastCGI is not fundamentally
-different from converting a C CGI application.  You separate
-the portion of the application that performs one-time
-initialization from the portion that performs per-request
-processing.  You put the per-request processing into a loop
-controlled by <tt>FCGI::accept</tt>.<p>
-
-</body>
+          If you've built Perl according to the recipe and you have a Web server 
+          set up to run FastCGI applications, load the FastCGI Developer's Kit 
+          Index Page in that server and run this Perl application now. 
+          <p> The script invokes Perl indirectly via the symbolic link <tt>examples/perl</tt>. 
+            It does this because HP-UX has a limit of 32 characters for the first 
+            line of a command-interpreter file such as <tt>examples/tiny-perl-fcgi</tt>. 
+            If you run on HP-UX you won't want to sprinkle symbolic links to perl 
+            everywhere, so you should choose a <tt>PERL_PREFIX</tt> shorter than 
+            <tt>/usr/local/perl5-fcgi</tt>.
+          <p> You need to be aware of the following bug. If the initial environment 
+            to a FastCGI Perl application is empty (contains no name-value pairs) 
+            then when the first call to <tt>FCGI::accept</tt> returns, the environment 
+            will <i>still</i> be empty, i.e. <tt>%ENV</tt> will contain no associations. 
+            All the variables associated with the first request are lost. There 
+            are two known workarounds:
+          <p> 
+          <ul>
+            <li> In your Perl application, enumerate <tt>%ENV</tt> using <tt>each</tt> 
+              before entering the <tt>FCGI::accept</tt> loop. The program <tt>examples/tiny-perl-fcgi</tt> 
+              contains code for this. 
+              <p> 
+            <li> In configuring your application be sure to set at least one initial 
+              environment variable. You do this with the <tt>AppClass -initial-env</tt> 
+              directive to the Web server, or by running <tt>cgi-fcgi</tt> in 
+              a non-empty environment. 
+          </ul>
+          <p> The Perl subroutine <tt>FCGI::accept</tt> treats the initial environment 
+            differently than the C function <tt>FCGI_Accept</tt>. The first call 
+            to the C function <tt>FCGI_Accept</tt> replaces the initial environment 
+            with the environment of the first request. The first call to the Perl 
+            subroutine <tt>FCGI::accept</tt> adds the variable bindings of the 
+            first request to the bindings present in the initial environment. 
+            So when the first call to <tt>FCGI::accept</tt> returns, bindings 
+            from the initial environment are still there (unless, due to naming 
+            conflicts, some of them have been overwritten by the first request). 
+            The next call to <tt>FCGI::accept</tt> removes the bindings made on 
+            the previous call before adding a new set for the request just accepted, 
+            again preserving the initial environment.
+          <p> The Perl <tt>FCGI</tt> module also includes subroutines <tt>FCGI::finish</tt>, 
+            <tt>FCGI::set_exit_status</tt>, and <tt>FCGI::start_filter_data</tt> 
+            that correspond to C functions in <tt>fcgi_stdio.h</tt>; see the manpages 
+            for full information.
+          <p> Converting a Perl CGI application to FastCGI is not fundamentally 
+            different from converting a C CGI application. You separate the portion 
+            of the application that performs one-time initialization from the 
+            portion that performs per-request processing. You put the per-request 
+            processing into a loop controlled by <tt>FCGI::accept</tt>.
+          <p> 
+        </dl>
+      </ol></ol></body>
 </html>

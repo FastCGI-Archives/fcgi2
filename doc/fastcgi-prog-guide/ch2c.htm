@@ -1,4 +1,4 @@
-<html><head><title></title></head>
+<html><head><title>FastCGI Programmer's Guide - Chapter 2, Developing FastCGI Applications in C</title></head>
 <body bgcolor=#ffffff>
  
 <a href="cover.htm">[Top]</a> <a href="ch1intro.htm">[Prev]</a> <a href="ch3perl.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
@@ -6,39 +6,39 @@
  
 <a name="3659">
 <center><h1>2 Developing FastCGI <br>Applications in C</h1></center>
-</a><a name="917">
+</a><a name="917"></a>
 This chapter explains how to code FastCGI applications in C and how to build them into executables. <p>
-</a><a name="4230">
+<a name="4230"></a>
 If you are converting a CGI application into a FastCGI application, in many cases you will only need to add a few lines of code. For more complex applications, you may also need to rearrange some code.<p>
-</a><a name="5371">
+<a name="5371">
 <h1> The I/O Libraries</h1>
-</a><a name="5384">
+</a><a name="5384"></a>
 The FastCGI Software Development Kit that accompanies Open Market WebServer 2.0 includes I/O libraries to simplify the job of converting existing CGI applications to FastCGI or writing new FastCGI applications. There are two libraries in the kit: fcgi_stdio and fcgiapp. You must include one of these header files in your program:<p>
-</a><ul><a name="5386">
+<ul><a name="5386"></a>
 <li><code>fcgi_stdio.h</code>
-</a><a name="4237">
+<a name="4237"></a>
 <li><code>fcgiapp.h</code>
-</a></ul><a name="4199">
+</ul><a name="4199"></a>
 The <code>fcgi_stdio</code> library is a layer on top of the <code>fcgiapp</code> library, and we recommend strongly that you use it, both for converting existing CGI applications and for writing new FastCGI applications. The fcgi_stdio library offers several advantages:<p>
-</a><ul><a name="5811">
+<ul><a name="5811"></a>
 <li>Simplicity: there are only 3 new API calls to learn
-</a><a name="5828">
+<a name="5828"></a>
 <li>Familiarity: If you are converting a CGI application to FastCGI, you will find few changes between CGI and FastCGI. We designed our library to make the job of building a FastCGI application as similar as possible to that of building a FastCGI application: you use the same environment variables, same techniques for parsing query strings, the same I/O routines, and so on. 
-</a><a name="5817">
+<a name="5817"></a>
 <li>Convenience: the library provides full binary compatibility between CGI and FastCGI. That is, you can run the same binary as either CGI or FastCGI. 
-</a></ul><a name="5399">
+</ul><a name="5399"></a>
 The fcgiapp library is more specific to FastCGI, without trying to provide the veneer of familiarity with CGI. This manual describes the fcgi_stdio library; the fcgiapp library is documented in the header files that accompany the development kit. <p>
-</a><a name="5847">
+<a name="5847">
 <h1> Code Structure</h1>
-</a><a name="4240">
+</a><a name="4240"></a>
 To structure code for FastCGI, you separate your code into two sections:<p>
-</a><ul><a name="4200">
+<ul><a name="4200"></a>
 <li>Initialization section, which is executed only once.
-</a><a name="4201">
+<a name="4201"></a>
 <li>Response loop section, which gets executed every time the FastCGI script gets called.
-</a></ul><a name="4202">
+</ul><a name="4202"></a>
 A response loop typically has the following format:<p>
-</a><pre><a name="4203">
+<pre><a name="4203">
 while (FCGI_Accept() &gt;= 0) {
 </a>
 <a name="4204">
@@ -47,13 +47,13 @@ while (FCGI_Accept() &gt;= 0) {
 <a name="4205">
 }
 </a>
-</pre><a name="4206">
+</pre><a name="4206"></a>
 The <code>FCGI_Accept</code> blocks until a client request comes in, and then returns 0. If there is a system failure, or the system administrator terminates the process, Accept will return -1. <p>
-</a><a name="5852">
+<a name="5852"></a>
 If the application was invoked as a CGI program, the first call to Accept returns 0 and the second always returns -1, producing CGI behavior. (See <a href="apaman.htm#95860">"FCGI_Accept (3)" on page &#32;21</a> for details.)<p>
-</a><a name="5909">
+<a name="5909"></a>
 Also note that the CGI world encourages small scripts, whereas FastCGI encourages combining scripts. You may choose to rethink the overall structure of your applications to take better advantage of FastCGI performance gains.<p>
-</a><a name="5373">
+<a name="5373">
 <h1> Example 1: TinyFastCGI</h1>
 </a><a name="4263">
 Here is a simple example of a responder FastCGI application written in C:<p>
@@ -84,13 +84,13 @@ void main(void)
 }
 </pre>
 <h1> Example 2: Prime Number Generator</h1>
-</a><a name="4182">
+</a><a name="4182"></a>
 Consider a responder application that generates the n-th prime number. <p>
-</a><a name="5217">
+<a name="5217"></a>
 A CGI application would have no efficient way of solving this problem. For example, if the user asks for the 50,000th prime number, a CGI application would have to calculate the first prime number, then the second, and so on, up until the 50,000th. The application would then terminate, taking with it all its hard-earned calculations. If a client then asks for the 49,000th prime number, the server will have to spawn a new CGI application which will have to start calculating prime numbers from scratch.<p>
-</a><a name="4315">
+<a name="4315"></a>
 FastCGI applications can be much more efficient at this sort of problem, since they can maintain state. A FastCGI application can calculate an extensive table of prime numbers in its initialization phase and then keep the table around indefinitely. Whenever a client requests a particular prime number, the response loop merely needs to look it up in the table. <p>
-</a><a name="4343">
+<a name="4343"></a>
 Here is the code for the prime number example:<p>
 <pre>
 #include "fcgi_stdio.h"
@@ -170,45 +170,45 @@ void main(void)
         }
     } /* while FCGI_Accept */
 }
-</pre><a name="5349">
+</pre><a name="5349"></a>
 This application has a noticeable start up cost while it initializes the table, but subsequent accesses are fast.<p>
-</a><a name="5151">
+<a name="5151">
 <h1> Building</h1>
-</a><a name="4630">
+</a><a name="4630"></a>
 This section explains how to build and debug FastCGI applications written in C.<p>
-</a><a name="4629">
+<a name="4629"></a>
 The C preprocessor needs to know the location of the <code>fcgi_stdio.h</code> header file, which is at the following pathname:<p>
-</a><pre><a name="4642">
+<pre><a name="4642">
 <em>$toolkit</em>/include/fcgi_stdio.h
 </a>
-</pre><a name="4645">
+</pre><a name="4645"></a>
 where <em>$toolkit</em> symbolizes the directory in which you have installed the Software Development Kit for FastCGI. <p>
-</a><a name="4760">
+<a name="4760"></a>
 The linker needs to know the location of the <code>libfcgi.a</code> library file, which is at the following pathname:<p>
-</a><pre><a name="4647">
+<pre><a name="4647">
 <em>$toolkit</em>/libfcgi/libfcgi.a 
 </a>
-</pre><a name="4648">
+</pre><a name="4648"></a>
 If your linker does not search the Berkeley socket library, then you must add linker directives to force this search.<p>
-</a><a name="4773">
+<a name="4773"></a>
 We provide a sample application <code>Makefile</code> at the following pathname: <p>
-</a><pre><a name="4649">
+<pre><a name="4649">
 <em>$toolkit</em>/examples/Makefile
 </a>
-</pre><a name="4652">
+</pre><a name="4652"></a>
 This <code>Makefile</code> contains the necessary rules and pathnames to build the C FastCGI applications accompanying the toolkit. To build all the applications, type:<p>
-</a><pre><a name="4653">
+<pre><a name="4653">
 $ ./configure<br>$ make 
 </a>
 </pre><a name="4190">
 <h1> Memory Leaks</h1>
-</a><a name="4178">
+</a><a name="4178"></a>
 Memory leaks are seldom a problem in CGI programming because CGI applications rarely run long enough to be concerned with leaks. However, memory leaks can become a problem in FastCGI applications, particularly if each call to a popular FastCGI application causes additional memory to leak. <p>
-</a><a name="4785">
+<a name="4785"></a>
 When converting to FastCGI, you can either use a tool such as Purify from Pure Software to discover and fix storage leaks or you can run a C garbage collector such as Great Circle from Geodesic Systems. <p>
-</a><a name="4972">
+<a name="4972"></a>
 <p>
-</a>
+
 <hr><br>
  
 <a href="cover.htm">[Top]</a> <a href="ch1intro.htm">[Prev]</a> <a href="ch3perl.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>

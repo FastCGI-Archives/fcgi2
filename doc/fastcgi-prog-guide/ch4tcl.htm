@@ -1,4 +1,4 @@
-<html><head><title></title></head>
+<html><head><title>FastCGI Programmer's Guide - Chapter 4, Developing FastCGI Applications in Tcl</title></head>
 <body bgcolor=#ffffff>
  
 <a href="cover.htm">[Top]</a> <a href="ch3perl.htm">[Prev]</a> <a href="apaman.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>
@@ -6,25 +6,25 @@
  
 <a name="3659">
 <center><h1>4 Developing FastCGI <br>Applications in Tcl</h1></center>
-</a><a name="4835">
+</a><a name="4835"></a>
 This chapter explains how to code FastCGI applications in Tcl. Prior to creating a FastCGI application, you must have a FastCGI-savvy version of the Tcl interpreter. Open Market develops Tcl binaries for popular platforms and makes them available with our developer's kit. <p>
-</a><a name="4943">
+<a name="4943"></a>
 The FastCGI-savvy binaries are extensions of standard Tcl, and are intended to replace your existing Tcl installation. There is no need to maintain two versions of Tcl: the version that we supply will work fine when invoked from a shell or a CGI program. There are also directions in the developer's kit for how to make your own FastCGI-savvy Tcl, if you need a version for some platform that we don't supply.<p>
-</a><a name="4221">
+<a name="4221"></a>
 In many cases, you can convert a Tcl script from CGI to FastCGI by adding a few lines of code to an existing script. For more complex scripts, you may also need to rearrange some existing code. <p>
-</a><a name="4222">
+<a name="4222">
 <h1> Getting Started</h1>
-</a><a name="4223">
+</a><a name="4223"></a>
 The first line of any Tcl script typically specifies the pathname of the Tcl interpreter itself. You must specify the pathname of a FastCGI-savvy Tcl. <p>
-</a><a name="4226">
+<a name="4226"></a>
 Then, you have to divide FastCGI scripts into the following two sections:<p>
-</a><ul><a name="4227">
+<ul><a name="4227"></a>
 <li>Initialization section, which is executed only once.
-</a><a name="4228">
+<a name="4228"></a>
 <li>Response loop section, which gets executed every time the FastCGI script gets called.
-</a></ul><a name="4229">
+</ul><a name="4229"></a>
 A response loop typically has the following format:<p>
-</a><pre><a name="4923">
+<pre><a name="4923">
 while {[FCGI_Accept] &gt;= 0 } {
 </a>
 <a name="4925">
@@ -33,13 +33,13 @@ while {[FCGI_Accept] &gt;= 0 } {
 <a name="4367">
 }
 </a>
-</pre><a name="4233">
+</pre><a name="4233"></a>
 The <code>FCGI_Accept</code> call returns 0 whenever a client requests the FastCGI script. Otherwise, the <code>FCGI_Accept</code> call returns -1. <p>
-</a><a name="4853">
+<a name="4853">
 <h1> Example: TinyFastCGI</h1>
-</a><a name="4343">
+</a><a name="4343"></a>
 Here is a simple example of a FastCGI application written in Tcl:<p>
-</a><pre><a name="4344">
+<pre><a name="4344"></a>
 #!fcgi-savvy-tcl
 
 set count 0
@@ -54,7 +54,7 @@ while {[FCGI_Accept] &gt;= 0 } {
 }
 </pre>
 <p>
-</a>
+
 <hr><br>
  
 <a href="cover.htm">[Top]</a> <a href="ch3perl.htm">[Prev]</a> <a href="apaman.htm">[Next]</a> <a href="ap_guida.htm">[Bottom]</a>

@@ -6,7 +6,7 @@
 vlink="#555555">
 
 <center>
-<a href="/fastcgi/words">
+<a href="http://fastcgi.com">
     <img border=0 src="../images/fcgi-hd.gif" alt="[[FastCGI]]"></a>
 </center>
 <br clear=all>
@@ -29,7 +29,7 @@ Copyright &copy; 1996 Open Market, Inc.  245 First Street, Cambridge,
   MA 02142 U.S.A.<br>
 Tel: 617-621-9500 Fax: 617-621-1703 URL:
   <a href="http://www.openmarket.com/">http://www.openmarket.com/</a><br>
-$Id: fcgi-tcl.htm,v 1.1 1997/09/16 15:36:26 stanleyg Exp $ <br>
+$Id: fcgi-tcl.htm,v 1.2 2001/05/14 13:00:30 robs Exp $ <br>
 </h5>
 <hr>
 
@@ -102,7 +102,7 @@ If those are valid assumptions, follow these steps:
 <ol>
     <li><i>Build the FastCGI Developer's Kit.</i>
     Tcl needs to link against <tt>libfcgi.a</tt>, so
-    <a href="http://www.fastcgi.com/kit/doc/fcgi-devel-kit.htm#S2">build
+    <a href="fcgi-devel-kit.htm#S2">build
     the FastCGI Developer's Kit</a>
     in order to create this library for your platform.<p>
 
@@ -254,11 +254,10 @@ AC_SUBST(LIBS)</pre>
 
 <h3><a NAME = "S4">4. Writing FastCGI applications in Tcl</a></h3>
 
-The Tcl program <tt>tcl/tiny-tcl-fcgi</tt> performs the same
-function as the C program <tt>examples/tiny-fcgi.c</tt>
-that's used as an example in the
-<a href="fcgi-devel-kit.html#S3.1.1">FastCGI Developer's Kit
-document</a>.  Here's what the Tcl version looks like:<p>
+The Tcl program <tt>tcl/tiny-tcl-fcgi</tt> performs the same function as the C 
+program <tt>examples/tiny-fcgi.c</tt> that's used as an example in the <a href="fcgi-devel-kit.htm#S3.1.1">FastCGI 
+Developer's Kit document</a>. Here's what the Tcl version looks like:
+<p>
 
 <pre>
 #!./tclsh

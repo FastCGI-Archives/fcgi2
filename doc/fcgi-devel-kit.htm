@@ -5,9 +5,9 @@
 </head>
 
 <body bgcolor="#FFFFFF" text="#000000" link="#cc0000" alink="#000011" vlink="#555555">
-<a href="/fastcgi/words">
+<p align="center">
 
-<p align="center"><img border="0" src="/kit/images/fcgi-hd.gif" alt="[[FastCGI]]"></a> <br
+<img border="0" src="../images/fcgi-hd.gif" alt="[[FastCGI]]"> <br
 clear="all">
 </p>
 
@@ -27,7 +27,7 @@ Open Market, Inc.<br>
 <h5 align="center">Copyright © 1996 Open Market, Inc. 245 First Street, Cambridge, MA
 02142 U.S.A.<br>
 Tel: 617-621-9500 Fax: 617-621-1703 URL: <a href="http://www.openmarket.com/">http://www.openmarket.com/</a><br>
-$Id: fcgi-devel-kit.htm,v 1.2 1999/02/06 06:15:11 roberts Exp $ <br>
+$Id: fcgi-devel-kit.htm,v 1.3 2001/05/14 12:58:16 robs Exp $ <br>
 </h5>
 
 <hr>
@@ -86,7 +86,7 @@ FastCGI. The software in the kit implements the specification. You don't need to
 specification in order to write applications.</p>
 
 <p>Additional information is provided in the <a
-href="http://www.fastcgi.com/words/FAQ.htm">FAQ</a> document, which contains frequently
+href="http://fastcgi.com/docs/FAQ.html">FAQ</a> document, which contains frequently
 asked questions about application development using FastCGI, as well as some general
 information.</p>
 
@@ -101,7 +101,7 @@ Draft CGI 1.1 Specification</a>.</p>
 <h3><a NAME="S2">2. Getting started</a></h3>
 
 <p>The kit is a compressed tar (tar.Z) file, distributed via the <a
-href="http://www.fastcgi.com/applibs/">www.fastcgi.com/applibs</a> Web page. Unpacking the
+href="http://fastcgi.com/">fastcgi.com</a> Web page. Unpacking the
 tar file creates a new directory <tt>fcgi-devel-kit</tt>.</p>
 
 <p>Open the kit's index page, <tt>fcgi-devel-kit/index.html</tt>, using the &quot;Open
@@ -249,9 +249,9 @@ builds both programs. Autoconf handles the platform-dependent linking issues; to
 examine <tt>configure.in</tt> and <tt>examples/Makefile.in</tt>.</p>
 
 <h4>Running the program</h4>
-<a href="#S4">
+<p>
 
-<p>Section 4</a> is all about how to run FastCGI applications.</p>
+<a href="#S4">Section 4</a> is all about how to run FastCGI applications.</p>
 
 <p>You can use CGI to run application binaries built with the <tt>fcgi_stdio</tt> library.
 The <tt>FCGI_Accept</tt> function tests its environment to determine how the application
@@ -264,9 +264,9 @@ FastCGI. For instance, the application exits after servicing a single request, s
 cannot maintain cached information.</p>
 
 <h4>Implementation details</h4>
-<tt>
+<p>
 
-<p>fcgi_stdio.h</tt> works by first including <tt>stdio.h</tt>, then defining macros to
+<tt>fcgi_stdio.h</tt> works by first including <tt>stdio.h</tt>, then defining macros to
 replace essentially all of the types and procedures defined in <tt>stdio.h</tt>. (<tt>stdio.h</tt>
 defines a few procedures that have nothing to do with <tt>FILE *</tt>, such as <tt>sprintf</tt>
 and <tt>sscanf</tt>; <tt>fcgi_stdio.h</tt> doesn't replace these.) For instance, <tt>FILE</tt>
@@ -390,11 +390,8 @@ and other FastCGI primitives available in these languages. And because these int
 were developed using <tt>fcgi_stdio</tt>, they run standard Perl and Tcl applications
 (e.g. CGI scripts) as well as FastCGI applications.</p>
 
-<p>See the <a href="http://www.fastcgi.com/applibs/">www.fastcgi.com/applibs</a> Web page
-for downloadable Perl and Tcl binaries for selected platforms. Because many users of Perl
-and Tcl run extended versions of these languages, the kit includes separate companion
-documents describing <a href="fcgi-perl.htm">how to build FastCGI-integrated Perl</a> and <a
-href="fcgi-tcl.htm">how to build FastCGI-integrated Tcl</a>.</p>
+<p>See the <a href="http://fastcgi.com">fastcgi.com</a> Web page for more information 
+  about the Perl and Tcl libraries.</p>
 
 <p>Here are the Perl and Tcl versions of <tt>tiny-fcgi</tt>:</p>
 
@@ -471,25 +468,16 @@ class TinyFCGI {
 <h3><a NAME="S4.1">4.1 Using a Web server that supports FastCGI</a></h3>
 
 <p>For a current listing of Web servers that support FastCGI, see the <a
-HREF="http://www.fastcgi.com/servers">www.fastcgi.com/servers</a> Web page.</p>
+HREF="http://fastcgi.com">fastcgi.com</a> Web page.</p>
 
-<p>All of the Web servers that support FastCGI perform management of FastCGI applications.
-You don't need to start and stop FastCGI applications; the Web server takes care of this.
-If an application process should crash, the Web server restarts it.</p>
+<p>Some of the Web servers that support FastCGI perform management of FastCGI 
+  applications. You don't need to start and stop FastCGI applications; the Web 
+  server takes care of this. If an application process should crash, the Web server 
+  restarts it.</p>
 
-<p>Web servers support FastCGI via new configuration directives. Since these directives
-are server-specific, get more information from the documentation that accompanies each
-server.</p>
-
-<p>The directory <a HREF="../examples/conf"><tt>examples/conf</tt></a> contains config
-files designed to run the example programs included in the FastCGI Developer's Kit. Each
-config file contains specific installation instructions.</p>
-
-<p>The more advanced example programs take advantage of special features of the Open
-Market Secure WebServer, such as anonymous ticketing and support for the Authorizer role.
-If you don't have this server, download a <a
-HREF="http://www.openmarket.com/store/eval/swsg.htm">free evaluation copy</a> to run the
-examples.</p>
+<p>Web servers support FastCGI via new configuration directives. Since these directives 
+  are server-specific, get more information from the documentation that accompanies 
+  each server.</p>
 
 <h3><a NAME="S4.2">4.2 Using <tt>cgi-fcgi</tt> with any Web server</a></h3>
 
