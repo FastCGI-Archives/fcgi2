@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.32 2002/03/04 22:16:38 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.33 2002/03/05 18:15:15 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -272,7 +272,6 @@ void OS_ShutdownPending(void)
 static void ShutdownRequestThread(void * arg)
 {
     HANDLE shutdownEvent = (HANDLE) arg;
-    DWORD rv; 
     
     WaitForSingleObject(shutdownEvent, INFINITE);
 
@@ -1373,14 +1372,38 @@ int OS_Close(int fd)
 
     case FD_SOCKET_SYNC:
 	case FD_SOCKET_ASYNC:
-	    /*
-	     * Closing a socket that has an async read outstanding causes a
-	     * tcp reset and possible data loss.  The shutdown call seems to
-	     * prevent this.
-	     */
-	    shutdown(fdTable[fd].fid.sock, SD_SEND);
-	    if (closesocket(fdTable[fd].fid.sock) == SOCKET_ERROR) ret = -1;
-	    break;
+
+        /*
+         * shutdown() the send side and then read() from client until EOF
+         * or a timeout expires.  This is done to minimize the potential
+         * that a TCP RST will be sent by our TCP stack in response to 
+         * receipt of additional data from the client.  The RST would
+         * cause the client to discard potentially useful response data.
+         */
+
+        if (shutdown(fdTable[fd].fid.sock, SD_SEND) == 0)
+        {
+            struct timeval tv;
+            fd_set rfds;
+            int sock = fdTable[fd].fid.sock;
+            int rv;
+            char trash[1024];
+   
+            FD_ZERO(&rfds);
+
+            do 
+            {
+	            FD_SET(sock, &rfds);
+	            tv.tv_sec = 2;
+	            tv.tv_usec = 0;
+	            rv = select(sock + 1, &rfds, NULL, NULL, &tv);
+            }
+            while (rv > 0 && recv(sock, trash, sizeof(trash), 0) > 0);
+        }
+        
+        closesocket(fdTable[fd].fid.sock);
+
+        break;
 
 	default:
 
