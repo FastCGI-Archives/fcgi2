@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.36 2002/02/19 00:45:55 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.37 2002/03/05 19:14:49 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -744,6 +744,34 @@ int OS_Close(int fd)
             maxFd--;
         }
     }
+
+    /*
+     * shutdown() the send side and then read() from client until EOF
+     * or a timeout expires.  This is done to minimize the potential
+     * that a TCP RST will be sent by our TCP stack in response to 
+     * receipt of additional data from the client.  The RST would
+     * cause the client to discard potentially useful response data.
+     */
+
+    if (shutdown(fd, 1) == 0)
+    {
+        struct timeval tv;
+        fd_set rfds;
+        int rv;
+        char trash[1024];
+
+        FD_ZERO(&rfds);
+
+        do 
+        {
+            FD_SET(fd, &rfds);
+            tv.tv_sec = 2;
+            tv.tv_usec = 0;
+            rv = select(fd + 1, &rfds, NULL, NULL, &tv);
+        }
+        while (rv > 0 && read(fd, trash, sizeof(trash)) > 0);
+    }
+
     return close(fd);
 }
 
