@@ -1,4 +1,4 @@
-dnl     $Id: configure.in,v 1.11 2001/09/23 16:39:53 skimo Exp $
+dnl     $Id: configure.in,v 1.12 2001/09/23 20:20:00 skimo Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
@@ -49,9 +49,10 @@ fi
 
 AC_SUBST([CCDEFS])
 
-AC_CONFIG_FILES([Makefile 
-		 libfcgi/Makefile 
-		 cgi-fcgi/Makefile 
-		 examples/Makefile])
+AC_CONFIG_FILES(Makefile
+		cgi-fcgi/Makefile
+		include/Makefile
+		libfcgi/Makefile
+		examples/Makefile)
 
 AC_OUTPUT

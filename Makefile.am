@@ -1,7 +1,7 @@
 #
 #  Makefile for FastCGI development kit
 #
-#  $Id: Makefile.am,v 1.1 2001/09/21 15:05:19 skimo Exp $
+#  $Id: Makefile.am,v 1.2 2001/09/23 20:19:59 skimo Exp $
 #
 
-SUBDIRS = libfcgi cgi-fcgi examples
+SUBDIRS = libfcgi cgi-fcgi examples include
