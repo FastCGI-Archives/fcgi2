@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.32 2001/09/14 19:43:27 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.33 2001/09/24 14:32:29 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -287,9 +287,9 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     int listenSock, servLen;
     union   SockAddrUnion sa;
     int	    tcp = FALSE;
-    unsigned long tcp_ia;
+    unsigned long tcp_ia = 0;
     char    *tp;
-    short   port;
+    short   port = 0;
     char    host[MAXPATHLEN];
 
     strcpy(host, bindPath);
