@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.16 2000/02/03 08:52:56 skimo Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.17 2000/08/02 12:36:43 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -370,7 +370,7 @@ int OS_FcgiConnect(char *bindPath)
 	resultSock = socket(AF_UNIX, SOCK_STREAM, 0);
     }
 
-    assert(resultSock >= 0);
+    ASSERT(resultSock >= 0);
     connectStatus = connect(resultSock, (struct sockaddr *) &sa.unixVariant,
                              servLen);
     if(connectStatus >= 0) {
@@ -852,7 +852,7 @@ static int ClientAddrOK(struct sockaddr_in *saPtr, const char *clientList)
 
     strLen = strlen(clientList);
     clientListCopy = (char *)malloc(strLen + 1);
-    assert(newString != NULL);
+    ASSERT(newString != NULL);
     memcpy(newString, clientList, strLen);
     newString[strLen] = '\000';
 

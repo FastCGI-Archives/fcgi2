@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.5 1999/08/27 14:03:35 roberts Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.6 2000/08/02 12:37:33 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -744,7 +744,7 @@ int OS_FcgiConnect(char *bindPath)
 	servLen = sizeof(sockAddr);
 	resultSock = socket(AF_INET, SOCK_STREAM, 0);
 
-	assert(resultSock >= 0);
+	ASSERT(resultSock >= 0);
 	connectStatus = connect(resultSock, (struct sockaddr *)
 				&sockAddr, servLen);
 	if(connectStatus < 0) {
