@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.33 2001/12/12 14:12:26 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.34 2001/12/12 22:54:10 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -107,16 +107,20 @@ static char *StringCopy(char *str)
  */
 int FCGX_GetChar(FCGX_Stream *stream)
 {
-    if(stream->rdNext != stream->stop)
-        return *stream->rdNext++;
-    if(stream->isClosed || !stream->isReader)
+    if (stream->isClosed || ! stream->isReader)
         return EOF;
+
+    if (stream->rdNext != stream->stop)
+        return *stream->rdNext++;
+
     stream->fillBuffProc(stream);
     if (stream->isClosed)
         return EOF;
+
     stream->stopUnget = stream->rdNext;
-    if(stream->rdNext != stream->stop)
+    if (stream->rdNext != stream->stop)
         return *stream->rdNext++;
+
     ASSERT(stream->isClosed); /* bug in fillBufProc if not */
     return EOF;
 }
@@ -140,7 +144,7 @@ int FCGX_GetStr(char *str, int n, FCGX_Stream *stream)
 {
     int m, bytesMoved;
 
-    if(n <= 0) {
+    if (stream->isClosed || ! stream->isReader || n <= 0) {
         return 0;
     }
     /*
@@ -942,8 +946,9 @@ static void SetError(FCGX_Stream *stream, int FCGI_errno)
      */
     if(stream->FCGI_errno == 0) {
         stream->FCGI_errno = FCGI_errno;
-        stream->isClosed = TRUE;
     }
+  
+    stream->isClosed = TRUE;
 }
 
 /*
