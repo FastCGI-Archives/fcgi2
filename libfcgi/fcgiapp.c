@@ -1,4 +1,4 @@
-/* 
+/*
  * fcgiapp.c --
  *
  *	FastCGI application library: request-at-a-time
@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.4 1999/07/26 04:28:08 roberts Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.5 1999/07/27 02:17:05 roberts Exp $";
 #endif /* not lint */
 
 #ifdef _WIN32
@@ -49,7 +49,7 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.4 1999/07/26 04:28:08 roberts Ex
 #include "fcgios.h"
 
 /*
- * This is a workaround for one version of the HP C compiler 
+ * This is a workaround for one version of the HP C compiler
  * (c89 on HP-UX 9.04, also Stratus FTX), which will dump core
  * if given 'long double' for varargs.
  */
@@ -61,7 +61,7 @@ static const char rcsid[] = "$Id: fcgiapp.c,v 1.4 1999/07/26 04:28:08 roberts Ex
 
 
 /*
- * Globals 
+ * Globals
  */
 static int libInitialized = 0;
 static char *webServerAddressList = NULL;
@@ -191,9 +191,9 @@ char *FCGX_GetLine(char *str, int n, FCGX_Stream *stream)
         if(c == EOF) {
             if(p == str)
                 return NULL;
-            else 
+            else
                 break;
-        } 
+        }
         *p++ = c;
         n--;
         if(c == '\n')
@@ -259,7 +259,7 @@ int FCGX_HasSeenEOF(FCGX_Stream *stream) {
  *
  * Results:
  *	The byte, or EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 int FCGX_PutChar(int c, FCGX_Stream *stream)
@@ -287,7 +287,7 @@ int FCGX_PutChar(int c, FCGX_Stream *stream)
  * Results:
  *      Number of bytes written (n) for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 int FCGX_PutStr(const char *str, int n, FCGX_Stream *stream)
@@ -333,7 +333,7 @@ int FCGX_PutStr(const char *str, int n, FCGX_Stream *stream)
  * Results:
  *      number of bytes written for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 int FCGX_PutS(const char *str, FCGX_Stream *stream)
@@ -352,7 +352,7 @@ int FCGX_PutS(const char *str, FCGX_Stream *stream)
  * Results:
  *      number of bytes written for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 int FCGX_FPrintF(FCGX_Stream *stream, const char *format, ...)
@@ -376,7 +376,7 @@ int FCGX_FPrintF(FCGX_Stream *stream, const char *format, ...)
  * Results:
  *      number of bytes written for normal return,
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 
@@ -854,7 +854,7 @@ static void CopyAndAdvance(char **destPtr, char **srcPtr, int n)
  *
  * Results:
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 int FCGX_FFlush(FCGX_Stream *stream)
@@ -879,7 +879,7 @@ int FCGX_FFlush(FCGX_Stream *stream)
  *
  * Results:
  *      EOF (-1) if an error occurred.
- * 
+ *
  *----------------------------------------------------------------------
  */
 int FCGX_FClose(FCGX_Stream *stream)
@@ -1038,11 +1038,11 @@ static void FreeParams(ParamsPtr *paramsPtrPtr)
  * Results:
  *      None.
  *
- * Side effects:  
+ * Side effects:
  *      Parameters structure updated.
  *
  *----------------------------------------------------------------------
- */  
+ */
 static void PutParam(ParamsPtr paramsPtr, char *nameValue)
 {
     int size;
@@ -1330,7 +1330,7 @@ static void WriteCloseRecords(struct FCGX_Stream *stream)
 static int write_it_all(int fd, char *buf, int len)
 {
     int wrote;
-    
+
     while (len) {
         wrote = OS_Write(fd, buf, len);
         if (wrote < 0)
@@ -1914,18 +1914,18 @@ FCGX_Stream *CreateWriter(
 int FCGX_IsCGI(void)
 {
     static int isFastCGI = -1;
-    
+
     if (isFastCGI != -1) {
         return !isFastCGI;
     }
-    
+
     if (!libInitialized) {
         int rc = FCGX_Init();
         if (rc) {
             /* exit() isn't great, but hey */
             exit((rc < 0) ? rc : -rc);
         }
-    }                 
+    }
 
     isFastCGI = OS_IsFcgi();
 
@@ -1986,9 +1986,9 @@ void FCGX_Finish_r(FCGX_Request *reqDataPtr)
         int errStatus = FCGX_FClose(reqDataPtr->errStream);
         int outStatus = FCGX_FClose(reqDataPtr->outStream);
 
-        if (errStatus  || outStatus 
-            || FCGX_GetError(reqDataPtr->inStream) 
-            || !reqDataPtr->keepConnection) 
+        if (errStatus  || outStatus
+            || FCGX_GetError(reqDataPtr->inStream)
+            || !reqDataPtr->keepConnection)
         {
             OS_IpcClose(reqDataPtr->ipcFd);
         }
@@ -2029,7 +2029,7 @@ void FCGX_InitRequest(FCGX_Request *request)
 int FCGX_Init(void)
 {
     char *p;
-    
+
     if (libInitialized) {
         return 0;
     }
@@ -2037,7 +2037,7 @@ int FCGX_Init(void)
     /* If our compiler doesn't play by the ISO rules for struct layout, halt. */
     ASSERT(sizeof(FCGI_Header) == FCGI_HEADER_LEN);
 
-    memset(&reqData, 0, sizeof(FCGX_Request));
+    FCGX_InitRequest(&reqData);
 
     if (OS_LibInit(NULL) == -1) {
         return OS_Errno ? OS_Errno : -9997;
@@ -2045,7 +2045,7 @@ int FCGX_Init(void)
 
     p = getenv("FCGI_WEB_SERVER_ADDRS");
     webServerAddressList = p ? StringCopy(p) : "";
-    
+
     libInitialized = 1;
     return 0;
 }
@@ -2089,7 +2089,7 @@ int FCGX_Accept(
         if (rc) {
             return (rc < 0) ? rc : -rc;
         }
-    }                 
+    }
 
     return FCGX_Accept_r(in, out, err, envp, &reqData);
 }
@@ -2221,7 +2221,7 @@ int FCGX_Accept_r(
  *      FCGX_CALL_SEQ_ERROR.
  *
  * Results:
- *      0 for a normal return, < 0 for error 
+ *      0 for a normal return, < 0 for error
  *
  *----------------------------------------------------------------------
  */
