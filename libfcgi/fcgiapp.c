@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: fcgiapp.c,v 1.17 2000/11/05 17:37:56 robs Exp $";
+static const char rcsid[] = "$Id: fcgiapp.c,v 1.18 2000/11/05 19:04:36 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -2034,6 +2034,8 @@ int FCGX_InitRequest(FCGX_Request *request, int sock, int flags)
 
     /* @@@ Should validate against "known" flags */
     request->flags = flags;
+
+    request->ipcFd = -1;
 
     return 0;
 }
