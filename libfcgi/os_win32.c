@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.22 2001/09/04 18:44:11 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.23 2001/09/06 20:08:33 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -55,6 +55,7 @@ static HANDLE stdioHandles[3] = {INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,
 static HANDLE acceptMutex = INVALID_HANDLE_VALUE;
 
 static BOOLEAN shutdownPending = FALSE;
+static BOOLEAN shutdownNow = FALSE;
 
 /*
  * An enumeration of the file types
@@ -262,6 +263,18 @@ static void StdinThread(LPDWORD startup){
     ExitThread(0);
 }
 
+void OS_Shutdown(void)
+{
+    shutdownNow = TRUE;
+    OS_ShutdownPending();
+}
+
+void OS_ShutdownPending(void)
+{
+    shutdownPending = TRUE;
+}
+
+/* XXX Need a shutdown now event */
 static DWORD WINAPI ShutdownRequestThread(LPVOID arg)
 {
     HANDLE shutdownEvent = (HANDLE) arg;
@@ -946,6 +959,8 @@ int OS_Read(int fd, char * buf, size_t len)
 
     ASSERT((fd >= 0) && (fd < WIN32_OPEN_MAX));
 
+    if (shutdownNow) return -1;
+
     switch (fdTable[fd].type) 
     {
 	case FD_FILE_SYNC:
@@ -1006,6 +1021,8 @@ int OS_Write(int fd, char * buf, size_t len)
     int ret = -1;
 
     ASSERT(fd >= 0 && fd < WIN32_OPEN_MAX);
+
+    if (shutdownNow) return -1;
 
     switch (fdTable[fd].type) 
     {
