@@ -1,5 +1,5 @@
 //
-// $Id: fcgio.cpp,v 1.9 2001/11/21 20:18:12 robs Exp $
+// $Id: fcgio.cpp,v 1.10 2001/11/21 20:54:24 robs Exp $
 //
 // Allows you communicate with FastCGI streams using C++ iostreams
 //
@@ -49,7 +49,7 @@ void fcgi_streambuf::init(FCGX_Stream * fcgx, char * buf, int bufsize)
 {
     this->fcgx = fcgx;
     this->buf = NULL;
-    this->bufsize = NULL;
+    this->bufsize = 0;
     setbuf(buf, bufsize);    
 }
 
