@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.5 2000/11/01 14:27:49 skimo Exp $
+# $Id: Makefile.PL,v 1.6 2000/11/01 22:37:58 skimo Exp $
 
 use ExtUtils::MakeMaker;
 use IO::File;
@@ -14,9 +14,14 @@ use Cwd 'cwd';
 
 $devkit = cwd() . "/..";
 
-if (-d "$devkit/libfcgi/" && -f "$devkit/libfcgi/libfcgi.a"
+if (-d "$devkit/libfcgi/" 
     && -d "$devkit/include" && !grep {!-f "$devkit/include/$_"} (@h)) 
 {
+    unless (-f "$devkit/libfcgi/libfcgi.a") {
+	warn "Please compile the library before attempting " .
+	      "to compile the perl module.\n";
+	exit -1;
+    }
     # devkit
     $prefix = $devkit;
     push @libs, "-L$devkit/libfcgi -lfcgi";
