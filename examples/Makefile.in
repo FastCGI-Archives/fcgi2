@@ -1,35 +1,32 @@
 #
 #  Makefile for FastCGI examples directory
 #
-#  Open Market, Inc.
-#
-#  $Id: Makefile.in,v 1.8 2001/06/22 19:09:59 robs Exp $
+#  $Id: Makefile.in,v 1.9 2001/08/31 14:43:48 robs Exp $
 #
 
 SHELL = @SHELL@
-O =     @O@
-L =     @L@
-CC	= @CC@
+O     = @OBJEXT@
+L     = @L@
+CC    = @CC@
 
 INCLUDEDIR  = ../include
-CFLAGS	= @CCDEFS@ @PROFILE@ -I$(INCLUDEDIR)
-LIBS	= @LIBS@
-RANLIB	= @RANLIB@
+CFLAGS  = @CCDEFS@ -I$(INCLUDEDIR)
+LIBS    = @LIBS@
+RANLIB  = @RANLIB@
 
 LIBDIR      = ../libfcgi
-LIBFCGI	    = $(LIBDIR)/libfcgi.${L}
+LIBFCGI     = $(LIBDIR)/libfcgi.${L}
 
 INCLUDES    = $(INCLUDEDIR)/fastcgi.h    \
               $(INCLUDEDIR)/fcgiapp.h    \
-	      $(INCLUDEDIR)/fcgimisc.h   \
+              $(INCLUDEDIR)/fcgimisc.h   \
               $(INCLUDEDIR)/fcgi_stdio.h
 
-TARGETS	    = authorizer \
-	      echo \
+TARGETS     = authorizer \
+              echo \
               echo-x\
-              SampleStore/sample-store \
-              log-dump \
-              threaded
+              threaded \
+              log-dump
 
 all: $(TARGETS)
 
@@ -45,23 +42,10 @@ echo: echo.c $(INCLUDES) $(LIBFCGI)
 echo-x: echo-x.c $(INCLUDES) $(LIBFCGI)
 	$(CC) $(CFLAGS) echo-x.c -o echo-x $(LIBFCGI) $(LIBS)
 
-SampleStore/sample-store: SampleStore/sample-store.${O} SampleStore/tclHash.${O} $(LIBFCGI)
-	$(CC) $(CFLAGS) -ISampleStore SampleStore/sample-store.${O} SampleStore/tclHash.${O} -o SampleStore/sample-store $(LIBFCGI) $(LIBS)
-	[ -d SampleStore/SampleStore.state.0 ] || mkdir SampleStore/SampleStore.state.0
-	[ -d SampleStore/SampleStore.state.1 ] || mkdir SampleStore/SampleStore.state.1
-
 log-dump: log-dump.c $(INCLUDES) $(LIBFCGI)
 	$(CC) $(CFLAGS) log-dump.c -o log-dump $(LIBFCGI) $(LIBS)
 
 clean:
-	rm -rf SampleStore/SampleStore.state.?
 	rm -f *.${L} *.${O} core.* errs *~ \#* TAGS *.E a.out $(TARGETS)
 
 # ----------------------------------------------------------------------------
-
-SampleStore/sample-store.${O}: SampleStore/sample-store.c $(INCLUDES)
-	$(CC) $(CFLAGS) -ISampleStore -c SampleStore/sample-store.c -o SampleStore/sample-store.${O}
-
-SampleStore/tclHash.${O}: SampleStore/tclHash.c
-	$(CC) $(CFLAGS) -ISampleStore -c SampleStore/tclHash.c -o SampleStore/tclHash.${O}
-
