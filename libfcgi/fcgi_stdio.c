@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.10 2001/06/18 14:44:37 robs Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.11 2001/06/20 00:56:51 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -70,7 +70,7 @@ extern int pclose(FILE *stream);
 
 FCGI_FILE _fcgi_sF[3];
 
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -160,7 +160,7 @@ int FCGI_Accept(void)
     }
     return 0;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -197,7 +197,7 @@ void FCGI_Finish(void)
     FCGI_stderr->fcgx_stream = NULL;
     environ = NULL;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -216,7 +216,6 @@ void FCGI_Finish(void)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_StartFilterData(void)
 {
     if(FCGI_stdin->stdio_stream) {
@@ -225,7 +224,7 @@ int FCGI_StartFilterData(void)
         return FCGX_StartFilterData(FCGI_stdin->fcgx_stream);
     }
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -240,14 +239,13 @@ int FCGI_StartFilterData(void)
  *
  *----------------------------------------------------------------------
  */
-
 void FCGI_SetExitStatus(int status)
 {
     if(FCGI_stdin->fcgx_stream) {
         FCGX_SetExitStatus(status, FCGI_stdin->fcgx_stream);
     }
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -257,7 +255,6 @@ void FCGI_SetExitStatus(int status)
  *
  *----------------------------------------------------------------------
  */
-
 void FCGI_perror(const char *str)
 {
     FCGI_fputs(str, FCGI_stderr);
@@ -265,7 +262,7 @@ void FCGI_perror(const char *str)
     FCGI_fputs(strerror(OS_Errno), FCGI_stderr);
     return;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -279,7 +276,6 @@ void FCGI_perror(const char *str)
  *
  *----------------------------------------------------------------------
  */
-
 static FCGI_FILE *FCGI_OpenFromFILE(FILE *stream)
 {
     FCGI_FILE *fp;
@@ -296,7 +292,7 @@ static FCGI_FILE *FCGI_OpenFromFILE(FILE *stream)
 
     return fp;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -306,7 +302,6 @@ static FCGI_FILE *FCGI_OpenFromFILE(FILE *stream)
  *
  *----------------------------------------------------------------------
  */
-
 FCGI_FILE *FCGI_fopen(const char *path, const char *mode)
 {
     FILE * file = fopen(path, mode);
@@ -365,7 +360,7 @@ FCGI_FILE *FCGI_freopen(const char *path, const char *mode,
     }
     return NULL;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -389,7 +384,7 @@ void FCGI_setbuf(FCGI_FILE *fp, char *buf)
     if(fp->stdio_stream)
         setbuf(fp->stdio_stream, buf);
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -399,7 +394,6 @@ void FCGI_setbuf(FCGI_FILE *fp, char *buf)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_fseek(FCGI_FILE *fp, long offset, int whence)
 {
     if(fp->stdio_stream)
@@ -449,7 +443,7 @@ int FCGI_fsetpos(FCGI_FILE *fp, const fpos_t *pos)
     }
 }
 #endif
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -462,7 +456,6 @@ int FCGI_fsetpos(FCGI_FILE *fp, const fpos_t *pos)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_fgetc(FCGI_FILE *fp)
 {
     if(fp->stdio_stream)
@@ -485,7 +478,7 @@ int FCGI_ungetc(int c, FCGI_FILE *fp)
         return FCGX_UnGetChar(c, fp->fcgx_stream);
     return EOF;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -495,7 +488,6 @@ int FCGI_ungetc(int c, FCGI_FILE *fp)
  *
  *----------------------------------------------------------------------
  */
-
 char *FCGI_fgets(char *str, int size, FCGI_FILE *fp)
 {
     if(fp->stdio_stream)
@@ -510,7 +502,6 @@ char *FCGI_fgets(char *str, int size, FCGI_FILE *fp)
  * FILE * argument, so the following "wrapper" implements
  * gets for both FILE * and FCGX_Stream * in terms of FCGI_getchar.
  */
-
 char *FCGI_gets(char *str)
 {
     char *s;
@@ -527,11 +518,9 @@ char *FCGI_gets(char *str)
     *s = 0;
     return str;
 }
-
+
 /*
  *----------------------------------------------------------------------
- *
- * --
  *
  *       Wrappers for functions defined in H&S Section 15.8
  *
@@ -540,7 +529,6 @@ char *FCGI_gets(char *str)
  *----------------------------------------------------------------------
  */
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -553,7 +541,6 @@ char *FCGI_gets(char *str)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_fputc(int c, FCGI_FILE *fp)
 {
     if(fp->stdio_stream)
@@ -567,7 +554,7 @@ int FCGI_putchar(int c)
 {
     return FCGI_fputc(c, FCGI_stdout);
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -577,7 +564,6 @@ int FCGI_putchar(int c)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_fputs(const char *str, FCGI_FILE *fp)
 {
     if(fp->stdio_stream)
@@ -605,7 +591,7 @@ int FCGI_puts(const char *str)
     }
     return EOF;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -615,7 +601,6 @@ int FCGI_puts(const char *str)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_fprintf(FCGI_FILE *fp, const char *format, ...)
 {
     va_list ap;
@@ -638,7 +623,7 @@ int FCGI_printf(const char *format, ...)
     va_end(ap);
     return n;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -648,7 +633,6 @@ int FCGI_printf(const char *format, ...)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_vfprintf(FCGI_FILE *fp, const char *format, va_list ap)
 {
     if(fp->stdio_stream)
@@ -666,7 +650,7 @@ int FCGI_vprintf(const char *format, va_list ap)
         return FCGX_VFPrintF(FCGI_stdout->fcgx_stream, format, ap);
     return EOF;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -676,7 +660,6 @@ int FCGI_vprintf(const char *format, va_list ap)
  *
  *----------------------------------------------------------------------
  */
-
 size_t FCGI_fread(void *ptr, size_t size, size_t nmemb, FCGI_FILE *fp)
 {
     int n;
@@ -706,7 +689,7 @@ size_t FCGI_fwrite(void *ptr, size_t size, size_t nmemb, FCGI_FILE *fp)
     }
     return (size_t)EOF;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -746,7 +729,7 @@ void FCGI_clearerr(FCGI_FILE *fp)
     }
     return;
 }
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -767,7 +750,6 @@ FCGI_FILE *FCGI_tmpfile(void)
     return fcgi_file;
 }
 
-
 /*
  *----------------------------------------------------------------------
  *
@@ -777,7 +759,6 @@ FCGI_FILE *FCGI_tmpfile(void)
  *
  *----------------------------------------------------------------------
  */
-
 int FCGI_fileno(FCGI_FILE *fp)
 {
     if(fp->stdio_stream)
@@ -825,7 +806,3 @@ int FCGI_pclose(FCGI_FILE *fp)
     }
     return n;
 }
-
-/*
- *----------------------------------------------------------------------
- */
