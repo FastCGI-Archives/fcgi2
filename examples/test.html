@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>test</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+<script LANGUAGE="JavaScript">
+<!--
+function fix_action() 
+{
+    if (document.form.submit_uri.value.toString() == "")
+	{
+        alert("Enter a URI to submit too!");
+        return(false);
+    }
+    else 
+	{
+        document.form.action = document.form.submit_uri.value;
+    }
+}
+//-->
+</script>
+
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<form name="form" method="post" action="" enctype="multipart/form-data" onSubmit="return fix_action()">
+  <p>checkbox 
+    <input type="checkbox" name="checkbox" value="checkbox">
+  </p>
+  <p>radio 
+    <input type="radio" name="radio" value="on" checked>on 
+    <input type="radio" name="radio" value="off">off</p>
+  <p>menu 
+    <select name="menu">
+      <option value="1" selected>one</option>
+      <option value="2">two</option>
+      <option value="3">three</option>
+      <option value="blah">blah</option>
+    </select>
+  </p>
+  <p>file 
+    <input type="file" name="file" size="80">
+      <input type="hidden" name="hidden">
+ </p>
+  <hr>
+  <p>URI to submit to 
+    <input type="text" name="submit_uri" size="80">
+    <input type="submit" name="submit" value="Submit">
+  </p>
+  </form>
+</body>
+</html>
