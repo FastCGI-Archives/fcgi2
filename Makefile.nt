@@ -1,14 +1,14 @@
 #
 #  Windows Makefile for FastCGI development kit
 #
-#  $Id: Makefile.nt,v 1.1 2001/08/31 13:47:29 robs Exp $
+#  $Id: Makefile.nt,v 1.2 2001/09/01 00:56:45 robs Exp $
 #
 
 !IF "$(CFG)" == ""
 CFG=release
-!ENDIF 
+!ENDIF
 
-all clean:
+all: "include\fcgi_config.h"
 	cd ".\libfcgi"
 	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F libfcgi.mak     CFG=$(CFG) $@
 	
@@ -17,9 +17,29 @@ all clean:
 	
 	cd ".\..\examples"
 	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F authorizer.mak  CFG=$(CFG) $@
-	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echo.mak 	   	 CFG=$(CFG) $@
-	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echox.mak 	     CFG=$(CFG) $@
-	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F size.mak 	     CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echo.mak        CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echox.mak       CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F size.mak        CFG=$(CFG) $@
+
+	cd ".\.."
+
+"include\fcgi_config.h": "include\fcgi_config_x86.h"
+	copy /Y "include\fcgi_config_x86.h" "include\fcgi_config.h"
+
+clean:
+	cd ".\libfcgi"
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F libfcgi.mak     CFG=$(CFG) $@
+	
+	cd ".\..\cgi-fcgi"
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F cgi-fcgi.mak    CFG=$(CFG) $@
+	
+	cd ".\..\examples"
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F authorizer.mak  CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echo.mak        CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F echox.mak       CFG=$(CFG) $@
+	$(MAKE) /$(MAKEFLAGS) /NOLOGO /F size.mak        CFG=$(CFG) $@
+
+	cd ".\.."
 	
 install:
 	@echo "Sorry, the install target hasn't been written yet"
