@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.21 2000/12/31 21:46:58 skimo Exp $
+# $Id: FCGI.PL,v 1.22 2000/12/31 21:56:10 skimo Exp $
 
 package FCGI;
 
@@ -21,7 +21,7 @@ require DynaLoader;
 	
 );
 
-$VERSION = '0.58';
+$VERSION = '0.59';
 
 EOP
 

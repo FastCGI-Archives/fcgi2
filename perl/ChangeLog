@@ -1,3 +1,6 @@
+Version 0.59 --	31 December 2000   <skimo@kotnet.org> Sven Verdoolaege
+
+	o preliminary pure perl implementation
 	o copy win32 configuration file instead of moving it
 	o convert echo.fpl to new interface
 
