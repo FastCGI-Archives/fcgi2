@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.25 2001/06/07 13:17:56 skimo Exp $
+# $Id: FCGI.PL,v 1.26 2001/08/22 17:20:20 skimo Exp $
 
 package FCGI;
 
@@ -261,8 +261,9 @@ __END__
 
 *FAIL_ACCEPT_ON_INTR = sub() { 1 };
 
-sub Request(;***$$$) {
+sub Request(;***$*$) {
     my @defaults = (\*STDIN, \*STDOUT, \*STDERR, \%ENV, 0, 0);
+    $_[4] = fileno($_[4]) if defined(fileno($_[4]));
     splice @defaults,0,@_,@_;
     RequestX(@defaults);
 }
