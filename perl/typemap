@@ -1,6 +1,6 @@
 TYPEMAP
 FCGI	T_FCGIOBJNOMUNGE
-FCGI::Request T_FCGIREQUEST
+FCGI::Stream T_FCGISTREAM
 
 INPUT
 T_FCGIOBJNOMUNGE
@@ -8,8 +8,8 @@ T_FCGIOBJNOMUNGE
 	$var = ($type) SvIV((SV*)SvRV($arg));
     } else
 	croak(\"$var is not of type ${ntype}\")
-T_FCGIREQUEST
-    if (sv_isa($arg, \"FCGI::Request\")) {
+T_FCGISTREAM
+    if (sv_isa($arg, \"FCGI::Stream\")) {
 	$var = ($type) SvIV((SV*)SvRV($arg));
     } else
 	croak(\"$var is not of type ${ntype}\")
