@@ -6,7 +6,7 @@ open OUT, ">FCGI.pm";
 
 print "Generating FCGI.pm\n";
 print OUT <<'EOP';
-# $Id: FCGI.PL,v 1.29 2001/09/20 11:07:36 skimo Exp $
+# $Id: FCGI.PL,v 1.30 2001/09/20 12:00:23 skimo Exp $
 
 package FCGI;
 
@@ -83,6 +83,7 @@ sub RequestX {
 	env => shift,
 	socket => shift,
 	flags => shift,
+	last => 0,
     };
     open $self->{listen_sock}, "<&=0";
     bless $self, "FCGI";
@@ -101,7 +102,7 @@ sub Accept {
     }
     $req->Finish();
     $req->{socket} = gensym();
-    if (!accept($req->{socket}, $req->{listen_sock})) {
+    if ($req->{last} || !accept($req->{socket}, $req->{listen_sock})) {
 	$req->{error} = "accept";
 	return -1;
     }
@@ -167,6 +168,10 @@ sub Finish {
 	close ${$req->{err}};
     }
     $req->{accepted} = 0;
+}
+
+sub LastCall {
+    shift->{last} = 1;
 }
 
 sub DESTROY {
@@ -519,6 +524,14 @@ Temporarily detaches filehandles on an accepted connection.
 =item $req->Attach()
 
 Re-attaches filehandles on an accepted connection.
+
+=item $req->LastCall()
+
+Tells the library not to accept any more requests on this handle.
+It should be safe to call this method from signal handlers.
+
+Note that this method is still experimental and everything
+about it, including its name, is subject to change.
 
 =item $env = $req->GetEnvironment()
 

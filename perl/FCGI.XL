@@ -12,7 +12,7 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.XL,v 1.5 2001/09/20 11:03:41 skimo Exp $ */
+/* $Id: FCGI.XL,v 1.6 2001/09/20 12:00:24 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -456,7 +456,6 @@ FCGI_IsFastCGI(request)
 
 void
 Detach(request)
-
     FCGI    request;
 
     PROTOTYPE: $
@@ -467,7 +466,6 @@ Detach(request)
 
 void
 Attach(request)
-
     FCGI    request;
 
     PROTOTYPE: $
@@ -476,6 +474,14 @@ Attach(request)
     if (request->accepted && !request->bound)
 	FCGI_Bind(request);
 
+void
+LastCall(request)
+    FCGI    request;
+
+    PROTOTYPE: $
+
+    CODE:
+    FCGX_ShutdownPending();
 
 int
 FCGI_StartFilterData(request)
