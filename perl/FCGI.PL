@@ -12,12 +12,13 @@ unless ($] >= 5.005) {
 print OUT while <DATA>;
 close OUT;
 __END__
-/* $Id: FCGI.PL,v 1.9 1999/07/31 21:54:46 skimo Exp $ */
+/* $Id: FCGI.PL,v 1.10 1999/08/03 15:52:53 skimo Exp $ */
 
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
 
+#include "fcgi_config.h"
 #include "fcgiapp.h"
 
 #ifndef FALSE
@@ -26,6 +27,10 @@ __END__
 
 #ifndef TRUE
 #define TRUE  (1)
+#endif
+
+#ifndef dTHX
+#define dTHX
 #endif
 
 #ifdef USE_SFIO
@@ -85,9 +90,12 @@ sfdcdelfcgi(disc)
 
 static int isCGI = -1; /* -1: not checked; 0: FCGI; 1: FCGI */
 
+#if defined(USE_LOCKING) && defined(USE_THREADS)
+static perl_mutex   accept_mutex;
+#endif
+
 typedef struct FCGP_Request {
-    int		    acceptCalled;
-    int		    finishCalled;
+    int		    bound;
     SV*		    svin;
     SV*		    svout;
     SV*		    sverr;
@@ -104,7 +112,9 @@ typedef struct FCGP_Request {
 static int 
 FCGI_Flush(FCGP_Request* request)
 {
-    if(!request->acceptCalled || isCGI) {
+    dTHX;
+
+    if(!request->bound) {
 	return;
     }
 #ifdef USE_SFIO
@@ -123,6 +133,7 @@ FCGI_UndoBinding(FCGP_Request* request)
     IO *io[3];
     int i;
 #endif
+    dTHX;
 
 #ifdef USE_SFIO
     sfdcdelfcgi(sfdisc(IoIFP(io[0] = GvIOp(request->gv[0])), SF_POPDISC));
@@ -141,11 +152,39 @@ FCGI_UndoBinding(FCGP_Request* request)
     sv_unmagic((SV *)request->gv[1], 'q');
     sv_unmagic((SV *)request->gv[2], 'q');
 #endif
+    request->in = NULL;
+    FCGX_Finish_r(request->requestPtr);
+    request->bound = FALSE;
+}
+
+static void
+populate_env(envp, hv)
+char **envp;
+HV *hv;
+{
+    int i;
+    char *p, *p1;
+    SV   *sv;
+    dTHX;
+
+    for(i = 0; ; i++) {
+	if((p = envp[i]) == NULL) {
+	    break;
+	}
+	p1 = strchr(p, '=');
+	assert(p1 != NULL);
+	sv = newSVpv(p1 + 1, 0);
+	/* call magic for this value ourselves */
+	hv_store(hv, p, p1 - p, sv, 0);
+	SvSETMAGIC(sv);
+    }
 }
 
 static int 
 FCGI_Accept(FCGP_Request* request)
 {
+    dTHX;
+
     if(isCGI == -1) {
         /*
          * First call to FCGI_Accept.  Is application running
@@ -159,9 +198,6 @@ FCGI_Accept(FCGP_Request* request)
          */
         return(EOF);
     } 
-    if(request->acceptCalled && !request->finishCalled) {
-	FCGI_UndoBinding(request);
-    }
     if(!isCGI) {
 #ifdef USE_SFIO
 	IO *io[3];
@@ -169,8 +205,19 @@ FCGI_Accept(FCGP_Request* request)
 #endif
 	FCGX_Stream *out, *error;
 	FCGX_ParamArray envp;
-        int acceptResult = FCGX_Accept_r(&request->in, &out, &error, 
+        int acceptResult;
+
+	if(request->bound) {
+	    FCGI_UndoBinding(request);
+	}
+#if defined(USE_LOCKING) && defined(USE_THREADS)
+	MUTEX_LOCK(&accept_mutex);
+#endif
+	acceptResult = FCGX_Accept_r(&request->in, &out, &error, 
 					 &envp, request->requestPtr);
+#if defined(USE_LOCKING) && defined(USE_THREADS)
+	MUTEX_UNLOCK(&accept_mutex);
+#endif
         if(acceptResult < 0) {
             return acceptResult;
         }
@@ -207,22 +254,20 @@ FCGI_Accept(FCGP_Request* request)
 	sv_setiv(SvRV(request->sverr), (IV) error);
 	sv_setiv(SvRV(request->svin), (IV) request->in);
 #endif
-	request->finishCalled = FALSE;
+	request->bound = TRUE;
     }
-    request->acceptCalled = TRUE;
     return 0;
 }
 
 static void 
 FCGI_Finish(FCGP_Request* request)
 {
-    if(!request->acceptCalled || isCGI) {
+    dTHX;
+
+    if(!request->bound) {
 	return;
     }
     FCGI_UndoBinding(request);
-    request->in = NULL;
-    FCGX_Finish_r(request->requestPtr);
-    request->finishCalled = TRUE;
 }
 
 static int 
@@ -258,25 +303,13 @@ FCGI_Release_Request(FCGP_Request *req)
 }
 
 static void
-populate_env(envp, hv)
-char **envp;
-HV *hv;
+FCGI_Init()
 {
-    int i;
-    char *p, *p1;
-    SV   *sv;
+#if defined(USE_LOCKING) && defined(USE_THREADS)
+    dTHX;
 
-    for(i = 0; ; i++) {
-	if((p = envp[i]) == NULL) {
-	    break;
-	}
-	p1 = strchr(p, '=');
-	assert(p1 != NULL);
-	sv = newSVpv(p1 + 1, 0);
-	/* call magic for this value ourselves */
-	hv_store(hv, p, p1 - p, sv, 0);
-	SvSETMAGIC(sv);
-    }
+    MUTEX_INIT(&accept_mutex);
+#endif
 }
 
 typedef FCGX_Stream *	FCGI__Stream;
@@ -286,13 +319,15 @@ typedef	HV*		HASHREF;
 
 MODULE = FCGI		PACKAGE = FCGI
 
+BOOT:
+    FCGI_Init();
 
 SV *
 Request()
 
     PROTOTYPE:
     CODE:
-    RETVAL = Perl_sv_setref_pv(Perl_newSV(0), "FCGI", FCGI_Request());
+    RETVAL = sv_setref_pv(newSV(0), "FCGI", FCGI_Request());
 
     OUTPUT:
     RETVAL
