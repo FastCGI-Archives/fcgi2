@@ -1,13 +1,26 @@
-dnl     $Id: configure.in,v 1.3 2001/08/30 02:16:51 robs Exp $
+dnl     $Id: configure.in,v 1.4 2001/08/30 22:13:01 robs Exp $
 dnl
 dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
-dnl
+
+# This file and the script it generates is used by both the devkit
+# and the Perl FCGI module.  Although each has slightly different
+# requirements, this allows the build environment to maintained by one
+# file set.  The FCGI build is idendified by the presence of the
+# file FCGI.XL.  If its not found, its consider a devkit build.
 
 AC_INIT
-AC_CONFIG_HEADER(include/fcgi_config.h)
-AC_CONFIG_SRCDIR(LICENSE.TERMS)
+
+if test -f "FCGI.XL"; then
+	FCGI_BUILD='true'
+fi
+
+if test "$FCGI_BUILD"; then
+	AC_CONFIG_HEADER(fcgi_config.h)
+else
+	AC_CONFIG_HEADER(include/fcgi_config.h)
+fi
 
 AC_PROG_CC
 AC_PROG_CPP 
@@ -25,6 +38,8 @@ AC_CHECK_LIB([dnet_stub],[main],[],[],[])ac_cv_lib_dnet_stub=ac_cv_lib_dnet_stub
 	
 AC_CHECK_LIB([ieee],[main],[],[],[])ac_cv_lib_ieee=ac_cv_lib_ieee_main
 	
+AC_CHECK_TYPE(ssize_t, int) 
+
 AC_MSG_CHECKING(for sun_len in sys/un.h)
 AC_EGREP_HEADER(sun_len,
    sys/un.h,
@@ -91,22 +106,36 @@ AC_TRY_COMPILE([#include <stdarg.h>],
    AC_DEFINE(HAVE_VA_ARG_LONG_DOUBLE_BUG)
    AC_MSG_RESULT(yes))
 
-#--------------------------------------------------------------------
-#  What's the target system?
-#--------------------------------------------------------------------
-case "$PLATFORM_CLASS" in
-    WINDOWS)	
-	SYSTEM="win32"
-    ;;
-    UNIX)	
-	SYSTEM="unix"
-    ;;
-esac
+AC_C_CONST 
+AC_C_INLINE
 
+#--------------------------------------------------------------------
+#  This is a little hokie in that it avoids including config.guess
+#  and config.sub in the distribution, but its been working so far.
+#  Windows builds don't run configure so we should be safe fixing
+#  this to 'unix' (at least for now).
+#--------------------------------------------------------------------
+
+SYSTEM=unix
 AC_SUBST(SYSTEM)
-AC_CONFIG_FILES([Makefile FastCGI.mak
-	  libfcgi/Makefile libfcgi/libfcgi.mak
-	  cgi-fcgi/Makefile cgi-fcgi/cgi-fcgi.mak
- 	  examples/Makefile ])
+
+L=a
+AC_SUBST(L)
+
+if test "$GCC"; then
+	CCDEFS="$CCDEFS -ansi -pedantic -Wall -Wmissing-prototypes"
+fi
+
+AC_SUBST(CCDEFS)
+
+AC_OBJEXT 
+
+if test -z "$FCGI_BUILD"; then
+	AC_CONFIG_FILES([Makefile 
+					 libfcgi/Makefile 
+					 cgi-fcgi/Makefile 
+					 examples/Makefile])
+fi
+
 AC_OUTPUT
 
