@@ -18,6 +18,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
+#include <signal.h>
 
 #include "fcgi_config.h"
 
@@ -582,7 +584,7 @@ static void FCGIUtil_BuildNameValueHeader(
 #define MAXARGS	16
 static int ParseArgs(int argc, char *argv[],
         int *doBindPtr, int *doStartPtr,
-        char *connectPathPtr, char *appPathPtr, int *nServersPtr) {
+        char *connectPathPtr, char *appPathPtr, int *nServersPtr, int *doDaemonPtr) {
     int	    i,
 	    x,
 	    err = 0,
@@ -598,6 +600,7 @@ static int ParseArgs(int argc, char *argv[],
     *connectPathPtr = '\0';
     *appPathPtr = '\0';
     *nServersPtr = 0;
+    *doDaemonPtr = TRUE;
 
     for(i = 0; i < MAXARGS; i++)
         av[i] = NULL;
@@ -649,7 +652,7 @@ static int ParseArgs(int argc, char *argv[],
 		}
 		fclose(fp);
 		err = ParseArgs(ac, av, doBindPtr, doStartPtr,
-                        connectPathPtr, appPathPtr, nServersPtr);
+                        connectPathPtr, appPathPtr, nServersPtr, doDaemonPtr);
 		for(x = 1; x < ac; x++) {
 		    ASSERT(av[x] != NULL);
 		    free(av[x]);
@@ -679,6 +682,8 @@ static int ParseArgs(int argc, char *argv[],
                 			MAXPATHLEN, argv[i]);
                 	err++;
             	}
+	    } else if(!strcmp(argv[i], "-supervise")) {
+		*doDaemonPtr = FALSE;
 	    } else {
 		fprintf(stderr, "Unknown option %s\n", argv[i]);
 		err++;
@@ -732,7 +737,16 @@ static int ParseArgs(int argc, char *argv[],
     }
     return err;
 }
-
+
+void handle_shutdown(int s)
+{
+    /* Kill our children processes */
+    signal(s, SIG_IGN);
+    kill(0, s);
+
+    exit(0);
+}
+
 int main(int argc, char **argv)
 {
     char **envp = environ;
@@ -742,20 +756,22 @@ int main(int argc, char **argv)
     int headerLen, valueLen;
     char *equalPtr;
     FCGI_BeginRequestRecord beginRecord;
-    int	doBind, doStart, nServers;
+    int	doBind, doStart, nServers, doDaemon;
     char appPath[MAXPATHLEN], bindPath[MAXPATHLEN];
+    int pid;
 
     if(ParseArgs(argc, argv, &doBind, &doStart,
-		   (char *) &bindPath, (char *) &appPath, &nServers)) {
+		   (char *) &bindPath, (char *) &appPath, &nServers, &doDaemon)) {
 	fprintf(stderr,
 "Usage:\n"
 "    cgi-fcgi -f <cmdPath> , or\n"
 "    cgi-fcgi -connect <connName> <appPath> [<nServers>] , or\n"
-"    cgi-fcgi -start -connect <connName> <appPath> [<nServers>] , or\n"
+"    cgi-fcgi -start -connect [-supervise] <connName> <appPath> [<nServers>] , or\n"
 "    cgi-fcgi -bind -connect <connName> ,\n"
 "where <connName> is either the pathname of a UNIX domain socket\n"
 "or (if -bind is given) a hostName:portNumber specification\n"
-"or (if -start is given) a :portNumber specification (uses local host).\n");
+"or (if -start is given) a :portNumber specification (uses local host).\n"
+"-supervise is for running with runit or daemontools.\n");
 	exit(1);
     }
 
@@ -771,12 +787,27 @@ int main(int argc, char **argv)
         bytesToRead = 0;
     }
 
+    /* Become a process group leader */
+    setsid();
+
+    /* Register our signal handler */
+    signal(SIGHUP, handle_shutdown);
+    signal(SIGINT, handle_shutdown);
+    signal(SIGTERM, handle_shutdown);
+
     if(doBind) {
         appServerSock = OS_FcgiConnect(bindPath);
     }
     if(doStart && (!doBind || appServerSock < 0)) {
         FCGI_Start(bindPath, appPath, nServers);
         if(!doBind) {
+            if(!doDaemon) {
+                for(pid=nServers; pid != 0; pid--) {
+                    wait(0);
+                }
+            }
+            signal(SIGTERM, SIG_IGN);
+            kill(0, SIGTERM);
             exit(0);
         } else {
             appServerSock = OS_FcgiConnect(bindPath);
