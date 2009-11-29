@@ -1,3 +1,11 @@
+    o Add FILENO method which returns a defined but invalid value to
+      placate things such as IPC::Run which call fileno to check if a
+      filehandle is open.
+      Closes bugs:
+      http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=544540
+      http://rt.cpan.org/Public/Bug/Display.html?id=50972
+      Removes need for upstream patch in OpenBSD
+
 Version 0.68 --	21 June 2003   <skimo@kotnet.org> Sven Verdoolaege
 
 	o Call the fcgi lib's attach/detach <robs@fastcgi.com>

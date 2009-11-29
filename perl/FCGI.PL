@@ -390,10 +390,11 @@ sub OPEN {
     }
 }
 
-# Apparently some use fileno to determine if a filehandle is open,
-# so we might want to return a defined, but meaningless value.
-# An alternative would be to return the fcgi stream fd.
-# sub FILENO { -2 }
+# Some things (e.g. IPC::Run) use fileno to determine if a filehandle is open,
+# so we return a defined, but meaningless value. (-1 being the error return
+# value from the syscall in c, meaning it can never be a valid fd no)
+# Probably a better alternative would be to return the fcgi stream fd.
+sub FILENO { -1 }
 
 1;
 
