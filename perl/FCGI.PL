@@ -19,7 +19,7 @@ require DynaLoader;
 # names by default without a very good reason. Use EXPORT_OK instead.
 # Do not simply export all your public functions/methods/constants.
 @EXPORT = qw(
-	
+
 );
 
 EOP
@@ -121,7 +121,7 @@ sub Accept {
     $req->{env}{FCGI_ROLE} = $FCGI::rolenames{$req->{role}};
     my $param = FCGI::Stream->new($req, PARAMS);
     my ($nlen, $vlen);
-    while (defined($nlen = read_nv_len($param)) && 
+    while (defined($nlen = read_nv_len($param)) &&
 	   defined($vlen = read_nv_len($param))) {
 	my ($name, $val);
 	read $param, $name, $nlen;
@@ -202,7 +202,7 @@ sub read {
 	}
 	$self->{buf} .= $buf;
     }
-    my ($newbuf, $result) = (substr($self->{buf}, $len), 
+    my ($newbuf, $result) = (substr($self->{buf}, $len),
 			     substr($self->{buf}, 0, $len));
     $self->{buf} = $newbuf;
     $result;
@@ -225,8 +225,8 @@ sub write_record {
 	my $len = $length > 32*1024 ? 32*1024 : $length;
 	my $padlen = (8 - ($len % 8)) % 8;
 	my $templ = "CCnnCxa${len}x$padlen";
-	my $data = pack($templ, 
-			VERSION_1, $type, $self->{id}, $len, $padlen, 
+	my $data = pack($templ,
+			VERSION_1, $type, $self->{id}, $len, $padlen,
 			substr($content, $offset, $len));
 	syswrite $self->{socket}, $data;
 	$length -= $len;
@@ -366,7 +366,7 @@ sub READLINE {
 
     $c = $stream->GETC();
     if ($/ eq '') {
-	while ($c eq "\n") { 
+	while ($c eq "\n") {
 	    $c = $stream->GETC();
 	}
     }
@@ -448,7 +448,7 @@ that should be passed. This may change in the future.
 
 You should only use your own socket if your program
 is not started by a process manager such as mod_fastcgi
-(except for the FastCgiExternalServer case) or cgi-fcgi. 
+(except for the FastCgiExternalServer case) or cgi-fcgi.
 If you use the option, you have to let your FastCGI
 server know which port (and possibly server) your program
 is listening on.
