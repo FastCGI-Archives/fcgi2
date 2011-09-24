@@ -291,14 +291,14 @@ sub Request(;***$*$) {
 
 sub accept() {
     warn "accept called as a method; you probably wanted to call Accept" if @_;
-    if (defined %FCGI::ENV) {
-	%ENV = %FCGI::ENV;
+    if ( defined($FCGI::ENV) ) {
+        %ENV = %$FCGI::ENV;
     } else {
-	%FCGI::ENV = %ENV;
+        $FCGI::ENV = {%ENV};
     }
     my $rc = Accept($global_request);
-    for (keys %FCGI::ENV) {
-	$ENV{$_} = $FCGI::ENV{$_} unless exists $ENV{$_};
+    for (keys %$FCGI::ENV) {
+        $ENV{$_} = $FCGI::ENV->{$_} unless exists $ENV{$_};
     }
 
     # not SFIO
@@ -310,7 +310,7 @@ sub accept() {
 
 sub finish() {
     warn "finish called as a method; you probably wanted to call Finish" if @_;
-    %ENV = %FCGI::ENV if (defined %FCGI::ENV);
+    %ENV = %$FCGI::ENV if defined($FCGI::ENV);
 
     # not SFIO
     if (tied (*STDIN)) {
