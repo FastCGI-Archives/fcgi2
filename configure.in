@@ -5,7 +5,7 @@ dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
 
 AC_INIT
-AM_INIT_AUTOMAKE(fcgi, 2.4.1)
+AM_INIT_AUTOMAKE(fcgi, 2.4.1-SNAP-0910052249)
 
 AM_CONFIG_HEADER(fcgi_config.h)
 

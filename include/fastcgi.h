@@ -9,7 +9,7 @@
  * See the file "LICENSE.TERMS" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * $Id: fastcgi.h,v 1.1 1997/09/16 15:36:32 stanleyg Exp $
+ * $Id: fastcgi.h,v 1.1.1.1 1997/09/16 15:36:32 stanleyg Exp $
  */
 
 #ifndef _FASTCGI_H

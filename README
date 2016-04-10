@@ -1,7 +1,7 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.24 2004/01/31 17:47:06 robs Exp $
+    $Id: README,v 1.28 2009/10/05 23:34:48 robs Exp $
     Copyright (c) 1996 Open Market, Inc.
     See the file "LICENSE.TERMS" for information on usage and redistribution
     of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,18 @@ CHANGES
 
 For more detail regarding changes, please consult the cvs log available 
 on http://fastcgi.com/.
+
+ *) [*nix] Install a default SIGTERM handler if one hasn't been installed.
+    Based on a patch by [stephan dot jaeger at ewetel dot de] 
+
+ *) WIN: Don't stomp on a byte we don't own in OS_FcgiConnect().
+    Jay Sprenkle [jsprenkle at gmail.com]
+
+ *) MacOSX: define environ as (*_NSGetEnviron()) (available in crt_externs.h).
+    Rasmus Andersson [rasmus at flajm.com]
+
+ *) cgi-fcgi.c: Close the file descriptor opened for "-f" handling.
+    Kornél Pál [kornelpal at gmail.com]
 
 2.4.1
 -----

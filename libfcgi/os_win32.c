@@ -17,7 +17,7 @@
  *  significantly more enjoyable.)
  */
 #ifndef lint
-static const char rcsid[] = "$Id: os_win32.c,v 1.35 2004/01/31 17:47:07 robs Exp $";
+static const char rcsid[] = "$Id: os_win32.c,v 1.36 2009/09/28 01:09:57 robs Exp $";
 #endif /* not lint */
 
 #define WIN32_LEAN_AND_MEAN 
@@ -822,10 +822,9 @@ int OS_FcgiConnect(char *bindPath)
         if (*bindPath != ':')
         {
             char * p = strchr(bindPath, ':');
-            int len = p - bindPath + 1;
-
-            host = malloc(len);
-            strncpy(host, bindPath, len);
+            int len = p - bindPath;
+            host = malloc(len + 1);
+            memcpy(host, bindPath, len);
             host[len] = '\0';
         }
         

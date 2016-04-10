@@ -17,7 +17,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: os_unix.c,v 1.38 2003/06/22 00:16:43 robs Exp $";
+static const char rcsid[] = "$Id: os_unix.c,v 1.40 2009/10/05 23:34:50 robs Exp $";
 #endif /* not lint */
 
 #include "fcgi_config.h"
@@ -124,8 +124,7 @@ static void installSignalHandler(int signo, const struct sigaction * act, int fo
 
     sigaction(signo, NULL, &sa);
 
-    if (force || sa.sa_handler == SIG_DFL) 
-    {
+    if (force || sa.sa_handler == SIG_DFL || sa.sa_handler == SIG_IGN) {
         sigaction(signo, act, NULL);
     }
 }
@@ -142,6 +141,8 @@ static void OS_InstallSignalHandlers(int force)
 
     sa.sa_handler = OS_Sigusr1Handler;
     installSignalHandler(SIGUSR1, &sa, force);
+    
+    installSignalHandler(SIGTERM, &sa, 0);
 }
 
 /*
@@ -284,32 +285,41 @@ union SockAddrUnion {
  */
 int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 {
-    int listenSock, servLen;
+    int listenSock, len;
     union   SockAddrUnion sa;  
-    int	    tcp = FALSE;
     unsigned long tcp_ia = 0;
     char    *tp;
     short   port = 0;
     char    host[MAXPATHLEN];
 
-    strcpy(host, bindPath);
-    if((tp = strchr(host, ':')) != 0) {
-	*tp++ = 0;
-	if((port = atoi(tp)) == 0) {
+    len = strlen(bindPath);
+    if (len >= MAXPATHLEN) {
+    	fprintf(stderr, "bind path too long (>=%d): %s\n", 
+    			MAXPATHLEN, bindPath);
+    	exit(1);
+    }
+    memcpy(host, bindPath, len + 1);
+    
+    tp = strchr(host, ':');
+    if (tp) {
+		*tp = 0;
+		port = atoi(++tp);
+		if (port == 0) {
 	    *--tp = ':';
-	 } else {
-	    tcp = TRUE;
 	 }
     }
-    if(tcp) {
+    
+    if (port) {
       if (!*host || !strcmp(host,"*")) {
 	tcp_ia = htonl(INADDR_ANY);
-      } else {
+		} 
+    	else {
 	tcp_ia = inet_addr(host);
 	if (tcp_ia == INADDR_NONE) {
-	  struct hostent * hep;
-	  hep = gethostbyname(host);
-	  if ((!hep) || (hep->h_addrtype != AF_INET || !hep->h_addr_list[0])) {
+				struct hostent * hep = gethostbyname(host);
+				if ((!hep) || (hep->h_addrtype != AF_INET
+						|| !hep->h_addr_list[0])) 
+				{
 	    fprintf(stderr, "Cannot resolve host name %s -- exiting!\n", host);
 	    exit(1);
 	  }
@@ -321,21 +331,22 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 	  tcp_ia = ((struct in_addr *) (hep->h_addr))->s_addr;
 	}
       }
-    }
 
-    if(tcp) {
 	listenSock = socket(AF_INET, SOCK_STREAM, 0);
         if(listenSock >= 0) {
             int flag = 1;
             if(setsockopt(listenSock, SOL_SOCKET, SO_REUSEADDR,
-                          (char *) &flag, sizeof(flag)) < 0) {
+					(char *) &flag, sizeof(flag)) < 0) 
+			{
                 fprintf(stderr, "Can't set SO_REUSEADDR.\n");
 	        exit(1001);
 	    }
 	}
-    } else {
+    } 
+    else {
 	listenSock = socket(AF_UNIX, SOCK_STREAM, 0);
     }
+    
     if(listenSock < 0) {
         return -1;
     }
@@ -343,21 +354,24 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
     /*
      * Bind the listening socket.
      */
-    if(tcp) {
+    if (port) {
 	memset((char *) &sa.inetVariant, 0, sizeof(sa.inetVariant));
 	sa.inetVariant.sin_family = AF_INET;
 	sa.inetVariant.sin_addr.s_addr = tcp_ia;
 	sa.inetVariant.sin_port = htons(port);
-	servLen = sizeof(sa.inetVariant);
-    } else {
+		len = sizeof(sa.inetVariant);
+    } 
+    else {
 	unlink(bindPath);
-	if(OS_BuildSockAddrUn(bindPath, &sa.unixVariant, &servLen)) {
+		if (OS_BuildSockAddrUn(bindPath, &sa.unixVariant, &len)) {
 	    fprintf(stderr, "Listening socket's path name is too long.\n");
 	    exit(1000);
 	}
     }
-    if(bind(listenSock, (struct sockaddr *) &sa.unixVariant, servLen) < 0
-       || listen(listenSock, backlog) < 0) {
+    
+    if (bind(listenSock, (struct sockaddr *) &sa.unixVariant, len) < 0
+    		|| listen(listenSock, backlog) < 0) 
+    {
 	perror("bind/listen");
         exit(errno);
     }
@@ -388,35 +402,43 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 int OS_FcgiConnect(char *bindPath)
 {
     union   SockAddrUnion sa;
-    int servLen, resultSock;
+    int len, resultSock;
     int connectStatus;
     char    *tp;
     char    host[MAXPATHLEN];
     short   port = 0;
-    int	    tcp = FALSE;
 
-    strcpy(host, bindPath);
-    if((tp = strchr(host, ':')) != 0) {
-	*tp++ = 0;
-	if((port = atoi(tp)) == 0) {
+    len = strlen(bindPath);
+    if (len >= MAXPATHLEN) {
+    	fprintf(stderr, "bind path too long (>=%d): %s\n", 
+    			MAXPATHLEN, bindPath);
+    	exit(1);
+    }
+    memcpy(host, bindPath, len + 1);
+    
+    tp = strchr(host, ':');
+    if (tp) {
+    	*tp = 0;
+    	port = atoi(++tp);
+    	if (port == 0) {
 	    *--tp = ':';
-	 } else {
-	    tcp = TRUE;
 	 }
     }
-    if(tcp == TRUE) {
-	struct	hostent	*hp;
-	if((hp = gethostbyname((*host ? host : "localhost"))) == NULL) {
-	    fprintf(stderr, "Unknown host: %s\n", bindPath);
+    
+    if (port) {
+		struct hostent *hp = gethostbyname(*host ? host : "localhost");
+		if (hp == NULL) {
+		    fprintf(stderr, "Unknown host: %s\n", host);
 	    exit(1000);
 	}
 	sa.inetVariant.sin_family = AF_INET;
 	memcpy(&sa.inetVariant.sin_addr, hp->h_addr, hp->h_length);
 	sa.inetVariant.sin_port = htons(port);
-	servLen = sizeof(sa.inetVariant);
+		len = sizeof(sa.inetVariant);
 	resultSock = socket(AF_INET, SOCK_STREAM, 0);
-    } else {
-	if(OS_BuildSockAddrUn(bindPath, &sa.unixVariant, &servLen)) {
+    } 
+    else {
+		if (OS_BuildSockAddrUn(bindPath, &sa.unixVariant, &len)) {
 	    fprintf(stderr, "Listening socket's path name is too long.\n");
 	    exit(1000);
 	}
@@ -425,10 +447,11 @@ int OS_FcgiConnect(char *bindPath)
 
     ASSERT(resultSock >= 0);
     connectStatus = connect(resultSock, (struct sockaddr *) &sa.unixVariant,
-                             servLen);
+                             len);
     if(connectStatus >= 0) {
         return resultSock;
-    } else {
+    } 
+    else {
         /*
          * Most likely (errno == ENOENT || errno == ECONNREFUSED)
          * and no FCGI application server is running.
@@ -924,11 +947,11 @@ int OS_DoIo(struct timeval *tmo)
  */
 static char * str_dup(const char * str)
 {
-    char * sdup = (char *) malloc(strlen(str) + 1);
-
-    if (sdup)
-        strcpy(sdup, str);
-
+	int len = strlen(str) + 1;
+    char * sdup = (char *) malloc(len);
+    if (sdup) {
+        memcpy(sdup, str, len);
+    }
     return sdup;
 }
 

@@ -11,7 +11,7 @@
  *
  */
 #ifndef lint
-static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.16 2003/06/22 02:02:33 robs Exp $";
+static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.20 2009/10/06 01:31:59 robs Exp $";
 #endif /* not lint */
 
 #include <assert.h>
@@ -31,6 +31,9 @@ static const char rcsid[] = "$Id: cgi-fcgi.c,v 1.16 2003/06/22 02:02:33 robs Exp
 #ifdef _WIN32
 #include <stdlib.h>
 #include <io.h>
+#elif defined(__APPLE__)
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
 #else
 extern char **environ;
 #endif
@@ -647,6 +650,7 @@ static int ParseArgs(int argc, char *argv[],
 			tp1 = tp2;
 		    }
 		}
+		fclose(fp);
 		err = ParseArgs(ac, av, doBindPtr, doStartPtr,
                         connectPathPtr, appPathPtr, nServersPtr);
 		for(x = 1; x < ac; x++) {
@@ -669,16 +673,31 @@ static int ParseArgs(int argc, char *argv[],
 	            fprintf(stderr,
                             "Missing connection name after -connect\n");
                     err++;
-                } else {
+                } 
+                else if (strlen(argv[i]) < MAXPATHLEN) {
                     strcpy(connectPathPtr, argv[i]);
                 }
+            	else {
+                	fprintf(stderr, "bind path too long (>=%d): %s\n", 
+                			MAXPATHLEN, argv[i]);
+                	err++;
+            	}
 	    } else {
 		fprintf(stderr, "Unknown option %s\n", argv[i]);
 		err++;
 	    }
-	} else if(*appPathPtr == '\0') {
+	} 
+        else if (*appPathPtr == '\0') {
+            if (strlen(argv[i]) < MAXPATHLEN) {
             strcpy(appPathPtr, argv[i]);
-        } else if(isdigit((int)argv[i][0]) && *nServersPtr == 0) {
+        	}
+        	else {
+            	fprintf(stderr, "bind path too long (>=%d): %s\n", 
+            			MAXPATHLEN, argv[i]);
+            	err++;
+        	}
+        } 
+        else if(isdigit((int)argv[i][0]) && *nServersPtr == 0) {
             *nServersPtr = atoi(argv[i]);
             if(*nServersPtr <= 0) {
                 fprintf(stderr, "Number of servers must be greater than 0\n");

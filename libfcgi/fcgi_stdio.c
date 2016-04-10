@@ -12,7 +12,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.14 2001/09/01 01:09:30 robs Exp $";
+static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.15 2009/09/28 00:46:30 robs Exp $";
 #endif /* not lint */
 
 #include <errno.h>  /* for errno */
@@ -40,7 +40,12 @@ static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.14 2001/09/01 01:09:30 robs E
 
 #ifndef _WIN32
 
+#if defined(__APPLE__)
+#include <crt_externs.h>
+#define environ (*_NSGetEnviron())
+#else
 extern char **environ;
+#endif
 
 #ifdef HAVE_FILENO_PROTO
 #include <stdio.h>
