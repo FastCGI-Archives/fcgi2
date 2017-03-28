@@ -1,10 +1,9 @@
 FastCGI Developer's Kit README
 ------------------------------
 
-    $Id: README,v 1.28 2009/10/05 23:34:48 robs Exp $
-    Copyright (c) 1996 Open Market, Inc.
-    See the file "LICENSE.TERMS" for information on usage and redistribution
-    of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+Copyright (c) 1996 Open Market, Inc.
+See the file "LICENSE.TERMS" for information on usage and redistribution
+of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 Basic Directions
 ----------------
@@ -26,98 +25,98 @@ CHANGES
 -------
 
 For more detail regarding changes, please consult the cvs log available 
-on http://fastcgi.com/.
+on https://fastcgi-archives.github.io/.
 
- *) [*nix] Install a default SIGTERM handler if one hasn't been installed.
+* [*nix] Install a default SIGTERM handler if one hasn't been installed.
     Based on a patch by [stephan dot jaeger at ewetel dot de] 
 
- *) WIN: Don't stomp on a byte we don't own in OS_FcgiConnect().
+* WIN: Don't stomp on a byte we don't own in OS_FcgiConnect().
     Jay Sprenkle [jsprenkle at gmail.com]
 
- *) MacOSX: define environ as (*_NSGetEnviron()) (available in crt_externs.h).
+* MacOSX: define environ as (*_NSGetEnviron()) (available in crt_externs.h).
     Rasmus Andersson [rasmus at flajm.com]
 
- *) cgi-fcgi.c: Close the file descriptor opened for "-f" handling.
-    Kornél Pál [kornelpal at gmail.com]
+* cgi-fcgi.c: Close the file descriptor opened for "-f" handling.
+    KornÃ©l PÃ¡l [kornelpal at gmail.com]
 
 2.4.1
 -----
 
- *) [WIN32] Raise SIGTERM from the ShutdownRequestThread to emulate 
+* [WIN32] Raise SIGTERM from the ShutdownRequestThread to emulate 
     the Unix behaviour.  Dan [mail@daniel-albert.de]
 
- *) Fix fcgi_streambuf::underflow() such that when there is no buffer
+* Fix fcgi_streambuf::underflow() such that when there is no buffer
     the character isn't removed.  AIDA Shinra <shinra@j10n.org>
  
- *) Add attach() and detach() support.
+* Add attach() and detach() support.
 
 
 2.4.0
 -----
 
- *) When closing connections, shutdown() the send side of TCP sockets to 
+* When closing connections, shutdown() the send side of TCP sockets to 
     prevent a TCP RST from trashing the reciept of data on the client (when
     the client continues to send data to the application).
 
- *) [WIN32] force an exit from the ShutdownRequestThread when a shutdown is
+* [WIN32] force an exit from the ShutdownRequestThread when a shutdown is
     signaled and NamedPipes are in use.
 
- *) Use streamsize and char_type in the C++ API.
+* Use streamsize and char_type in the C++ API.
 
- *) [WIN32] Eliminate the (partial and broken) use of OverlappedIO - this 
+* [WIN32] Eliminate the (partial and broken) use of OverlappedIO - this 
     was causing a loose spin in acceptNamedPipe().
 
- *) Fix a bug that caused an assert to pop when an async file descriptor was
+* Fix a bug that caused an assert to pop when an async file descriptor was
     numbered greater than 16. Kevin Eye [eye@buffalo.edu]
 
- *) Update the echo-cpp example to show the restoral of the original
+* Update the echo-cpp example to show the restoral of the original
     streambufs.  Trub, Vladimir [vtrub@purolator.com]
 
- *) Fix a bug a that caused the lib to crash under certain circumstances
+* Fix a bug a that caused the lib to crash under certain circumstances
     when an error occured on a read
 
- *) Test for iostreams that support a streambuf assigment operator
+* Test for iostreams that support a streambuf assigment operator
 
- *) (WIN32) Fixed initialization of the accept mutex when OpenSocket() was used.
+* (WIN32) Fixed initialization of the accept mutex when OpenSocket() was used.
     Niklas Bergh [niklas.bergh@tific.com]
 
 
 2.2.2  
 -----
 
- *) Added support for shared libraries.
+* Added support for shared libraries.
 
- *) Added support for a graceful shutdown via an event under Win32.
+* Added support for a graceful shutdown via an event under Win32.
 
- *) Added default signal handlers for PIPE, USR1, and TERM.
+* Added default signal handlers for PIPE, USR1, and TERM.
 
- *) Fix some minor bugs in the 0S_ layer.
+* Fix some minor bugs in the 0S_ layer.
 
- *) Fixed the C++ streambuf implementation.
+* Fixed the C++ streambuf implementation.
 
 
 Changes with devkit 2.1.1 
 -------------------------
 
- *) Fixed an unintentional sign extension during promotion  in Java's
+* Fixed an unintentional sign extension during promotion  in Java's
     FCGIInputStream.read(). Takayuki Tachikawa <tachi@po.ntts.co.jp>
 
- *) Cleaned up warnings in examples (mostly main() complaints).
+* Cleaned up warnings in examples (mostly main() complaints).
 
- *) Removed examples/tiny-cgi.c (it wasn't a FastCGI application?!).
+* Removed examples/tiny-cgi.c (it wasn't a FastCGI application?!).
 
- *) Remove some debugging code and clean up some gcc warnings in cgi-fcgi.c.
+* Remove some debugging code and clean up some gcc warnings in cgi-fcgi.c.
 
- *) Add multithread support to the fcgiapp lib and an example multithreaded
+* Add multithread support to the fcgiapp lib and an example multithreaded
     application, threaded.c.  Based on work by Dennis Payne
     <dpayne@softscape.com> and Gene Sokolov <hook@aktrad.ru>.
 
- *) Remove the printf() and #include of stdio.h from examples/echo2.c.
+* Remove the printf() and #include of stdio.h from examples/echo2.c.
 
- *) Remove the static initialization of _fcgi_sF[] because on glibc 2.x based
+* Remove the static initialization of _fcgi_sF[] because on glibc 2.x based
     systems stdin/stdout/stderr are no longer static.
 
- *) Flush FastCGI buffers at application exit.  <eichin@fastengines.com>
+* Flush FastCGI buffers at application exit.  <eichin@fastengines.com>
 
  << INSERT OTHER STUFF HERE >>
 
@@ -169,7 +168,7 @@ functionality to the kit.
   1. Conditional compilation for the hp-ux compiler.
   2. Loop around the accept() call to eliminate "OS Error: Interrupted
      System Call" message from appearing in the error logs.
-  3. Casting of the FCGI_Header to (char *), which eliminates the
+  3. Casting of the FCGI_Header to (char*, which eliminates the
      assertion failure "bufPtr->size>0".
 
 
