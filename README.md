@@ -118,9 +118,7 @@ Changes with devkit 2.1.1
 
 * Flush FastCGI buffers at application exit.  <eichin@fastengines.com>
 
- << INSERT OTHER STUFF HERE >>
-
-
+ 
 What's New: Version 2.0b2, 04 April 1997
 --------------------------------------
 
@@ -175,7 +173,7 @@ functionality to the kit.
 What's New: Version 1.5, 12 June 1996
 --------------------------------------
 
-General:
+### General:
 
   Added a white paper on FastCGI application performance to the
   doc directory.  Generally brought the other docs up to date.
@@ -195,7 +193,7 @@ General:
     the end of the page the application returns.  A little ugly but
     not fatal.
 
-C libraries:
+### C libraries:
 
   Added the functions FCGX_Finish and FCGI_Finish.  These functions
   finish the current request from the HTTP server but do not begin a
@@ -231,7 +229,7 @@ C libraries:
   cause the current connection to be dropped and a new connection to
   be attempted.
 
-Perl:
+### Perl:
 
   Changed FCGI.xs to make it insensitive to Perl's treatment of
   environ (we hope).  Changed FCGI::accept so the initial environment
@@ -246,7 +244,7 @@ Perl:
   library, it picks up all the changes listed above for C.  There's
   a new Perl subroutine FCGI::finish.
 
-Tcl:
+### Tcl:
 
   Fixed a bug in tclFCGI.c that caused the request environment
   variables to be lost.  Changed FCGI_Accept so the initial
@@ -263,7 +261,7 @@ Tcl:
   library, it picks up all the changes listed above for C; there's
   a new Tcl command FCGI_Finish.
 
-Java:
+### Java:
 
   Fixed a sign-extension bug in FCGIMessage.java that caused bad encodings
   of names and values in name-value pairs for lengths in [128..255].
@@ -334,87 +332,87 @@ with concurrent accept calls on these platforms.
 What's New: Version 1.2, 20 March 1996
 --------------------------------------
 
-1. This version of the kit implements the most recent draft
-of the protocol spec.  Enhancements to the protocol include
-a BEGIN_REQUEST record that simplifies request ID management
-and transmits role and keep-alive information, and a simplified
-end-of-stream indication.
+1.  This version of the kit implements the most recent draft
+    of the protocol spec.  Enhancements to the protocol include
+    a BEGIN_REQUEST record that simplifies request ID management
+    and transmits role and keep-alive information, and a simplified
+    end-of-stream indication.
 
-The protocol spec has been revised to describe exactly what's
-been implemented, leaving out the features that we hope to
-introduce in later releases.
+    The protocol spec has been revised to describe exactly what's
+    been implemented, leaving out the features that we hope to
+    introduce in later releases.
 
-At the application level, the visible change is the FCGI_ROLE
-variable that's available to applications.  This allows an application
-to check that it has been invoked in the expected role.  A single
-application can be written to respond in several roles.  The
-FCGI_Accept.3 manpage contains more information.
+    At the application level, the visible change is the FCGI_ROLE
+    variable that's available to applications.  This allows an application
+    to check that it has been invoked in the expected role.  A single
+    application can be written to respond in several roles.  The
+    FCGI_Accept.3 manpage contains more information.
 
 2.  We introduced the new "module" prefix FCGX in order to simplify
-the relationship between fcgi_stdio and fcgiapp.
+    the relationship between fcgi_stdio and fcgiapp.
 
-A growing number of functions are provided in both fcgi_stdio and
-fcgiapp versions.  Rather than inventing an ad hoc solution for each
-naming conflict (as we did with FCGI_accept and FCGI_Accept), we've
-bitten the bullet and systematically renamed *all* the fcgapp
-primitives with the prefix FCGX_.  In fcgi_stdio, we've renamed
-FCGI_accept to FCGI_Accept.  So all functions that are common in the
-two libraries have the same name modulo the different prefixes.
+    A growing number of functions are provided in both fcgi_stdio and
+    fcgiapp versions.  Rather than inventing an ad hoc solution for each
+    naming conflict (as we did with FCGI_accept and FCGI_Accept), we've
+    bitten the bullet and systematically renamed *all* the fcgapp
+    primitives with the prefix FCGX_.  In fcgi_stdio, we've renamed
+    FCGI_accept to FCGI_Accept.  So all functions that are common in the
+    two libraries have the same name modulo the different prefixes.
 
-The Accept function visible in Tcl is now called FCGI_Accept, not
-FCGI_accept.
+    The Accept function visible in Tcl is now called FCGI_Accept, not
+    FCGI_accept.
 
-The Accept function visible in Perl is now FCGI::accept.  All
-lower case names for functions and all upper case names for
-modules appears to be a Perl convention, so we conform.
+    The Accept function visible in Perl is now FCGI::accept.  All
+    lower case names for functions and all upper case names for
+    modules appears to be a Perl convention, so we conform.
 
-3. The kit now fully supports the Responder, Authorizer,
-and Filter roles.
+3.  The kit now fully supports the Responder, Authorizer,
+    and Filter roles.
 
-The Filter role required a new function, FCGI_StartFilterData.
-FCGI_StartFilterData changes the input stream from reading
-FCGI_STDIN data to reading FCGI_DATA data.  The manpage
-gives full details.
+    The Filter role required a new function, FCGI_StartFilterData.
+    FCGI_StartFilterData changes the input stream from reading
+    FCGI_STDIN data to reading FCGI_DATA data.  The manpage
+    gives full details.
 
-Another new function, FCGI_SetExitStatus, is primarily for
-the Responder role but is available to all.  FCGI_SetExitStatus
-allows an application to set a nonzero "exit" status
-before completing a request and calling FCGI_Accept again.
-The manpage gives full details.
+    Another new function, FCGI_SetExitStatus, is primarily for
+    the Responder role but is available to all.  FCGI_SetExitStatus
+    allows an application to set a nonzero "exit" status
+    before completing a request and calling FCGI_Accept again.
+    The manpage gives full details.
 
-These two new functions are provided at both the fcgi_stdio interface
-and the basic fcgiapp interface.  Naturally, the fcgiapp versions are
-called FCGX_StartFilterData and FCGX_SetExitStatus.
+    These two new functions are provided at both the fcgi_stdio interface
+    and the basic fcgiapp interface.  Naturally, the fcgiapp versions are
+    called FCGX_StartFilterData and FCGX_SetExitStatus.
 
-4. The fcgiapp interface changed slightly in order to treat
-the streams and environment data more symmetrically.
+4.  The fcgiapp interface changed slightly in order to treat
+    the streams and environment data more symmetrically.
 
-FCGX_Accept now returns an environment pointer, rather than requiring
-a call to FCGX_GetAllParams to retrieve an environment pointer.
-FCGX_GetParam takes an explicit environment pointer argument.
-FCGX_GetAllParams is eliminated.  See the documentation in the header
-file for complete information.
+    FCGX_Accept now returns an environment pointer, rather than requiring
+    a call to FCGX_GetAllParams to retrieve an environment pointer.
+    FCGX_GetParam takes an explicit environment pointer argument.
+    FCGX_GetAllParams is eliminated.  See the documentation in the header
+    file for complete information.
 
-fcgiapp also added the procedure FCGX_IsCGI, providing a standardized
-test of whether the app was started as CGI or FastCGI.
+    fcgiapp also added the procedure FCGX_IsCGI, providing a standardized
+    test of whether the app was started as CGI or FastCGI.
 
-5. We've ported the kits to vendor-supported ANSI C compilers
-on Sun (Solaris 2.X), HP, and Digital platforms.  GCC can be
-selected on these platforms by performing SETENV CC gcc before
-running configure.
+5.  We've ported the kits to vendor-supported ANSI C compilers
+    on Sun (Solaris 2.X), HP, and Digital platforms.  GCC can be
+    selected on these platforms by performing SETENV CC gcc before
+    running configure.
 
 
 
 What's New: Version 1.1, 30 Jan 1996
 ------------------------------------
 
-1. More platforms: Digital UNIX, IBM AIX, Silicon Graphics IRIX,
-Sun SunOS 4.1.4.
+1.  More platforms: Digital UNIX, IBM AIX, Silicon Graphics IRIX,
+    Sun SunOS 4.1.4.
 
-2. Perl and Tcl: Simple recipes for producing Perl and Tcl
-interpreters that run as FastCGI applications.  No source
-code changes are needed to Perl and Tcl.  Documented
-in separate documents, accessible via the index page.
+2.  Perl and Tcl: Simple recipes for producing Perl and Tcl
+    interpreters that run as FastCGI applications.  No source
+    code changes are needed to Perl and Tcl.  Documented
+    in separate documents, accessible via the index page.
 
 
 
