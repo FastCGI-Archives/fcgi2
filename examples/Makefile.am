@@ -34,5 +34,5 @@ threaded_CFLAGS    = @PTHREAD_CFLAGS@
 threaded_LDFLAGS   = @PTHREAD_CFLAGS@ @PTHREAD_LIBS@
 
 echo_cpp_SOURCES = $(INCLUDE_FILES) $(INCLUDEDIR)/fcgio.h echo-cpp.cpp
-echo_cpp_LDADD   = $(LIBDIR)/libfcgi++.la
+echo_cpp_LDADD   = $(LIBDIR)/libfcgi++.la $(LIBFCGI)
 
