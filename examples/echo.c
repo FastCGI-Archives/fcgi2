@@ -10,9 +10,6 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-#ifndef lint
-static const char rcsid[] = "$Id: echo.c,v 1.5 1999/07/28 00:29:37 roberts Exp $";
-#endif /* not lint */
 
 #include "fcgi_config.h"
 
