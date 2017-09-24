@@ -1,7 +1,7 @@
 use Config;
 use ExtUtils::MakeMaker;
 
-do 'FCGI.cfg' or die "no FCGI.cfg";
+do './FCGI.cfg' or die "no FCGI.cfg";
 
 open OUT, ">FCGI.pm";
 
