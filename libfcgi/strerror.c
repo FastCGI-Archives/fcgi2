@@ -34,11 +34,6 @@
  * SUCH DAMAGE.
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-/*static char *sccsid = "from: @(#)strerror.c	5.6 (Berkeley) 5/4/91";*/
-static char *rcsid = "$Id: strerror.c,v 1.2 1999/07/27 14:59:09 roberts Exp $";
-#endif /* LIBC_SCCS and not lint */
-
 #include "fcgi_config.h"
 
 #if ! defined (HAVE_STRERROR)

@@ -11,10 +11,6 @@
  *
  */
 
-#ifndef lint
-static const char rcsid[] = "$Id: fcgi_stdio.c,v 1.15 2009/09/28 00:46:30 robs Exp $";
-#endif /* not lint */
-
 #include <errno.h>  /* for errno */
 #include <stdarg.h> /* for va_arg */
 #include <stdlib.h> /* for malloc */

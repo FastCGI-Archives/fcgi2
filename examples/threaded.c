@@ -2,10 +2,6 @@
  * threaded.c -- A simple multi-threaded FastCGI application.
  */
 
-#ifndef lint
-static const char rcsid[] = "$Id: threaded.c,v 1.9 2001/11/20 03:23:21 robs Exp $";
-#endif /* not lint */
-
 #include "fcgi_config.h"
 
 #include <pthread.h>

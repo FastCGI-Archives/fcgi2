@@ -14,9 +14,6 @@
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-#ifndef lint
-static const char rcsid[] = "$Id: log-dump.c,v 1.5 2001/09/01 01:12:26 robs Exp $";
-#endif /* not lint */
 
 #include "fcgi_config.h"
 
