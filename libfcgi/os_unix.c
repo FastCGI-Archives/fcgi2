@@ -64,7 +64,7 @@ static const char rcsid[] = "$Id: os_unix.c,v 1.40 2009/10/05 23:34:50 robs Exp 
 #endif
 
 /*
- * This structure holds an entry for each oustanding async I/O operation.
+ * This structure holds an entry for each outstanding async I/O operation.
  */
 typedef struct {
     OS_AsyncProc procPtr;	    /* callout completion procedure */

@@ -60,7 +60,7 @@ on https://fastcgi-archives.github.io/.
 -----
 
 * When closing connections, shutdown() the send side of TCP sockets to 
-    prevent a TCP RST from trashing the reciept of data on the client (when
+    prevent a TCP RST from trashing the receipt of data on the client (when
     the client continues to send data to the application).
 
 * [WIN32] force an exit from the ShutdownRequestThread when a shutdown is
@@ -78,7 +78,7 @@ on https://fastcgi-archives.github.io/.
     streambufs.  Trub, Vladimir [vtrub@purolator.com]
 
 * Fix a bug a that caused the lib to crash under certain circumstances
-    when an error occured on a read
+    when an error occurred on a read
 
 * Test for iostreams that support a streambuf assigment operator
 
