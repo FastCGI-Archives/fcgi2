@@ -657,7 +657,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
              * to be set up: op, sizeModifier, arg, buffPtr, fmtBuff.
              * When fastPath == FALSE and op == 's' or 'f', the argument
              * has been read into charPtrArg, doubleArg, or lDoubleArg.
-             * The statement produces the boolean performedOp, TRUE iff
+             * The statement produces the boolean performedOp, TRUE if
              * the op/sizeModifier were executed and argument consumed;
              * if performedOp, the characters written into buffPtr[]
              * and the character count buffCount (== EOF meaning error).
@@ -2067,7 +2067,7 @@ int FCGX_InitRequest(FCGX_Request *request, int sock, int flags)
  *
  * FCGX_Init --
  *
- *      Initilize the FCGX library.  This is called by FCGX_Accept()
+ *      Initialize the FCGX library.  This is called by FCGX_Accept()
  *      but must be called by the user when using FCGX_Accept_r().
  *
  * Results:
