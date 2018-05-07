@@ -8,6 +8,10 @@ SUBDIRS = libfcgi cgi-fcgi examples include
 
 include_HEADERS = fcgi_config.h
 
+pkgconfigdir = @pkgconfigdir@
+pkgconfig_DATA = fcgi.pc \
+                 fcgi++.pc
+
 EXTRA_DIST = LICENSE.TERMS              \
              Makefile.nt                \
              cgi-fcgi/cgi-fcgi.mak      \

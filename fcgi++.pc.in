@@ -1,0 +1,9 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+
+Name: fcgi
+Description: FastCGI C++ Developer's Kit
+URL: https://fastcgi-archives.github.io
+Version: @VERSION@
+Libs: -L${libdir} -lfcgi++
