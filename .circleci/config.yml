@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: autogen
-          command: ./autogent.sh
+          command: ./autogen.sh
       - run:
           name: autoconf
           command: ./configure
