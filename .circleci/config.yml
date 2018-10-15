@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: pre 
-          command: apt-get update && apt-get install autoconf-archive automake-1.14 autoconf2.59 build-essential check
+          command: apt-get update && apt-get install autoconf automake autoconf make gcc
       - run:
           name: autogen
           command: ./autogen.sh
