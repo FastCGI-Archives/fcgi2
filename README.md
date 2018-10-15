@@ -1,3 +1,5 @@
+[![CircleCI](https://circleci.com/gh/FastCGI-Archives/fcgi2.svg?style=svg)](https://circleci.com/gh/FastCGI-Archives/fcgi2)
+
 FastCGI Developer's Kit README
 ------------------------------
 
