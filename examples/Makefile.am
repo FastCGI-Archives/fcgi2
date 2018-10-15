@@ -11,7 +11,7 @@ noinst_PROGRAMS     = authorizer        \
 EXTRA_PROGRAMS = threaded echo-cpp
 
 INCLUDEDIR  = ../include
-CPPFLAGS    = @CPPFLAGS@ -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include
 
 INCLUDE_FILES   = $(INCLUDEDIR)/fastcgi.h    \
                   $(INCLUDEDIR)/fcgiapp.h    \
