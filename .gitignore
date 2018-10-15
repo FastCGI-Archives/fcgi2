@@ -1,10 +1,29 @@
-*~ bak .bak  *.bak
-config.cache config.status config.log
+*~
+*.bak
+*/.deps
+*/.libs
 FcgiBin
-Makefile Makefile.in
-aclocal.m4 configure
-fcgi_config.h fcgi_config.h.in
+Makefile*
+aclocal.m4
+autom4te.cache/
+build*
+cgi-fcgi/cgi-fcgi
+compile
+config.*
+configure
+depcomp
+examples/authorizer
+examples/echo
+examples/echo-cpp
+examples/echo-x
+examples/log-dump
+examples/size
+examples/threaded
+fcgi*.pc
+fcgi_config.h*
+install-sh
+libfcgi/
 libtool
-stamp-h stamp-h.in stamp-h1
-*.tar.gz
-
+ltmain.sh
+missing
+stamp-h*
