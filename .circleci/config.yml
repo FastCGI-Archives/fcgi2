@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: pre 
-          command: apt-get update && apt-get install autoconf automake autoconf make gcc
+          command: apt-get update && apt-get install -y autoconf automake autoconf make gcc
       - run:
           name: autogen
           command: ./autogen.sh
