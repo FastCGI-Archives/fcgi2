@@ -1,0 +1,19 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: debian:stretch
+    steps:
+      - checkout
+      - run:
+          name: autogen
+          command: ./autogent.sh
+      - run:
+          name: autoconf
+          command: ./configure
+      - run:
+          name: build
+          command: make 
+      - run:
+          name: install
+          command: make install
