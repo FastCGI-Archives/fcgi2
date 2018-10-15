@@ -7,6 +7,9 @@ jobs:
       - checkout
       - run:
           name: autogen
+          command: find . -ls
+      - run:
+          name: autogen
           command: ./autogen.sh
       - run:
           name: autoconf
