@@ -10,7 +10,7 @@ jobs:
           command: apt-get update && apt-get install -y autoconf automake autoconf make gcc
       - run:
           name: autogen
-          command: ./autogen.sh
+          command: autoconf -f
       - run:
           name: autoconf
           command: ./configure
