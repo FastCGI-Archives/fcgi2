@@ -2,12 +2,12 @@ version: 2
 jobs:
   build:
     docker:
-      - image: debian:stretch
+      - image: debian:latest
     steps:
       - checkout
       - run:
-          name: pre
-          command: sudo apt-get install autoconf-archive automake-1.14 autoconf2.59 build-essential check
+          name: pre 
+          command: sudo apt-get update && sudo apt-get install autoconf-archive automake-1.14 autoconf2.59 build-essential check
       - run:
           name: autogen
           command: ./autogen.sh
