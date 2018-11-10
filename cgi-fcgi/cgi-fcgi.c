@@ -386,8 +386,8 @@ static void WebServerReadHandler(ClientData dc, int bytesRead)
     if(bytesRead < 0) {
         exit(OS_Errno);
     }
-    *((FCGI_Header *) &fromWS.buff[0])
-            = MakeHeader(FCGI_STDIN, requestId, bytesRead, 0);
+    FCGI_Header *header = (FCGI_Header *) &fromWS.buff[0];
+    *header = MakeHeader(FCGI_STDIN, requestId, bytesRead, 0);
     bytesToRead -= bytesRead;
     fromWS.stop = &fromWS.buff[sizeof(FCGI_Header) + bytesRead];
     webServerReadHandlerEOF = (bytesRead == 0);
@@ -458,7 +458,7 @@ static void ScheduleIo(void)
        ((length = fromWS.stop - fromWS.next) != 0)) {
 	if(OS_AsyncWrite(appServerSock, 0, fromWS.next, length,
 			 AppServerWriteHandler,
-			 (ClientData)appServerSock) == -1) {
+			 (ClientData)(intptr_t)appServerSock) == -1) {
 	    FCGIexit(OS_Errno);
 	} else {
 	    fcgiWritePending = TRUE;
@@ -474,7 +474,7 @@ static void ScheduleIo(void)
 
 	if(OS_AsyncRead(appServerSock, 0, fromAS.next, BUFFLEN,
 			AppServerReadHandler,
-			(ClientData)appServerSock) == -1) {
+			(ClientData)(intptr_t)appServerSock) == -1) {
 	    FCGIexit(OS_Errno);
 	} else {
 	    fcgiReadPending = TRUE;
@@ -640,7 +640,7 @@ static int ParseArgs(int argc, char *argv[],
 			}
 			if((av[ac] = (char *)malloc(strlen(tp1)+1)) == NULL) {
 			    fprintf(stderr, "Cannot allocate %d bytes\n",
-				    strlen(tp1)+1);
+				        (int)strlen(tp1)+1);
 			    exit(-1);
 			}
 			strcpy(av[ac++], tp1);
@@ -738,7 +738,6 @@ int main(int argc, char **argv)
     char **envp = environ;
     int count;
     FCGX_Stream *paramsStream;
-    int numFDs;
     unsigned char headerBuff[8];
     int headerLen, valueLen;
     char *equalPtr;
@@ -837,10 +836,6 @@ int main(int argc, char **argv)
      */
     fromWS.stop = fromWS.next = &fromWS.buff[0];
     webServerReadHandlerEOF = FALSE;
-    /*
-     * XXX: might want to use numFDs in the os library.
-     */
-    numFDs = max(appServerSock, STDIN_FILENO) + 1;
     OS_SetFlags(appServerSock, O_NONBLOCK);
 
     if (bytesToRead <= 0)

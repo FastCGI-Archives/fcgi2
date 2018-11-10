@@ -1483,16 +1483,17 @@ static int ProcessManagementRecord(int type, FCGX_Stream *stream)
         }
         len = responseP - &response[FCGI_HEADER_LEN];
         paddedLen = AlignInt8(len);
-        *((FCGI_Header *) response)
-            = MakeHeader(FCGI_GET_VALUES_RESULT, FCGI_NULL_REQUEST_ID,
-                         len, paddedLen - len);
+        FCGI_Header *header = (FCGI_Header *)response;
+        *header = MakeHeader(FCGI_GET_VALUES_RESULT, FCGI_NULL_REQUEST_ID,
+                             len, paddedLen - len);
         FreeParams(&paramsPtr);
     } else {
         paddedLen = len = sizeof(FCGI_UnknownTypeBody);
-        ((FCGI_UnknownTypeRecord *) response)->header
+        FCGI_UnknownTypeRecord *utr = (FCGI_UnknownTypeRecord *) response;
+        utr->header
             = MakeHeader(FCGI_UNKNOWN_TYPE, FCGI_NULL_REQUEST_ID,
                          len, 0);
-        ((FCGI_UnknownTypeRecord *) response)->body
+        utr->body
             = MakeUnknownTypeBody(type);
     }
     if (write_it_all(data->reqDataPtr->ipcFd, response, FCGI_HEADER_LEN + paddedLen) < 0) {
