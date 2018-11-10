@@ -1230,6 +1230,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
                     break;
 
                 close(socket);
+                socket = -1;
             }  /* socket >= 0 */
         }  /* for(;;) */
 
