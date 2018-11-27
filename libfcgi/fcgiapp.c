@@ -418,8 +418,10 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
     int intArg;
     short shortArg;
     long longArg;
+    long long longLongArg;
     unsigned unsignedArg;
     unsigned long uLongArg;
+    unsigned long long uLongLongArg;
     unsigned short uShortArg;
     char *charPtrArg = NULL;
     void *voidPtrArg;
@@ -462,6 +464,16 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                 op = *(percentPtr + 1);
                 switch(op) {
 	            case 'l':
+                        if(op == 'l' && *(percentPtr + 2) == 'l') {
+                            sizeModifier = 'L';
+                            op = *(percentPtr + 3);
+                            fmtBuff[1] = 'l';
+                            fmtBuff[2] = 'l';
+                            fmtBuff[3] = (char) op;
+                            fmtBuff[4] = '\0';
+                            specifierLength = 4;
+                            break;
+                        }
 	            case 'L':
                     case 'h':
                         sizeModifier = op;
@@ -559,6 +571,11 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                  */
                 switch(*p) {
 	            case 'l':
+                        if(*p == 'l' && *(p + 1) == 'l') {
+                            sizeModifier = 'L';
+                            CopyAndAdvance(&fmtBuffPtr, &p, 2);
+                            break;
+                        }
                     case 'L':
                     case 'h':
                         sizeModifier = *p;
@@ -677,6 +694,11 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             sprintf(buffPtr, fmtBuff, longArg);
                             buffCount = strlen(buffPtr);
                             break;
+                        case 'L':
+                            longLongArg = va_arg(arg, long long);
+                            sprintf(buffPtr, fmtBuff, longLongArg);
+                            buffCount = strlen(buffPtr);
+                            break;
 	                case 'h':
                             shortArg = (short) va_arg(arg, int);
                             sprintf(buffPtr, fmtBuff, shortArg);
@@ -699,6 +721,11 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
 	                case 'l':
                             uLongArg = va_arg(arg, unsigned long);
 			    sprintf(buffPtr, fmtBuff, uLongArg);
+                            buffCount = strlen(buffPtr);
+                            break;
+                        case 'L':
+                            uLongLongArg = va_arg(arg, unsigned long long);
+                            sprintf(buffPtr, fmtBuff, uLongLongArg);
                             buffCount = strlen(buffPtr);
                             break;
                         case 'h':
