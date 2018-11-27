@@ -18,10 +18,11 @@ libfcgi_la_SOURCES = $(INCLUDE_FILES)  \
                      os_@SYSTEM@.c
 libfcgi_la_CC      = @PTHREAD_CC@
 libfcgi_la_CFLAGS  = @PTHREAD_CFLAGS@
+libfcgi_la_LDFLAGS = @EXTRA_LIBS@ -no-undefined
 
 libfcgi___la_SOURCES = $(INCLUDE_FILES)       \
                        $(INCLUDEDIR)/fcgio.h  \
                        fcgio.cpp
 libfcgi___la_CFLAGS  = @PTHREAD_CFLAGS@
-libfcgi___la_LDFLAGS = -lfcgi -rpath @libdir@
-
+libfcgi___la_LIBADD  = libfcgi.la
+libfcgi___la_LDFLAGS = -rpath @libdir@ -no-undefined

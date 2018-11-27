@@ -4,14 +4,16 @@ dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
 
-AC_INIT(fcgi, 2.4.1-SNAP-0910052249)
+AC_INIT([fcgi], [2.4.2])
 AM_INIT_AUTOMAKE([1.11 foreign])
-
+AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(fcgi_config.h)
 
+LT_INIT([win32-dll])
+
 AC_PROG_CC
-AC_PROG_CPP 
-AC_PROG_INSTALL 
+AC_PROG_CPP
+AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
 AC_PROG_CXX
@@ -57,14 +59,19 @@ AC_REPLACE_FUNCS([strerror])
 
 AC_C_INLINE
 
-#--------------------------------------------------------------------
-#  This is a little hokie in that it avoids including config.guess
-#  and config.sub in the distribution, but its been working so far.
-#  Windows builds don't run configure so we should be safe fixing
-#  this to 'unix' (at least for now).
-#--------------------------------------------------------------------
-SYSTEM=unix
+AC_CANONICAL_HOST
+
+AS_CASE([$host_os],
+  [*mingw*], [SYSTEM=win32],
+  [SYSTEM=unix]
+)
 AC_SUBST([SYSTEM])
+
+AS_CASE([$host_os],
+  [*mingw*], [EXTRA_LIBS=-lws2_32],
+  [EXTRA_LIBS=]
+)
+AC_SUBST([EXTRA_LIBS])
 
 AC_PROG_CC_WARNINGS
 
@@ -83,3 +90,4 @@ AC_CONFIG_FILES([Makefile
                  fcgi++.pc])
 
 AC_OUTPUT
+

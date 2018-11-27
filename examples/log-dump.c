@@ -51,7 +51,9 @@ int main(void)
     while(FCGI_Accept() >= 0) {
         rolePtr = getenv("FCGI_ROLE");
 	if(rolePtr == NULL) {
+#ifndef _WIN32
 	    kill(getpid(), SIGQUIT);
+#endif
 	    exit(-1);
 	}
 	if(strstr(rolePtr, "AUTHORIZER")) {

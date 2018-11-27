@@ -11,5 +11,5 @@ INCLUDE_FILES   = $(INCLUDEDIR)/fastcgi.h  \
 LIBDIR      = ../libfcgi
 LIBFCGI     = $(LIBDIR)/libfcgi.la
 
-LDADD = $(LIBFCGI)
+cgi_fcgi_LDADD = $(LIBFCGI)
 cgi_fcgi_SOURCES = $(INCLUDE_FILES) cgi-fcgi.c
