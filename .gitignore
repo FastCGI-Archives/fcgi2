@@ -1,5 +1,9 @@
 *~
 *.bak
+*.kate-swp
+*.lo
+*.la
+*.o
 */.deps
 */.libs
 FcgiBin
@@ -22,8 +26,8 @@ examples/threaded
 fcgi*.pc
 fcgi_config.h*
 install-sh
-libfcgi/
 libtool
 ltmain.sh
+m4/ 
 missing
 stamp-h*
