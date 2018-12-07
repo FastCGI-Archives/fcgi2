@@ -31,8 +31,7 @@ Win32:
 CHANGES
 -------
 
-For more detail regarding changes, please consult the cvs log available 
-on https://fastcgi-archives.github.io/.
+For more detail regarding changes, please consult the git log available. 
 
 * [*nix] Install a default SIGTERM handler if one hasn't been installed.
     Based on a patch by [stephan dot jaeger at ewetel dot de] 
