@@ -1,7 +1,7 @@
 [![CircleCI](https://circleci.com/gh/FastCGI-Archives/fcgi2.svg?style=svg)](https://circleci.com/gh/FastCGI-Archives/fcgi2)
 
-FastCGI Developer's Kit README
-------------------------------
+FastCGI Developer's Kit
+-----------------------
 
 Copyright (c) 1996 Open Market, Inc.
 See the file "[LICENSE.TERMS](LICENSE.TERMS)" for information on usage and redistribution
