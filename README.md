@@ -10,7 +10,7 @@ of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 Documentations
 --------------
 
-- [FastCGI Developer's Kit Documentations](https://htmlpreview.github.io/?https://github.com/FastCGI-Archives/fcgi2/blob/master/doc/overview.html)
+- [FastCGI Developer's Kit Documentations](http://fastcgi-archives.github.io/fcgi2/doc/overview.html)
 
 Basic Directions
 ----------------
