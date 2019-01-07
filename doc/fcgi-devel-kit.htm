@@ -417,9 +417,8 @@
       <P>
          Storage leaks may be an issue. Many CGI programs don&#39;t worry about storage leaks because the programs
          don&#39;t run for long enough for bloating to be a problem. When converting to FastCGI, you can either use a
-         tool such as <A HREF="http://www.pure.com/"><I>Purify</I></A> from Pure Software to discover and fix storage
-         leaks, or you can run a C garbage collector such as <A HREF="http://www.geodesic.com/"><I>Great Circle</I></A>
-         from Geodesic Systems.
+         tool such as <A HREF="http://www.valgrind.org/"><I>Valgrind</I></A> to discover and fix storage
+         leaks, or you can run a C garbage collector such as <A HREF="http://www.hboehm.info/gc/"><I>Boehm-Demers-Weiser conservative garbage collector</I></A>
       </P>
       <H4>
          Limitations
