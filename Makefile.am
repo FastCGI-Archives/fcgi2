@@ -6,6 +6,8 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
+DISTCLEANFILES= compile config.guess config.sub configure depcomp fcgi_config.h.in fcgi_config.h.in~ aclocal.m4 m4/libtool.m4 m4/lt*.m4
+
 SUBDIRS = libfcgi cgi-fcgi examples include
 
 include_HEADERS = fcgi_config.h
@@ -96,3 +98,5 @@ EXTRA_DIST = LICENSE.TERMS              \
              doc/fastcgi-whitepaper/img00002.gif        \
              doc/fastcgi-whitepaper/img00003.gif
 
+distclean-local:
+	-rm -rf autom4te.cache
