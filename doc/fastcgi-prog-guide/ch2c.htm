@@ -353,9 +353,8 @@ $ make
          call to a popular FastCGI application causes additional memory to leak.
       </P>
       <P>
-         <A NAME="4785"></A> When converting to FastCGI, you can either use a tool such as Purify from Pure Software to
-         discover and fix storage leaks or you can run a C garbage collector such as Great Circle from Geodesic
-         Systems.
+	 When converting to FastCGI, you can either use a tool such as <A HREF="http://www.valgrind.org/"><I>Valgrind</I></A> to discover and fix storage
+         leaks, or you can run a C garbage collector such as <A HREF="http://www.hboehm.info/gc/"><I>Boehm-Demers-Weiser conservative garbage collector</I></A>
       </P>
       <P>
          <A NAME="4972"></A>
