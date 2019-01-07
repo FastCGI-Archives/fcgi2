@@ -10,6 +10,7 @@ INCLUDE_FILES = $(INCLUDEDIR)/fastcgi.h     \
                 $(INCLUDEDIR)/fcgios.h
 
 lib_LTLIBRARIES   = libfcgi.la @LIBFCGIXX@
+DISTCLEANFILES= Makefile.in 
 EXTRA_LTLIBRARIES = libfcgi++.la
 
 libfcgi_la_SOURCES = $(INCLUDE_FILES)  \

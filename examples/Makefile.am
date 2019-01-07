@@ -8,6 +8,8 @@ noinst_PROGRAMS     = authorizer        \
                       @THREADED@        \
                       @ECHO_CPP@
 
+DISTCLEANFILES= Makefile.in 
+
 EXTRA_PROGRAMS = threaded echo-cpp
 
 INCLUDEDIR  = ../include

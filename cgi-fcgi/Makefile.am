@@ -1,6 +1,8 @@
 # $Id: Makefile.am,v 1.4 2001/12/22 03:16:22 robs Exp $
 bin_PROGRAMS     = cgi-fcgi
 
+DISTCLEANFILES= Makefile.in 
+
 INCLUDEDIR  = ../include
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
