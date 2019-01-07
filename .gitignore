@@ -40,3 +40,6 @@ depcomp
 compile
 fcgi.pc
 fcgi++.pc
+install-sh
+missing
+ltmain.sh
