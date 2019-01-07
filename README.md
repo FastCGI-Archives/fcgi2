@@ -17,6 +17,7 @@ Basic Directions
 
 Unix:
 
+    ./autogen.sh
     ./configure
     make
     make install
