@@ -32,7 +32,7 @@ Win32:
 CHANGES
 -------
 
-This repository are a fork from the original fastcgi sdk from FastCGI.com that are now down.
+This repository are a fork from the original fastcgi sdk from [FastCGI.com](https://fastcgi-archives.github.io/) that are now down, the new place of FastCGI.com are at https://fastcgi-archives.github.io/.
 
 For more detail regarding changes, please consult the [git log available](https://github.com/FastCGI-Archives/fcgi2/commits/master). 
 
