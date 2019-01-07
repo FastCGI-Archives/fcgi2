@@ -1,6 +1,7 @@
-*~ bak .bak  *.bak
-authorizer size echo echo-x log-dump threaded echo-cpp *.exe
-Makefile Makefile.in
-Debug Release .deps .libs
-*.CS_
-*.o
+authorizer
+size
+echo
+echo-x
+log-dump
+threaded
+echo-cpp

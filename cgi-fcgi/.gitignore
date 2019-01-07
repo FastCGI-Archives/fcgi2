@@ -1,5 +1,1 @@
-*~ bak  .bak  *.bak
-Debug Release .deps .libs
-*.o
-Makefile Makefile.in
-cgi-fcgi *.exe
+cgi-fcgi 

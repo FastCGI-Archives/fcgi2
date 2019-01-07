@@ -1,10 +1,42 @@
-*~ bak .bak  *.bak
-config.cache config.status config.log
+*~ 
+bak
+.bak
+*.bak
+*.exe
+*.o
+*.obj
+*.old
+*.fpl
+*.la
+*.lo
+*.CS_
+*.plg
+*.opt
+*.ncb
+*.positions
+Debug 
+Release 
+.deps 
+.libs
+config.cache
+config.status
+config.log
 FcgiBin
-Makefile Makefile.in
-aclocal.m4 configure
-fcgi_config.h fcgi_config.h.in
+Makefile
+Makefile.in
+aclocal.m4
+configure
+fcgi_config.h
+fcgi_config.h.in
 libtool
-stamp-h stamp-h.in stamp-h1
+stamp-h
+stamp-h.in
+stamp-h1
 *.tar.gz
-
+autom4te.cache/
+config.guess
+config.sub
+depcomp
+compile
+fcgi.pc
+fcgi++.pc
