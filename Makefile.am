@@ -4,6 +4,8 @@
 #  $Id: Makefile.am,v 1.8 2003/11/02 21:42:47 robs Exp $
 #
 
+ACLOCAL_AMFLAGS = -I m4
+
 SUBDIRS = libfcgi cgi-fcgi examples include
 
 include_HEADERS = fcgi_config.h
