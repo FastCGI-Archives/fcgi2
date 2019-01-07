@@ -6,7 +6,9 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-DISTCLEANFILES= compile config.guess config.sub configure depcomp fcgi_config.h.in fcgi_config.h.in~ aclocal.m4 m4/libtool.m4 m4/lt*.m4 Makefile.in install-sh missing ltmain.sh
+DISTCLEANFILES= compile config.guess config.sub configure depcomp fcgi_config.h.in fcgi_config.h.in~ \
+		aclocal.m4 m4/libtool.m4 m4/lt*.m4 Makefile.in install-sh missing ltmain.sh \
+		COPYING INSTALL
 
 SUBDIRS = libfcgi cgi-fcgi examples include
 
