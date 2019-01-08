@@ -1553,7 +1553,7 @@ static int CALLBACK isAddrOKCallback(LPWSABUF  lpCallerId,
     struct sockaddr_in *sockaddr = (struct sockaddr_in *) lpCallerId->buf;
 
     // Touch the args to avoid warnings
-    dc0 = NULL; dc1 = NULL; dc2 = NULL; dc3 = NULL; dc4 = NULL; dc5 = NULL;
+    dc0 = NULL; dc1 = NULL; dc2 = NULL; dc3 = NULL; dc4 = NULL;
 
     if ((void *) data == NULL) return CF_ACCEPT;
 
