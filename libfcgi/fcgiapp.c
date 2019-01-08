@@ -1492,7 +1492,10 @@ static int ProcessManagementRecord(int type, FCGX_Stream *stream)
         }
         for (pPtr = paramsPtr->vec; pPtr < paramsPtr->cur; pPtr++) {
             name = *pPtr;
-            *(strchr(name, '=')) = '\0';
+            char *tmpPtr = strchr(name, '=');
+            if(tmpPtr != NULL) {
+                *tmpPtr = '\0';
+            }
             if(strcmp(name, FCGI_MAX_CONNS) == 0) {
                 value = '1';
             } else if(strcmp(name, FCGI_MAX_REQS) == 0) {
