@@ -18,7 +18,7 @@ __END__
 # 
 #  $Id: echo.PL,v 1.2 2000/12/14 13:46:23 skimo Exp $
 #
-# Changed by skimo to demostrate autoflushing 1997/02/19
+# Changed by skimo to demonstrate autoflushing 1997/02/19
 #
 
 use FCGI;

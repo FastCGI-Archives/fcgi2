@@ -135,7 +135,7 @@ public class FCGIInterface
      * Accepts a new request from the HTTP server.
      * Finishes the request accepted by the previous call
      * to FCGI_Accept. Sets up the FCGI environment and reads
-     * saved and per request environmental varaibles into
+     * saved and per request environmental variables into
      * the request object. (This is redundant on System.props
      * as long as we can handle only one request object.)
      */

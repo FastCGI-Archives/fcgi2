@@ -18,7 +18,7 @@ import java.io.*;
 import java.util.Properties;
 
 /* This class handles reading and building the fastcgi messages.
- * For reading incoming mesages, we pass the input
+ * For reading incoming messages, we pass the input
  * stream as a param to the constructor rather than to each method.
  * Methods that build messages use and return internal buffers, so they
  * don't need a stream.

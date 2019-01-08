@@ -22,7 +22,7 @@ public class FCGIRequest
 
     /* This class has no methods. Right now we are single threaded
     * so there is only one request object at any given time which
-    * is refrenced by an FCGIInterface class variable . All of this
+    * is referenced by an FCGIInterface class variable . All of this
     * object's data could just as easily be declared directly there.
     * When we thread, this will change, so we might as well use a
     * separate class. In line with this thinking, though somewhat
