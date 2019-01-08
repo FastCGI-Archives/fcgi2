@@ -183,7 +183,7 @@ Version 0.32 -- 16 June 1998  <skimo@kotnet.org> Sven Verdoolaege
 
 	o Preliminary support for tied handles (doesn't require sfio)
 	o Force sfio less compile
-	o Changed protoype of set_exit_status
+	o Changed prototype of set_exit_status
 
 Version 0.31 -- 13 July 1997  <skimo@breughel.ufsia.ac.be> Sven Verdoolaege
 

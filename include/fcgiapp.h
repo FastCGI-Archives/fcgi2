@@ -15,7 +15,7 @@
 #ifndef _FCGIAPP_H
 #define _FCGIAPP_H
 
-/* Hack to see if we are building TCL - TCL needs varargs not stdarg */
+/* Hack to see if we are building Tcl - Tcl needs varargs not stdarg */
 #ifndef TCL_LIBRARY
 #include <stdarg.h>
 #else
