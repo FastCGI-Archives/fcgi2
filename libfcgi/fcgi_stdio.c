@@ -22,10 +22,6 @@
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#endif
-
 #include "fcgiapp.h"
 #include "fcgios.h"
 #include "fcgimisc.h"

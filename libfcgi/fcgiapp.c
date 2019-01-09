@@ -40,10 +40,6 @@
 #include <limits.h>
 #endif
 
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#endif
-
 #include "fcgimisc.h"
 #include "fastcgi.h"
 #include "fcgios.h"
