@@ -35,7 +35,7 @@
 #include "fcgiapp.h"
 
 #ifndef DLLAPI
-#ifdef _WIN32
+#if defined (_WIN32) && defined (_MSC_VER)
 #define DLLAPI __declspec(dllimport)
 #else
 #define DLLAPI

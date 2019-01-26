@@ -18,10 +18,6 @@
 // implied; without even the implied warranty of MERCHANTABILITY or
 // FITNESS FOR A PARTICULAR PURPOSE.
 
-#ifdef _WIN32
-#define DLLAPI  __declspec(dllexport)
-#endif
-
 #include <stdio.h>
 #include <limits.h>
 #include "fcgio.h"

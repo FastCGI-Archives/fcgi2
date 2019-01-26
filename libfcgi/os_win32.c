@@ -27,8 +27,6 @@
 #include <process.h>
 #include <signal.h>
 
-#define DLLAPI  __declspec(dllexport)
-
 #include "fcgimisc.h"
 #include "fcgios.h"
 
