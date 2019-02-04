@@ -1473,6 +1473,7 @@ int OS_DoIo(struct timeval *tmo)
     struct timeb tb;
     int ms;
     int ms_last;
+    int err;
 
     /* XXX
      * We can loop in here, but not too long, as wait handlers
