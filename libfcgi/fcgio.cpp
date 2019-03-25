@@ -86,7 +86,7 @@ int fcgi_streambuf::sync()
 }
 
 // uflow() removes the char, underflow() doesn't
-int fcgi_streambuf::uflow() 
+std::basic_streambuf<char>::int_type fcgi_streambuf::uflow()
 {
     if (this->bufsize)
     {
@@ -100,7 +100,7 @@ int fcgi_streambuf::uflow()
     }
 }
 				
-int fcgi_streambuf::underflow()
+std::basic_streambuf<char>::int_type fcgi_streambuf::underflow()
 {
     if (this->bufsize)
     {

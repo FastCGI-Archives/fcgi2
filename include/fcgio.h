@@ -77,10 +77,10 @@ protected:
     virtual int sync();
 
     // Remove and return the current character.
-    virtual int uflow();
+    virtual int_type uflow();
 
     // Fill the get area (if buffered) and return the current character.
-    virtual int underflow();
+    virtual int_type underflow();
 
     // Use a buffer.  The only reasons that a buffer would be useful is
     // to support the use of the unget()/putback() or seek() methods.  Using
