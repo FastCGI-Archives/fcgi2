@@ -75,6 +75,12 @@ AC_SUBST([EXTRA_LIBS])
 
 AC_PROG_CC_WARNINGS
 
+AC_ARG_ENABLE([examples],
+  [AS_HELP_STRING([--disable-examples], [Disable examples])],
+  [enable_examples=$enableval],
+  [enable_examples=yes])
+AM_CONDITIONAL([HAVE_EXAMPLES], [test x"$enable_examples" = xyes])
+
 AC_ARG_WITH([pkgconfigdir],
   [AS_HELP_STRING([--with-pkgconfigdir=DIR], [pkgconfig files])],
   [pkgconfigdir=$withval],
