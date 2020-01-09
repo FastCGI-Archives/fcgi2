@@ -19,6 +19,7 @@ libfcgi_la_SOURCES = $(INCLUDE_FILES)  \
                      os_@SYSTEM@.c
 libfcgi_la_CC      = @PTHREAD_CC@
 libfcgi_la_CFLAGS  = @PTHREAD_CFLAGS@
+libfcgi_la_LIBADD  = -lm
 libfcgi_la_LDFLAGS = @EXTRA_LIBS@ -no-undefined
 
 libfcgi___la_SOURCES = $(INCLUDE_FILES)       \
