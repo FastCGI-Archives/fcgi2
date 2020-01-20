@@ -470,6 +470,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             specifierLength = 4;
                             break;
                         }
+                        // FALLTHROUGH
 	            case 'L':
                     case 'h':
                         sizeModifier = op;
@@ -572,6 +573,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             CopyAndAdvance(&fmtBuffPtr, &p, 2);
                             break;
                         }
+                        // FALLTHROUGH
                     case 'L':
                     case 'h':
                         sizeModifier = *p;
@@ -1714,7 +1716,7 @@ static void FillBuffProc(FCGX_Stream *stream)
         memcpy(((char *)(&header)) + headerLen, stream->rdNext, count);
         headerLen += count;
         stream->rdNext += count;
-        if(headerLen < sizeof(header)) {
+        if(headerLen < (int)sizeof(header)) {
             continue;
 	};
         headerLen = 0;

@@ -110,11 +110,13 @@ void OS_ShutdownPending()
 
 static void OS_Sigusr1Handler(int signo)
 {
+    (void)signo;
     OS_ShutdownPending();
 }
 
 static void OS_SigpipeHandler(int signo)
 {
+    (void)signo;
     ;
 }
 
@@ -166,6 +168,7 @@ static void OS_InstallSignalHandlers(int force)
  */
 int OS_LibInit(int stdioFds[3])
 {
+    (void)stdioFds;
     if(libInitialized)
         return 0;
 
@@ -247,7 +250,7 @@ static int OS_BuildSockAddrUn(const char *bindPath,
                               struct sockaddr_un *servAddrPtr,
                               int *servAddrLen)
 {
-    int bindPathLen = strlen(bindPath);
+    size_t bindPathLen = strlen(bindPath);
 
 #ifdef HAVE_SOCKADDR_UN_SUN_LEN /* 4.3BSD Reno and later: BSDI, DEC */
     if(bindPathLen >= sizeof(servAddrPtr->sun_path)) {
@@ -1038,6 +1041,8 @@ static int AcquireLock(int sock, int fail_on_intr)
     return -1;
 
 #else
+    (void)sock;
+    (void)fail_on_intr;
     return 0;
 #endif
 }
@@ -1076,6 +1081,7 @@ static int ReleaseLock(int sock)
     return -1;
 
 #else
+    (void)sock;
     return 0;
 #endif
 }
@@ -1189,7 +1195,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 #ifdef HAVE_SOCKLEN
                 socklen_t len = sizeof(sa);
 #else
-                int len = sizeof(sa);
+                unsigned int len = sizeof(sa);
 #endif
                 if (shutdownPending) break;
                 /* There's a window here */
@@ -1290,7 +1296,7 @@ int OS_IsFcgi(int sock)
 #ifdef HAVE_SOCKLEN
     socklen_t len = sizeof(sa);
 #else
-    int len = sizeof(sa);
+    unsigned int len = sizeof(sa);
 #endif
 
     errno = 0;
