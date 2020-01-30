@@ -18,6 +18,12 @@ endif
 
 include_HEADERS = fcgi_config.h
 
+man_MANS=	doc/cgi-fcgi.1             \
+		doc/FCGI_Accept.3          \
+		doc/FCGI_Finish.3          \
+		doc/FCGI_SetExitStatus.3   \
+		doc/FCGI_StartFilterData.3
+
 pkgconfigdir = @pkgconfigdir@
 pkgconfig_DATA = fcgi.pc \
                  fcgi++.pc
