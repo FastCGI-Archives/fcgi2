@@ -1290,7 +1290,7 @@ int OS_IsFcgi(int sock)
 #ifdef HAVE_SOCKLEN
     socklen_t len = sizeof(sa);
 #else
-    int len = sizeof(sa);
+    unsigned int len = sizeof(sa);
 #endif
 
     errno = 0;
