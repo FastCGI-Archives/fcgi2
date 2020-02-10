@@ -760,7 +760,7 @@ int main(int argc, char **argv)
     }
 
     if(OS_LibInit(stdinFds)) {
-        fprintf(stderr, "Error initializing OS library: %lu\n", OS_Errno);
+        fprintf(stderr, "Error initializing OS library: %lu\n", (long unsigned int)OS_Errno);
 	exit(0);
     }
 
