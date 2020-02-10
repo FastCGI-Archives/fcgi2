@@ -32,7 +32,7 @@ authorizer_SOURCES = $(INCLUDE_FILES) authorizer.c
 
 threaded_SOURCES   = $(INCLUDE_FILES) threaded.c
 threaded_CC        = @PTHREAD_CC@
-threaded_CFLAGS    = @PTHREAD_CFLAGS@ -Wno-int-to-pointer-cast
+threaded_CFLAGS    = @PTHREAD_CFLAGS@ -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast
 threaded_LDFLAGS   = @PTHREAD_CFLAGS@ @PTHREAD_LIBS@
 
 echo_cpp_SOURCES = $(INCLUDE_FILES) $(INCLUDEDIR)/fcgio.h echo-cpp.cpp
