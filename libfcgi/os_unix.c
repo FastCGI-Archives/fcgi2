@@ -250,11 +250,11 @@ static int OS_BuildSockAddrUn(const char *bindPath,
     int bindPathLen = strlen(bindPath);
 
 #ifdef HAVE_SOCKADDR_UN_SUN_LEN /* 4.3BSD Reno and later: BSDI, DEC */
-    if(bindPathLen >= sizeof(servAddrPtr->sun_path)) {
+    if(bindPathLen >= (int)sizeof(servAddrPtr->sun_path)) {
         return -1;
     }
 #else                           /* 4.3 BSD Tahoe: Solaris, HPUX, DEC, ... */
-    if(bindPathLen > sizeof(servAddrPtr->sun_path)) {
+    if(bindPathLen > (int)sizeof(servAddrPtr->sun_path)) {
         return -1;
     }
 #endif
