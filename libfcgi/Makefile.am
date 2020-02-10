@@ -1,7 +1,7 @@
 # $Id: Makefile.am,v 1.9 2001/12/22 03:16:20 robs Exp $
 
 INCLUDEDIR  = ../include
-AM_CPPFLAGS = -I$(top_srcdir)/include -W -Wall -pedantic -Wunused-parameter
+AM_CPPFLAGS = -I$(top_srcdir)/include -W -Wall -pedantic -Wno-unused-parameter
 
 INCLUDE_FILES = $(INCLUDEDIR)/fastcgi.h     \
                 $(INCLUDEDIR)/fcgiapp.h     \
