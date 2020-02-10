@@ -1714,7 +1714,7 @@ static void FillBuffProc(FCGX_Stream *stream)
         memcpy(((char *)(&header)) + headerLen, stream->rdNext, count);
         headerLen += count;
         stream->rdNext += count;
-        if(headerLen < sizeof(header)) {
+        if(headerLen < (int)sizeof(header)) {
             continue;
 	};
         headerLen = 0;
