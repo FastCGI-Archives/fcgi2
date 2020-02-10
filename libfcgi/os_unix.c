@@ -1189,7 +1189,7 @@ int OS_Accept(int listen_sock, int fail_on_intr, const char *webServerAddrs)
 #ifdef HAVE_SOCKLEN
                 socklen_t len = sizeof(sa);
 #else
-                int len = sizeof(sa);
+                unsigned int len = sizeof(sa);
 #endif
                 if (shutdownPending) break;
                 /* There's a window here */
