@@ -1474,13 +1474,14 @@ static void EmptyBuffProc(struct FCGX_Stream *stream, int doClose)
 static int ProcessManagementRecord(int type, FCGX_Stream *stream)
 {
     FCGX_Stream_Data *data = (FCGX_Stream_Data *)stream->data;
-    ParamsPtr paramsPtr = NewParams(3);
+    ParamsPtr paramsPtr;
     char **pPtr;
     char response[64]; /* 64 = 8 + 3*(1+1+14+1)* + padding */
     char *responseP = &response[FCGI_HEADER_LEN];
     char *name, value = '\0';
     int len, paddedLen;
     if(type == FCGI_GET_VALUES) {
+        paramsPtr = NewParams(3);
         ReadParams(paramsPtr, stream);
         if((FCGX_GetError(stream) != 0) || (data->contentLen != 0)) {
             FreeParams(&paramsPtr);
