@@ -145,6 +145,26 @@ DLLAPI int FCGX_Init(void);
 /*
  *----------------------------------------------------------------------
  *
+ * FCGX_InitS --
+ *
+ *      Initialize the FCGX library whith creation of a FastCGI
+ *      socket. Call in multi-threaded apps before calling
+ *      FCGX_Accept_r().
+ *
+ *	path is the Unix domain socket (named pipe for WinNT), or a colon
+ *	followed by a port number.  e.g. "/tmp/fastcgi/mysocket", ":5000"
+ *
+ *	backlog is the listen queue depth used in the listen() call.
+ *
+ *      Returns 0 upon success.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI int FCGX_InitS(const char * socket_path, int backlog);
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FCGX_OpenSocket --
  *
  *	Create a FastCGI listen socket.
@@ -293,6 +313,28 @@ DLLAPI int FCGX_Accept(
  *----------------------------------------------------------------------
  */
 DLLAPI void FCGX_Finish(void);
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_Finish --
+ *
+ *      Finish the current request (NOT multi-thread safe) and close
+ *      the FastCGI socket.
+ *
+ * Side effects:
+ *
+ *      Finishes the request accepted by (and frees any
+ *      storage allocated by) the previous call to FCGX_Accept.
+ *
+ *      DO NOT retain pointers to the envp array or any strings
+ *      contained in it (e.g. to the result of calling FCGX_GetParam),
+ *      since these will be freed by the next call to FCGX_Finish
+ *      or FCGX_Accept.
+ *
+ *----------------------------------------------------------------------
+ */
+DLLAPI void FCGX_FinishS(void);
 
 /*
  *----------------------------------------------------------------------

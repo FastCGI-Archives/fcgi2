@@ -2,6 +2,7 @@ authorizer
 size
 echo
 echo-x
+echo-x-socket
 log-dump
 threaded
 echo-cpp
