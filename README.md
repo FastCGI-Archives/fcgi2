@@ -15,23 +15,23 @@ Documentations
 Basic Directions
 ----------------
 
-Requires: 
+#### *Requires:*
 
 You need to install gcc, gnu make, m4, aclocal, autoconf, automake and libtool packages.
     
-Example on ubuntu :
+#### *Example on ubuntu :*
 ```
 # apt install gcc make m4 autoconf automake libtool
 ```
 
-Unix:
+#### *Unix:*
 
     ./autogen.sh
     ./configure
     make
     make install
 
-Win32:
+#### *Win32:*
 
     nmake -f Makefile.nt
 
