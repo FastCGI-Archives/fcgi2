@@ -15,6 +15,15 @@ Documentations
 Basic Directions
 ----------------
 
+Requires: 
+
+    You need to install gcc, gnu make, m4, aclocal, autoconf, automake and libtool packages.
+    
+    Example on ubuntu :
+    ```
+    # apt install gcc make m4 autoconf automake libtool
+    ```
+
 Unix:
 
     ./autogen.sh
