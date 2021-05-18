@@ -1,0 +1,30 @@
+To use, call your cgi-fcgi -start -connect $host:$port script with
+the -supervise option, like:
+
+cgi-fcgi -start -supervise -connect 127.0.0.1:1791 /path/to/dispatch.fcgi
+
+Full Supervise run script becomes
+
+    #!/bin/sh
+    RAIL_NUMBER=$(basename $PWD|awk -F'-' '{print $2}')
+    RAILS_HOST=$(<env/RAILS_HOST)
+    RAILS_ROOT=$(<env/RAILS_ROOT)
+    RAILS_PORT=179$RAIL_NUMBER
+    exec envdir ./env \
+      cgi-fcgi -supervise -start -connect \
+      $RAILS_HOST:$RAILS_PORT \
+      $RAILS_ROOT/public/dispatch.fcgi
+
+This would be in a script called ‘run’ in your ~/service/someapp-$RAIL_NUMBER
+directory, where $RAIL_NUMBER is 1-99. The references to ./env require a
+directory named ‘env’ to be set up in the same directory as the run script.
+This should have at least 3 files in it:
+
+RAILS_ROOT => contains one line that is the full path to your rails root directory.
+RAILS_ENV => contains one word, either ‘production’ or ‘development’
+RAILS_HOST => contains one IP address or FQDN
+
+You can set any other environment variables in this way by simply creating a
+file with the variable name and its contents will become the value of that
+environment variable. Because of the envdir ./env call before the cgi-fcgi
+call, your rails application has access to any variables set in this way.
