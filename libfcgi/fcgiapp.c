@@ -1983,6 +1983,33 @@ int FCGX_IsCGI(void)
 /*
  *----------------------------------------------------------------------
  *
+ * FCGX_FinishS --
+ *
+ *      Finishes the current request from the HTTP server and close
+ *      the FastCGI socket.
+ *
+ * Side effects:
+ *
+ *      Finishes the request accepted by (and frees any
+ *      storage allocated by) the previous call to FCGX_Accept.
+ *
+ *      DO NOT retain pointers to the envp array or any strings
+ *      contained in it (e.g. to the result of calling FCGX_GetParam),
+ *      since these will be freed by the next call to FCGX_Finish
+ *      or FCGX_Accept.
+ *
+ *----------------------------------------------------------------------
+ */
+
+void FCGX_FinishS(void)
+{
+    OS_CloseLocalIpcFd(the_request.listen_sock);
+    FCGX_Finish_r(&the_request);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
  * FCGX_Finish --
  *
  *      Finishes the current request from the HTTP server.
@@ -2109,6 +2136,51 @@ int FCGX_Init(void)
     }
 
     FCGX_InitRequest(&the_request, FCGI_LISTENSOCK_FILENO, 0);
+
+    if (OS_LibInit(NULL) == -1) {
+        return OS_Errno ? OS_Errno : -9997;
+    }
+
+    p = getenv("FCGI_WEB_SERVER_ADDRS");
+    webServerAddressList = p ? StringCopy(p) : NULL;
+
+    libInitialized = 1;
+    return 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * FCGX_InitS --
+ *
+ *      Initialize the FCGX library with creation of a FastCGI socket.
+ *      This is called by FCGX_Accept() but must be called by the user
+ *      when using FCGX_Accept_r().
+ *
+ *	path is the Unix domain socket (named pipe for WinNT), or a colon
+ *	followed by a port number.  e.g. "/tmp/fastcgi/mysocket", ":5000"
+ *
+ *	backlog is the listen queue depth used in the listen() call.
+ *
+ * Results:
+ *	    0 for successful call.
+ *
+ *----------------------------------------------------------------------
+ */
+int FCGX_InitS(const char * socket_path, int backlog)
+{
+    char *p;
+
+    if (libInitialized) {
+        return 0;
+    }
+
+    int socketfd = FCGX_OpenSocket(socket_path, backlog);
+    if (socketfd == -1) {
+        return -1;
+    }
+
+    FCGX_InitRequest(&the_request, socketfd, 0);
 
     if (OS_LibInit(NULL) == -1) {
         return OS_Errno ? OS_Errno : -9997;
