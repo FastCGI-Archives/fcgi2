@@ -99,10 +99,7 @@ if ($pure) {
 # the contents of the Makefile that is written.
 
 # Work around bug in previous versions of MakeMaker
-WriteMakefile(NAME => 'FCGI') 
-    if $ExtUtils::MakeMaker::VERSION <= 5.4302;
-
-$mm = MM->new({
+WriteMakefile(
     'NAME'		=> 'FCGI',
     'VERSION_FROM'	=> 'version.pm',
     'dist'		=> { 'COMPRESS' => 'gzip -9f', 
@@ -123,10 +120,7 @@ $mm = MM->new({
     'PL_FILES'		=> $plfiles,
     PM			=> {'FCGI.pm' => '$(INST_ARCHLIBDIR)/FCGI.pm'},
     @extras,
-});
-# don't install oldinterface pod
-delete $mm->{MAN3PODS}{oldinterface.pod};
-$mm->flush;
+);
 
 exit if -f 'fcgi_config.h' or $libfound or $pure;
 
