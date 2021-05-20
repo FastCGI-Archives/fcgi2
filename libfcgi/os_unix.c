@@ -261,6 +261,9 @@ static int OS_BuildSockAddrUn(const char *bindPath,
     memset((char *) servAddrPtr, 0, sizeof(*servAddrPtr));
     servAddrPtr->sun_family = AF_UNIX;
     memcpy(servAddrPtr->sun_path, bindPath, bindPathLen);
+    if (servAddrPtr->sun_path[0] == '*') { // abstract socket address
+        servAddrPtr->sun_path[0] = '\0';
+    }
 #ifdef HAVE_SOCKADDR_UN_SUN_LEN /* 4.3BSD Reno and later: BSDI, DEC */
     *servAddrLen = sizeof(servAddrPtr->sun_len)
             + sizeof(servAddrPtr->sun_family)
