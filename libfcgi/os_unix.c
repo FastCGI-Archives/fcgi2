@@ -390,6 +390,21 @@ int OS_CreateLocalIpcFd(const char *bindPath, int backlog)
 }
 
 /*
+ * OS_CloseLocalIpcFd --
+ *
+ * Close the listener socket opened with OS_CreateLocalIpcFd
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+void OS_CloseLocalIpcFd(int listenSock)
+{
+    close(listenSock);
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * OS_FcgiConnect --
