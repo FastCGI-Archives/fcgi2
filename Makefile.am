@@ -6,9 +6,9 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-DISTCLEANFILES= compile config.guess config.sub configure depcomp fcgi_config.h.in fcgi_config.h.in~ \
+DISTCLEANFILES= compile config.guess config.sub configure configure~ depcomp fcgi_config.h.in fcgi_config.h.in~ \
 		aclocal.m4 m4/libtool.m4 m4/lt*.m4 Makefile.in install-sh missing ltmain.sh \
-		COPYING INSTALL
+		COPYING INSTALL fcgi-*.tar.gz
 
 SUBDIRS = libfcgi cgi-fcgi include
 
@@ -53,22 +53,22 @@ EXTRA_DIST = LICENSE              \
              java/FCGIRequest.java      \
              libfcgi/os_unix.c          \
              libfcgi/os_win32.c         \
-             perl/ChangeLog             \
-             perl/FCGI.PL               \
-             perl/FCGI.XL               \
-             perl/MANIFEST              \
-             perl/Makefile.PL           \
-             perl/README                \
-             perl/aclocal.m4            \
-             perl/configure             \
-             perl/configure.in          \
-             perl/echo.PL               \
-             perl/fcgi_config.h.in      \
-             perl/oldinterface.pod      \
-             perl/remote.PL             \
-             perl/threaded.PL           \
-             perl/typemap               \
-             perl/version.pm            \
+	     perl/eg/echo.pl \
+	     perl/eg/remote.pl \
+	     perl/eg/threaded.pl \
+	     perl/README \
+	     perl/ChangeLog \
+	     perl/t/02-unix_domain_socket.t \
+	     perl/t/01-load.t \
+	     perl/FCGI.pm \
+	     perl/Makefile.PL \
+	     perl/MANIFEST \
+	     perl/MANIFEST.SKIP \
+	     perl/configure.in \
+	     perl/distrib \
+	     perl/configure.readme \
+	     perl/typemap \
+	     perl/FCGI.xs \
              Win32/FastCGI.dsw          \
              Win32/authorizer.dsp       \
              Win32/cgifcgi.dsp          \
