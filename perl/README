@@ -24,8 +24,11 @@ about fastcgi programming.
 
 See echo.fpl for an example on how to use this module.
 
-To install, do the usual
+You need to install gcc, gnu make, m4, aclocal, autoconf, automake and libtool packages.
 
+And to install, do the usual
+
+./distrib
 perl Makefile.PL
 make
 make install
