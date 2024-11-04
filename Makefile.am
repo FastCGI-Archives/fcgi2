@@ -28,7 +28,7 @@ pkgconfigdir = @pkgconfigdir@
 pkgconfig_DATA = fcgi.pc \
                  fcgi++.pc
 
-EXTRA_DIST = LICENSE.TERMS              \
+EXTRA_DIST = LICENSE              \
              Makefile.nt                \
              cgi-fcgi/cgi-fcgi.mak      \
              examples/authorizer.mak    \

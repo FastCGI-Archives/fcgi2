@@ -7,7 +7,7 @@
  *
  *  Copyright (c) 1996 Open Market, Inc.
  *
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * $Id: FCGIInterface.java,v 1.4 2000/03/27 15:37:25 robs Exp $

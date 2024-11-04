@@ -4,7 +4,7 @@ FastCGI Developer's Kit
 -----------------------
 
 Copyright (c) 1996 Open Market, Inc.
-See the file "[LICENSE.TERMS](LICENSE.TERMS)" for information on usage and redistribution
+See the file "[LICENSE](LICENSE)" for information on usage and redistribution
 of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 
 Documentations

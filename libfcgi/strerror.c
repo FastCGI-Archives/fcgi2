@@ -1,5 +1,5 @@
 /*
- * The terms in the file "LICENSE.TERMS" do not apply to this file.
+ * The terms in the file "LICENSE" do not apply to this file.
  * See terms below.
  *
  * Copyright (c) 1988 Regents of the University of California.

@@ -4,7 +4,7 @@
  * FastCGI example Authorizer program using fcgi_stdio library
  *
  * Copyright (c) 1996 Open Market, Inc.
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * $Id: authorizer.c,v 1.1 2001/06/19 15:30:02 robs Exp $

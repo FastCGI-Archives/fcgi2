@@ -6,7 +6,7 @@
  *
  * Copyright (c) 1996 Open Market, Inc.
  *
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * $Id: fcgiapp.h,v 1.14 2003/06/22 00:16:44 robs Exp $

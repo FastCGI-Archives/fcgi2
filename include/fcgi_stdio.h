@@ -6,7 +6,7 @@
  *
  * Copyright (c) 1996 Open Market, Inc.
  *
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * $Id: fcgi_stdio.h,v 1.5 2001/06/22 13:21:15 robs Exp $
