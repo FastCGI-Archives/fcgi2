@@ -131,7 +131,7 @@ WriteMakefile(
                   'POSTOP' => 
                 '$(MV) MANIFEST.old MANIFEST',
     },
-    'clean'        => { FILES => 'config.cache fcgi_config.h fcgi_config.h.in' .
+    'clean'        => { FILES => 'config.cache fcgi_config.h configure~ fcgi_config.h.in fcgi_config.h.in~' .
                       ' FCGI.c aclocal.m4 autom4te.cache config.log config.status' .
                       ' FCGI.cfg' },
     'realclean'    => { FILES => 'configure MANIFEST.SKIP.bak MANIFEST.bak Makefile.old' },

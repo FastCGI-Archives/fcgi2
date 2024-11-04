@@ -8,6 +8,11 @@ AC_INIT
 
 AM_CONFIG_HEADER([fcgi_config.h])
 
+AC_CHECK_LIB([nsl],       [gethostbyname])
+AC_CHECK_LIB([socket],    [socket]) 
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_HEADERS([netdb.h])
+
 AC_PROG_CC
 AC_PROG_CPP 
 
