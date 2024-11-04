@@ -1,6 +1,6 @@
 ChangeLog
 configure
-configure.in
+configure.ac
 configure.readme
 eg/echo.pl
 eg/remote.pl
