@@ -1,24 +1,17 @@
-use Config;
+#!/usr/bin/perl
 
-open OUT, ">echo.fpl";
-print OUT "#!$Config{perlpath}\n";
-print OUT while <DATA>;
-close OUT;
-chmod 0755, "echo.fpl";
-__END__
-#
 #  echo-perl --
 # 
 # 	Produce a page containing all FastCGI inputs
 # 
 # Copyright (c) 1996 Open Market, Inc.
 #
-# See the file "LICENSE.TERMS" for information on usage and redistribution
+# See the file "LICENSE" for information on usage and redistribution
 # of this file, and for a DISCLAIMER OF ALL WARRANTIES.
 # 
 #  $Id: echo.PL,v 1.2 2000/12/14 13:46:23 skimo Exp $
 #
-# Changed by skimo to demonstrate autoflushing 1997/02/19
+# Changed by skimo to demostrate autoflushing 1997/02/19
 #
 
 use FCGI;

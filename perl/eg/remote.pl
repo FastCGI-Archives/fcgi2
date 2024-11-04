@@ -1,11 +1,4 @@
-use Config;
-
-open OUT, ">remote.fpl";
-print OUT "#!$Config{perlpath}\n";
-print OUT while <DATA>;
-close OUT;
-chmod 0755, "remote.fpl";
-__END__
+#!/usr/bin/perl
 # An example of using a remote script with an Apache webserver.
 # Run this Perl program on "otherhost" to bind port 8888 and wait
 # for FCGI requests from the webserver.

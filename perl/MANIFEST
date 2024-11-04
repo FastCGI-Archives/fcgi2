@@ -1,16 +1,17 @@
 ChangeLog
-FCGI.PL
-FCGI.XL
-MANIFEST
-Makefile.PL
-README
 configure
 configure.in
 configure.readme
-echo.PL
+eg/echo.pl
+eg/remote.pl
+eg/threaded.pl
+FCGI.pm
+FCGI.xs
 fcgi_config.h.in
-remote.PL
-test.pl
-threaded.PL
+Makefile.PL
+MANIFEST			This list of files
+MANIFEST.SKIP
+README
+t/01-load.t
+t/02-unix_domain_socket.t
 typemap
-version.pm
