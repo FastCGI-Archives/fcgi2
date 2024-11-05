@@ -1,10 +1,8 @@
 name: Build CI
 
 on:
-  push:
-    branches: [ perl-FCGI-merge ]
-  pull_request:
-    branches: [ perl-FCGI-merge ]
+  push: {}
+  pull_request: {}
 
 jobs:
   build-linux:
