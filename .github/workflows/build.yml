@@ -22,8 +22,9 @@ jobs:
       run: ./configure
     - name: libfcgi - make
       run: make
-    - name: perl module - distrib and perl Makefile.PL
+    - name: perl module - go to perl directory
       run: cd perl
+    - name: perl module - distrib and perl Makefile.PL
       run: ./distrib && perl Makefile.PL
     - name: perl module - make
       run: make
