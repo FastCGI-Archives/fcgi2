@@ -789,11 +789,11 @@ int main(int argc, char **argv)
         bytesToRead = 0;
     }
 
+#ifndef _WIN32
     /* Become a process group leader */
     setsid();
 
     /* Register our signal handler */
-#ifndef _WIN32
     signal(SIGHUP, handle_shutdown);
 #endif
     signal(SIGINT, handle_shutdown);
@@ -805,13 +805,17 @@ int main(int argc, char **argv)
     if(doStart && (!doBind || appServerSock < 0)) {
         FCGI_Start(bindPath, appPath, nServers);
         if(!doBind) {
+#ifndef _WIN32
             if(!doDaemon) {
                 for(pid=nServers; pid != 0; pid--) {
                     wait(0);
                 }
             }
+#endif
             signal(SIGTERM, SIG_IGN);
+#ifndef _WIN32
             kill(0, SIGTERM);
+#endif
             exit(0);
         } else {
             appServerSock = OS_FcgiConnect(bindPath);
