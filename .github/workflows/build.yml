@@ -2,9 +2,9 @@ name: Linux Build CI
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ perl-FCGI-merge ]
   pull_request:
-    branches: [ $default-branch ]
+    branches: [ perl-FCGI-merge ]
 
 jobs:
   build:
