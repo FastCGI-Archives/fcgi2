@@ -44,6 +44,6 @@ jobs:
     - uses: actions/checkout@v4
     - uses: ilammy/msvc-dev-cmd@v1
       with:
-	arch: ${{ matrix.arch }}
+        arch: ${{ matrix.arch }}
     - name: build with nmake
       run: nmake -f Makefile.nt
