@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/FastCGI-Archives/fcgi2.svg?style=svg)](https://circleci.com/gh/FastCGI-Archives/fcgi2)
+![Github Actions Build](https://github.com/FastCGI-Archives/fcgi2/actions/workflows/build.yml/badge.svg)
 
 FastCGI Developer's Kit
 -----------------------
