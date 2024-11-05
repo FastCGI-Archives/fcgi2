@@ -31,7 +31,8 @@ jobs:
     - name: perl module - make test 
       working-directory: perl
       run: make test
-  build-linux:
+
+  build-windows:
     runs-on: windows-2022
 
     defaults:
@@ -40,18 +41,5 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: libfcgi - autogen.sh 
-      run: ./autogen.sh
-    - name: libfcgi-configure
-      run: ./configure
-    - name: libfcgi - make
-      run: make
-    - name: perl module - distrib and perl Makefile.PL
-      working-directory: perl
-      run: ./distrib && perl Makefile.PL
-    - name: perl module - make
-      working-directory: perl
-      run: make
-    - name: perl module - make test 
-      working-directory: perl
-      run: make test
+    - name: build with nmake
+      run: nmake -f Makefile.nt
