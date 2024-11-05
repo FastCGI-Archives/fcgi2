@@ -5,10 +5,8 @@
  *  Copyright (c) 1995 Open Market, Inc.
  *  All rights reserved.
  *
- *  This file contains proprietary and confidential information and
- *  remains the unpublished property of Open Market, Inc. Use,
- *  disclosure, or reproduction is prohibited except as permitted by
- *  express written license agreement with Open Market, Inc.
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  *  Bill Snapper
  *  snapper@openmarket.com
