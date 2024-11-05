@@ -744,7 +744,9 @@ void handle_shutdown(int s)
 {
     /* Kill our children processes */
     signal(s, SIG_IGN);
+#ifndef _WIN32
     kill(0, s);
+#endif
 
     exit(0);
 }
