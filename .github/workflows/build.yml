@@ -34,11 +34,16 @@ jobs:
 
   build-windows:
     runs-on: windows-2022
+    strategy:
+      matrix:
+        arch:
+          - x86
+          - amd64_x86
 
     steps:
     - uses: actions/checkout@v4
     - uses: ilammy/msvc-dev-cmd@v1
       with:
-	arch: x86
+	arch: ${{ matrix.arch }}
     - name: build with nmake
       run: nmake -f Makefile.nt
