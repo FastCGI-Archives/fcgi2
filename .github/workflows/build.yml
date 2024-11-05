@@ -1,4 +1,4 @@
-name: Linux Build CI
+name: Build CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ perl-FCGI-merge ]
 
 jobs:
-  build:
+  build-linux:
 
     runs-on: ubuntu-latest
     container: ubuntu:24.04
@@ -16,6 +16,30 @@ jobs:
     - uses: actions/checkout@v4
     - name: setup os 
       run: apt-get update && apt-get -y install libfcgi-client-perl autoconf automake libtool make gcc make m4 g++
+    - name: libfcgi - autogen.sh 
+      run: ./autogen.sh
+    - name: libfcgi-configure
+      run: ./configure
+    - name: libfcgi - make
+      run: make
+    - name: perl module - distrib and perl Makefile.PL
+      working-directory: perl
+      run: ./distrib && perl Makefile.PL
+    - name: perl module - make
+      working-directory: perl
+      run: make
+    - name: perl module - make test 
+      working-directory: perl
+      run: make test
+  build-linux:
+    runs-on: windows-2022
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    - uses: actions/checkout@v4
     - name: libfcgi - autogen.sh 
       run: ./autogen.sh
     - name: libfcgi-configure
