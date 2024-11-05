@@ -16,16 +16,16 @@ jobs:
     - uses: actions/checkout@v4
     - name: setup os 
       run: apt-get update && apt-get -y install libfcgi-client-perl autoconf automake libtool make gcc make m4 g++
-    - name: libfcgi: autogen.sh 
+    - name: libfcgi\: autogen.sh 
       run: ./autogen.sh
-    - name: libfcgi: configure
+    - name: libfcgi\: configure
       run: ./configure
     - name: libfcgi: make
       run: make
-    - name: perl module : distrib and perl Makefile.PL
+    - name: perl module \: distrib and perl Makefile.PL
       run: cd perl
       run: ./distrib && perl Makefile.PL
-    - name: perl module : make
+    - name: perl module \: make
       run: make
-    - name: perl module : make test 
+    - name: perl module \: make test 
       run: make
