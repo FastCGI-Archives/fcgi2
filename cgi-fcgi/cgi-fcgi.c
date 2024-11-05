@@ -793,7 +793,9 @@ int main(int argc, char **argv)
     setsid();
 
     /* Register our signal handler */
+#ifndef _WIN32
     signal(SIGHUP, handle_shutdown);
+#endif
     signal(SIGINT, handle_shutdown);
     signal(SIGTERM, handle_shutdown);
 
