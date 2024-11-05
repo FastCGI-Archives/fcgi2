@@ -38,6 +38,7 @@ jobs:
       matrix:
         arch:
           - x86
+          - amd64
 
     steps:
     - uses: actions/checkout@v4
