@@ -84,7 +84,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\size.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /machine:IX86 /out:"$(OUTDIR)\size.exe" /libpath:"..\libfcgi\Release" 
+LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /out:"$(OUTDIR)\size.exe" /libpath:"..\libfcgi\Release" 
 LINK32_OBJS= \
 	"$(INTDIR)\size.obj" \
 	"..\libfcgi\Release\libfcgi.lib"
@@ -162,7 +162,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /machine:IX86 /out:"$(OUTDIR)\size.exe" /libpath:"..\libfcgi\Debug" 
+LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /out:"$(OUTDIR)\size.exe" /libpath:"..\libfcgi\Debug" 
 LINK32_OBJS= \
 	"$(INTDIR)\size.obj" \
 	"..\libfcgi\Debug\libfcgi.lib"

@@ -84,7 +84,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\echox.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /machine:IX86 /out:"$(OUTDIR)\echo-x.exe" /libpath:"..\libfcgi\Release" 
+LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /out:"$(OUTDIR)\echo-x.exe" /libpath:"..\libfcgi\Release" 
 LINK32_OBJS= \
 	"$(INTDIR)\echo-x.obj" \
 	"..\libfcgi\Release\libfcgi.lib"
@@ -162,7 +162,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /machine:IX86 /out:"$(OUTDIR)\echo-x.exe" /libpath:"..\libfcgi\Debug" 
+LINK32_FLAGS=libfcgi.lib /nologo /profile /debug  /out:"$(OUTDIR)\echo-x.exe" /libpath:"..\libfcgi\Debug" 
 LINK32_OBJS= \
 	"$(INTDIR)\echo-x.obj" \
 	"..\libfcgi\Debug\libfcgi.lib"

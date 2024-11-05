@@ -84,7 +84,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\authorizer.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /machine:IX86 /out:"$(OUTDIR)\authorizer.exe" /libpath:"..\libfcgi\Release" 
+LINK32_FLAGS=libfcgi.lib /nologo /pdb:none  /out:"$(OUTDIR)\authorizer.exe" /libpath:"..\libfcgi\Release" 
 LINK32_OBJS= \
 	"$(INTDIR)\authorizer.obj" \
 	"..\libfcgi\Release\libfcgi.lib"
@@ -162,7 +162,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /machine:IX86 /out:"$(OUTDIR)\authorizer.exe" /libpath:"..\libfcgi\Debug" 
+LINK32_FLAGS=libfcgi.lib /nologo /profile /debug  /out:"$(OUTDIR)\authorizer.exe" /libpath:"..\libfcgi\Debug" 
 LINK32_OBJS= \
 	"$(INTDIR)\authorizer.obj" \
 	"..\libfcgi\Debug\libfcgi.lib"
