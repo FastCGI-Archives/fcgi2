@@ -84,7 +84,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\echo-cpp.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /machine:IX86 /out:"$(OUTDIR)\echo-cpp.exe" /libpath:"..\libfcgi\Release" 
+LINK32_FLAGS=libfcgi.lib /nologo /pdb:none /out:"$(OUTDIR)\echo-cpp.exe" /libpath:"..\libfcgi\Release" 
 LINK32_OBJS= \
 	"$(INTDIR)\echo-cpp.obj"
 
@@ -162,7 +162,7 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /machine:IX86 /out:"$(OUTDIR)\echo-cpp.exe" /libpath:"..\libfcgi\Debug" 
+LINK32_FLAGS=libfcgi.lib /nologo /profile /debug /out:"$(OUTDIR)\echo-cpp.exe" /libpath:"..\libfcgi\Debug" 
 LINK32_OBJS= \
 	"$(INTDIR)\echo-cpp.obj"
 

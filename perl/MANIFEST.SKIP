@@ -1,0 +1,15 @@
+#!include_default
+^\.
+\.bs$
+\.c$
+\.o$
+^FCGI-
+^FCGI\.cfg$
+^aclocal\.m4$
+^autom4te\.cache
+^config\.
+^config\.log$
+^config\.status$
+^distrib$
+^fcgi_config\.h$
+!^fcgi_config\.h\.in$

@@ -11,3 +11,4 @@ fcgi_config_x86.h
 Makefile
 config.log
 config.status
+MYMETA.*

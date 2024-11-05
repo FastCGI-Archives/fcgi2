@@ -6,7 +6,7 @@
  *
  * Copyright (c) 1996 Open Market, Inc.
  *
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * $Id: fcgimisc.h,v 1.3 2001/06/18 14:25:47 robs Exp $

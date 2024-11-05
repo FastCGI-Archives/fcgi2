@@ -6,7 +6,7 @@
  *
  * Copyright (c) 1996 Open Market, Inc.
  *
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
@@ -18,7 +18,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef _WIN32
 #include <sys/wait.h>
+#endif
 #include <signal.h>
 
 #include "fcgi_config.h"
@@ -742,7 +744,9 @@ void handle_shutdown(int s)
 {
     /* Kill our children processes */
     signal(s, SIG_IGN);
+#ifndef _WIN32
     kill(0, s);
+#endif
 
     exit(0);
 }
@@ -787,11 +791,13 @@ int main(int argc, char **argv)
         bytesToRead = 0;
     }
 
+#ifndef _WIN32
     /* Become a process group leader */
     setsid();
 
     /* Register our signal handler */
     signal(SIGHUP, handle_shutdown);
+#endif
     signal(SIGINT, handle_shutdown);
     signal(SIGTERM, handle_shutdown);
 
@@ -801,13 +807,17 @@ int main(int argc, char **argv)
     if(doStart && (!doBind || appServerSock < 0)) {
         FCGI_Start(bindPath, appPath, nServers);
         if(!doBind) {
+#ifndef _WIN32
             if(!doDaemon) {
                 for(pid=nServers; pid != 0; pid--) {
                     wait(0);
                 }
             }
+#endif
             signal(SIGTERM, SIG_IGN);
+#ifndef _WIN32
             kill(0, SIGTERM);
+#endif
             exit(0);
         } else {
             appServerSock = OS_FcgiConnect(bindPath);

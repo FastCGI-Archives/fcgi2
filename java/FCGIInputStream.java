@@ -6,7 +6,7 @@
  *
  *  Copyright (c) 1996 Open Market, Inc.
  *
- * See the file "LICENSE.TERMS" for information on usage and redistribution
+ * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  * $Id: FCGIInputStream.java,v 1.4 2000/03/21 12:12:25 robs Exp $
