@@ -468,8 +468,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             fmtBuff[3] = (char) op;
                             fmtBuff[4] = '\0';
                             specifierLength = 4;
+                            break;
                         }
-			break;
 	            case 'L':
                     case 'h':
                         sizeModifier = op;
@@ -570,8 +570,8 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                         if(*p == 'l' && *(p + 1) == 'l') {
                             sizeModifier = 'L';
                             CopyAndAdvance(&fmtBuffPtr, &p, 2);
+                            break;
                         }
-                        break;
                     case 'L':
                     case 'h':
                         sizeModifier = *p;
