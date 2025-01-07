@@ -470,6 +470,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             specifierLength = 4;
                             break;
                         }
+                        /* fall through */
 	            case 'L':
                     case 'h':
                         sizeModifier = op;
@@ -572,6 +573,7 @@ int FCGX_VFPrintF(FCGX_Stream *stream, const char *format, va_list arg)
                             CopyAndAdvance(&fmtBuffPtr, &p, 2);
                             break;
                         }
+                        /* fall through */
                     case 'L':
                     case 'h':
                         sizeModifier = *p;
