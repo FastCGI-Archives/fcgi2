@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 
@@ -1188,6 +1189,16 @@ static int ReadParams(Params *paramsPtr, FCGX_Stream *stream)
             valueLen = ((valueLen & 0x7f) << 24) + (lenBuff[0] << 16)
                     + (lenBuff[1] << 8) + lenBuff[2];
         }
+	/* Check that nameLen and valueLen are not negative */
+	if (nameLen < 0 || valueLen < 0) {
+	    SetError(stream, FCGX_PARAMS_ERROR);
+	    return -1;
+	}
+	/* Check for integer overflow in the allocation size calculation */
+	if (nameLen > INT_MAX - valueLen - 2) {
+	    SetError(stream, FCGX_PARAMS_ERROR);
+	    return -1;
+	}
         /*
          * nameLen and valueLen are now valid; read the name and value
          * from stream and construct a standard environment entry.
