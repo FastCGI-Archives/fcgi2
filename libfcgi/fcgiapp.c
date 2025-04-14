@@ -1175,6 +1175,10 @@ static int ReadParams(Params *paramsPtr, FCGX_Stream *stream)
 	    }
             nameLen = ((nameLen & 0x7f) << 24) + (lenBuff[0] << 16)
                     + (lenBuff[1] << 8) + lenBuff[2];
+	    if (nameLen >= INT_MAX) {
+                SetError(stream, FCGX_PARAMS_ERROR);
+                return -1;
+	    }
         }
         if((valueLen = FCGX_GetChar(stream)) == EOF) {
             SetError(stream, FCGX_PARAMS_ERROR);
@@ -1187,6 +1191,10 @@ static int ReadParams(Params *paramsPtr, FCGX_Stream *stream)
 	    }
             valueLen = ((valueLen & 0x7f) << 24) + (lenBuff[0] << 16)
                     + (lenBuff[1] << 8) + lenBuff[2];
+	    if (valueLen >= INT_MAX) {
+                SetError(stream, FCGX_PARAMS_ERROR);
+                return -1;
+	    }
         }
         /*
          * nameLen and valueLen are now valid; read the name and value
