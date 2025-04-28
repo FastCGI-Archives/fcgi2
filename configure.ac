@@ -4,7 +4,7 @@ dnl     This file is an input file used by the GNU "autoconf" program to
 dnl     generate the file "configure", which is run during the build
 dnl     to configure the system for the local environment.
 
-AC_INIT([fcgi], [2.4.3])
+AC_INIT([fcgi], [2.4.6])
 AM_INIT_AUTOMAKE([1.11 foreign])
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(fcgi_config.h)
