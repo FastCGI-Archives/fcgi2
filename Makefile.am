@@ -34,6 +34,7 @@ EXTRA_DIST = LICENSE              \
              examples/authorizer.mak    \
              examples/echo.mak          \
              examples/echox.mak         \
+             examples/echoxsocket.mak   \
              examples/size.mak          \
              examples/echo-cpp.mak      \
              libfcgi/libfcgi.mak        \

@@ -3,6 +3,7 @@
 noinst_PROGRAMS     = authorizer        \
                       echo              \
                       echo-x            \
+                      echo-x-socket     \
                       log-dump          \
                       size              \
                       @THREADED@        \
@@ -27,6 +28,7 @@ LDADD = $(LIBFCGI)
 
 echo_SOURCES       = $(INCLUDE_FILES) echo.c
 echo_x_SOURCES     = $(INCLUDE_FILES) echo-x.c
+echo_x_socket_SOURCES = $(INCLUDE_FILES) echo-x-socket.c
 log_dump_SOURCES   = $(INCLUDE_FILES) log-dump.c
 authorizer_SOURCES = $(INCLUDE_FILES) authorizer.c
 
