@@ -6,7 +6,6 @@ dnl     to configure the system for the local environment.
 
 AC_INIT([fcgi], [2.4.7])
 AM_INIT_AUTOMAKE([1.11 foreign])
-AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(fcgi_config.h)
 
 LT_INIT([win32-dll])
